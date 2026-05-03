@@ -1,0 +1,335 @@
+====================================================
+  ANFRAGE (ЗАЯВКА) — ПОЛНЫЙ СПИСОК ПОЛЕЙ
+  LEA CRM / Mobile App
+====================================================
+
+----------------------------------------------------
+БЛОК 1: ИДЕНТИФИКАЦИЯ ЗАЯВКИ
+----------------------------------------------------
+
+anfrage_id                  — уникальный ID заявки (UUID)
+anfrage_nummer              — номер заявки (напр. ANF-2026-001)
+erstellt_am                 — дата создания заявки
+aktualisiert_am             — дата последнего обновления
+erstellt_von                — кто создал (user_id сотрудника)
+
+----------------------------------------------------
+БЛОК 2: ПРИВЯЗКА К КЛИЕНТУ
+----------------------------------------------------
+
+kunden_id                   — ID клиента (FK → Kunden)
+kunden_vorname              — имя клиента (денормализованное)
+kunden_nachname             — фамилия клиента
+kunden_telefon              — телефон клиента
+kunden_email                — e-mail клиента
+
+----------------------------------------------------
+БЛОК 3: АДРЕС ОБЪЕКТА
+----------------------------------------------------
+
+objekt_strasse              — улица объекта монтажа
+objekt_hausnummer           — номер дома
+objekt_plz                  — почтовый индекс
+objekt_stadt                — город
+objekt_bundesland           — федеральная земля
+objekt_land                 — страна (по умолчанию: Deutschland)
+objekt_etage                — этаж / уровень (если актуально)
+objekt_zugang               — описание доступа к объекту
+                              (напр. "Einfahrt über Hintereingang")
+objekt_ist_gleich_kunde     — адрес объекта = адрес клиента (bool)
+
+----------------------------------------------------
+БЛОК 4: BESUCHSTERMIN (ДАТА ВИЗИТА / ЗАМЕРА)
+----------------------------------------------------
+
+besuchstermin_datum         — дата визита/замера
+besuchstermin_uhrzeit       — время визита
+besuchstermin_dauer         — ожидаемая длительность (мин.)
+besuchstermin_status        — статус: geplant / bestätigt /
+                              abgesagt / durchgeführt
+besuchstermin_mitarbeiter   — ответственный за замер (user_id)
+besuchstermin_notiz         — заметка по визиту
+
+----------------------------------------------------
+БЛОК 5: СТАТУС ЗАЯВКИ
+----------------------------------------------------
+
+status                      — текущий статус заявки:
+                              neu
+                              in_bearbeitung
+                              termin_vereinbart
+                              aufmass_gemacht
+                              angebot_erstellt
+                              abgeschlossen
+                              abgelehnt
+                              kein_interesse
+
+status_grund                — причина статуса (особенно при отказе)
+prioritaet                  — приоритет: niedrig / normal / hoch / dringend
+
+----------------------------------------------------
+БЛОК 6: ИНТЕРЕСУЮЩИЕ ПОЗИЦИИ (PRODUKTE)
+----------------------------------------------------
+
+interessierte_produkte      — список интересующих продуктов (массив):
+
+  - terrassenueberdachung   (Терасный навес)
+  - carport                 (Навес для авто)
+  - markise                 (Маркиза)
+  - glassschiebewand        (Стеклянная раздвижная стена)
+  - seitenwand              (Боковая стена)
+  - schiebesystem           (Раздвижная система)
+  - led_beleuchtung         (LED освещение)
+  - sonnensegel             (Тент от солнца)
+  - keil                    (Клин / выравнивающий элемент)
+  - zubehoer                (Аксессуары / доп. материал)
+  - sonstiges               (Прочее)
+
+produkt_notiz               — общая заметка по желаемым продуктам
+
+----------------------------------------------------
+БЛОК 7: ТЕХНИЧЕСКИЕ ПАРАМЕТРЫ
+----------------------------------------------------
+
+// Основные размеры
+breite_cm                   — ширина (см)
+tiefe_cm                    — глубина / вылет (см)
+hoehe_cm                    — высота (см)
+flaeche_m2                  — площадь (м², вычисляется автоматически)
+
+// Геометрия
+form                        — форма конструкции:
+                              rechteckig / trapezfoermig /
+                              l-form / individuell
+
+// Dachform (Форма крыши)
+dachform                    — форма кровли:
+                              flach / pultdach / satteldach /
+                              bogendach / individuell
+
+dachneigung_grad            — угол наклона крыши (градусы)
+
+// Verglasung (Остекление)
+verglasung_typ              — тип остекления:
+                              kein / esg_6mm / vsg_8mm /
+                              polycarbonat_16mm / glas_matt /
+                              individuell
+
+verglasung_farbe            — цвет / тонировка стекла
+
+// Material (Материал)
+profil_material             — материал профиля:
+                              aluminium / stahl / holz_aluminium
+
+profil_farbe_ral            — цвет профиля (RAL код, напр. RAL 7016)
+profil_farbe_name           — название цвета (напр. Anthrazitgrau)
+profil_oberflaeche          — покрытие:
+                              pulverbeschichtet / eloxiert /
+                              holzoptik
+
+// Montageuntergrund (Основание)
+untergrund_typ              — тип основания:
+                              beton / pflaster / fliesen /
+                              holz / erde / sonstiges
+
+untergrund_zustand          — состояние основания:
+                              gut / mittel / schlecht / unbekannt
+
+befestigung_art             — тип крепления:
+                              wandmontage / freistehend /
+                              kombination
+
+wand_material               — материал стены для крепления:
+                              mauerwerk / holz / beton / blech /
+                              andere
+
+anzahl_stuetzen             — количество опорных столбов
+stuetzen_position           — расположение столбов (описание)
+
+// Dachfüllung (Заполнение крыши)
+dach_material               — материал заполнения крыши:
+                              esg_glas / vsg_glas /
+                              polycarbonat_klar /
+                              polycarbonat_opal /
+                              aluminium_kassette /
+                              aluthermo / individuell
+
+// Entwässerung (Водоотвод)
+entwaesserung               — тип водоотвода:
+                              rechts / links / beidseitig /
+                              vorne / hinten / integriert / keins
+
+----------------------------------------------------
+БЛОК 8: ДОПОЛНИТЕЛЬНЫЕ ОПЦИИ (Zusatzoptionen)
+----------------------------------------------------
+
+seitenwand_links            — боковая стена слева (bool)
+seitenwand_links_typ        — тип: glas / polycarbonat / aluminium
+seitenwand_links_breite_cm  — ширина левой боковой стены (см)
+
+seitenwand_rechts           — боковая стена справа (bool)
+seitenwand_rechts_typ       — тип правой боковой стены
+seitenwand_rechts_breite_cm — ширина правой боковой стены (см)
+
+schiebesystem               — раздвижная система (bool)
+schiebesystem_seite         — сторона: links / rechts / vorne / beide
+schiebesystem_anzahl        — количество раздвижных элементов
+
+markise                     — маркиза (bool)
+markise_breite_cm           — ширина маркизы (см)
+markise_ausfall_cm          — вылет маркизы (см)
+markise_antrieb             — привод: manuell / motorisiert
+
+led_beleuchtung             — LED освещение (bool)
+led_laenge_m                — длина LED-ленты (м)
+led_typ                     — тип: strip / spot / kombination
+led_farbe                   — цвет света: warm / kalt / rgb
+
+sonnensegel                 — тент/парус (bool)
+sonnensegel_masse           — размеры тента
+
+keil_links                  — клин слева (bool)
+keil_links_winkel_grad      — угол клина слева (градусы)
+keil_rechts                 — клин справа (bool)
+keil_rechts_winkel_grad     — угол клина справа (градусы)
+
+----------------------------------------------------
+БЛОК 9: БЮДЖЕТ И КОММЕРЧЕСКИЕ ПАРАМЕТРЫ
+----------------------------------------------------
+
+budget_vorhanden            — есть ли бюджет у клиента (bool)
+budget_ca_euro              — примерный бюджет (€)
+finanzierung_gewuenscht     — клиент интересуется рассрочкой (bool)
+kaufentscheidung_zeitraum   — срок принятия решения:
+                              sofort / 1_monat / 3_monate /
+                              6_monate / unbekannt
+
+----------------------------------------------------
+БЛОК 10: ИСТОЧНИК ЗАЯВКИ
+----------------------------------------------------
+
+anfrage_quelle              — источник заявки:
+                              website / empfehlung / telefon /
+                              messe / google / instagram /
+                              facebook / flyer / sonstiges
+
+quelle_detail               — детализация источника
+                              (напр. имя того, кто порекомендовал)
+
+----------------------------------------------------
+БЛОК 11: КОММЕНТАРИИ И ЗАМЕТКИ
+----------------------------------------------------
+
+kommentar_intern            — внутренний комментарий (не виден клиенту)
+kommentar_extern            — заметка для клиента / из переписки
+wunsche_sonstiges           — особые пожелания клиента
+
+----------------------------------------------------
+БЛОК 12: ФОТО И МЕДИА
+----------------------------------------------------
+
+fotos                       — массив фотографий объекта:
+  foto_id                   — ID фото
+  foto_url                  — URL файла
+  foto_thumbnail_url        — URL превью
+  foto_beschreibung         — описание фото
+  foto_erstellt_am          — дата загрузки
+  foto_erstellt_von         — кто загрузил
+
+----------------------------------------------------
+БЛОК 13: СВЯЗАННЫЕ СУЩНОСТИ (FK)
+----------------------------------------------------
+
+angebot_id                  — ID связанного предложения (FK → Angebote)
+vertrag_id                  — ID связанного договора (FK → Vertraege)
+montage_id                  — ID связанного монтажа (FK → Montage)
+
+----------------------------------------------------
+БЛОК 14: ИСТОРИЯ ИЗМЕНЕНИЙ
+----------------------------------------------------
+
+aktivitaeten                — лог активности (массив):
+  zeitstempel               — время события
+  typ                       — тип: status_geaendert /
+                              kommentar_hinzugefuegt /
+                              foto_hochgeladen /
+                              termin_vereinbart / ...
+  von_user_id               — кто сделал действие
+  details                   — детали события
+
+====================================================
+  СВОДНАЯ ТАБЛИЦА — ПОЛЯ ДЛЯ МОБИЛЬНОГО ЭКРАНА
+====================================================
+
+На экране СОЗДАНИЯ ЗАЯВКИ в приложении показывать:
+
+  Обязательные поля:
+  [*] kunden_id              (выбор из списка клиентов)
+  [*] status                 (по умолчанию: neu)
+  [*] besuchstermin_datum    (дата визита)
+  [*] besuchstermin_uhrzeit  (время визита)
+  [*] interessierte_produkte (выбор продуктов — чекбоксы)
+
+  Адрес объекта:
+  [ ] objekt_ist_gleich_kunde (переключатель "Как у клиента")
+  [ ] objekt_strasse
+  [ ] objekt_hausnummer
+  [ ] objekt_plz
+  [ ] objekt_stadt
+  [ ] objekt_zugang
+
+  Размеры (шаг 2):
+  [ ] breite_cm
+  [ ] tiefe_cm
+  [ ] hoehe_cm
+  [ ] befestigung_art
+  [ ] untergrund_typ
+
+  Материал (шаг 3):
+  [ ] profil_farbe_ral
+  [ ] verglasung_typ
+  [ ] dach_material
+
+  Дополнительно (шаг 4 — доп. опции):
+  [ ] seitenwand_links / rechts
+  [ ] schiebesystem
+  [ ] markise
+  [ ] led_beleuchtung
+  [ ] sonnensegel
+
+  Заметки:
+  [ ] kommentar_intern
+  [ ] fotos (фото с камеры)
+
+====================================================
+  СТАТУСЫ ЗАЯВКИ — ДОПУСТИМЫЕ ПЕРЕХОДЫ
+====================================================
+
+  neu
+    └→ in_bearbeitung
+        └→ termin_vereinbart
+            └→ aufmass_gemacht
+                └→ angebot_erstellt
+                    └→ abgeschlossen
+                    └→ abgelehnt
+    └→ kein_interesse (из любого статуса)
+    └→ abgelehnt     (из любого статуса)
+
+====================================================
+  ТИПЫ ДАННЫХ
+====================================================
+
+  UUID          — anfrage_id, kunden_id, user_id, foto_id
+  STRING        — номера, коды, описания, RAL цвет
+  INTEGER       — размеры в см, количество, углы в градусах
+  FLOAT         — площадь м², бюджет €
+  BOOLEAN       — флаги опций (seitenwand_links, led, etc.)
+  DATETIME      — timestamps, termin
+  DATE          — даты без времени
+  ENUM          — статусы, типы, материалы
+  ARRAY<STRING> — interessierte_produkte
+  ARRAY<OBJECT> — fotos, aktivitaeten
+
+====================================================
+  КОНЕЦ ДОКУМЕНТА
+====================================================
