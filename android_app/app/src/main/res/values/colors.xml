@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="db_red">#CC0000</color>
+    <color name="db_red_dark">#990000</color>
+    <color name="price_green">#1B5E20</color>
+    <color name="ic_launcher_background">#CC0000</color>
+</resources>
