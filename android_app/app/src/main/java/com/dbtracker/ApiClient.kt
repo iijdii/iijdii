@@ -122,7 +122,7 @@ object ApiClient {
                 val d = OffsetDateTime.parse(dep)
                 val a = OffsetDateTime.parse(arr)
                 ((a.toEpochSecond() - d.toEpochSecond()) / 60).toInt()
-            } catch (_: Exception) { 0 }
+            } catch (e: Exception) { 0 }
 
             result.add(
                 Journey(

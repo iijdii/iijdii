@@ -23,26 +23,26 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
-      - name: Accept Android SDK licenses
-        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-
-      - name: Install SDK platform & build-tools
+      - name: Install Gradle 8.6
         run: |
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
-            "platforms;android-34" \
-            "build-tools;34.0.0" \
-            "platform-tools"
+          curl -sL https://services.gradle.org/distributions/gradle-8.6-bin.zip \
+            -o /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /opt
+          echo "/opt/gradle-8.6/bin" >> $GITHUB_PATH
+
+      - name: Setup Android SDK
+        run: |
+          # Locate sdkmanager regardless of cmdline-tools version directory
+          SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -name "sdkmanager" \
+            -type f 2>/dev/null | head -1)
+          echo "Using sdkmanager: $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses 2>/dev/null || true
+          "$SDKMANAGER" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Create local.properties
         working-directory: android_app
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.6'
 
       - name: Build Debug APK
         working-directory: android_app
@@ -55,7 +55,6 @@ jobs:
           path: android_app/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-      - name: APK info
-        run: |
-          APK="android_app/app/build/outputs/apk/debug/app-debug.apk"
-          echo "Size: $(du -sh $APK | cut -f1)"
+      - name: Show APK size
+        if: success()
+        run: du -sh android_app/app/build/outputs/apk/debug/app-debug.apk

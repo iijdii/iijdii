@@ -39,7 +39,7 @@ class JourneyAdapter(private val items: List<Journey>) :
         try {
             h.tvDep.text = OffsetDateTime.parse(j.departure).format(timeFmt)
             h.tvArr.text = OffsetDateTime.parse(j.arrival).format(timeFmt)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             h.tvDep.text = j.departure.take(5)
             h.tvArr.text = j.arrival.take(5)
         }

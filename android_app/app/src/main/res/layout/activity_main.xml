@@ -311,9 +311,7 @@
                     android:textStyle="bold"
                     android:layout_marginBottom="12dp"
                     app:backgroundTint="#CC0000"
-                    app:cornerRadius="28dp"
-                    app:icon="@android:drawable/ic_menu_search"
-                    app:iconGravity="textStart" />
+                    app:cornerRadius="28dp" />
 
                 <!-- Status text -->
                 <TextView
