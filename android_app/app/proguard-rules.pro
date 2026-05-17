@@ -1,0 +1,2 @@
+-keep class com.dbtracker.** { *; }
+-keep class okhttp3.** { *; }
