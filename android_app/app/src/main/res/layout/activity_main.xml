@@ -217,6 +217,90 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- ═══ MONITOR CARD ═══ -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="3dp"
+                    app:strokeColor="#CC0000"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <!-- Header -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="12dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Preisüberwachung"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="#212121" />
+
+                            <TextView
+                                android:id="@+id/tvMonitorStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="○ Inaktiv"
+                                android:textSize="13sp"
+                                android:textColor="#9E9E9E" />
+                        </LinearLayout>
+
+                        <!-- Interval label -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Prüfintervall"
+                            android:textColor="#CC0000"
+                            android:textSize="11sp"
+                            android:textAllCaps="true"
+                            android:letterSpacing="0.1"
+                            android:layout_marginBottom="4dp" />
+
+                        <!-- Interval spinner -->
+                        <Spinner
+                            android:id="@+id/spinnerInterval"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_spinner"
+                            android:paddingHorizontal="12dp"
+                            android:layout_marginBottom="12dp" />
+
+                        <!-- Info text -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Du bekommst eine Benachrichtigung, sobald der Preis steigt oder fällt — auch wenn die App geschlossen ist."
+                            android:textSize="12sp"
+                            android:textColor="#757575"
+                            android:layout_marginBottom="12dp" />
+
+                        <!-- Start/Stop button -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnMonitor"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:text="▶ Starten"
+                            android:textSize="15sp"
+                            app:backgroundTint="#CC0000"
+                            app:cornerRadius="24dp" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- ═══ SEARCH BUTTON ═══ -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSearch"
