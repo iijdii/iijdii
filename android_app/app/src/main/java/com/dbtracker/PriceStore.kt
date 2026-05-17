@@ -46,7 +46,7 @@ object PriceStore {
                 val o = arr.getJSONObject(i)
                 StoredPrice(o.getString("dep"), o.getDouble("price"))
             }
-        } catch (_: Exception) { emptyList() }
+        } catch (e: Exception) { emptyList() }
     }
 
     fun detectChanges(

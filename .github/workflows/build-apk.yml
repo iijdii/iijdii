@@ -24,26 +24,36 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Install Gradle 8.6
+      # ── Gradle ────────────────────────────────────────────────────────────
+      - name: Download Gradle 8.6
         run: |
-          curl -sL https://services.gradle.org/distributions/gradle-8.6-bin.zip \
-            -o /tmp/gradle.zip
-          unzip -q /tmp/gradle.zip -d /opt
-          echo "/opt/gradle-8.6/bin" >> $GITHUB_PATH
+          wget -q https://services.gradle.org/distributions/gradle-8.6-bin.zip \
+               -O /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp
+          echo "/tmp/gradle-8.6/bin" >> "$GITHUB_PATH"
 
-      - name: Setup Android SDK
+      - name: Verify Gradle
+        run: gradle --version
+
+      # ── Android SDK ───────────────────────────────────────────────────────
+      - name: Accept SDK licenses & install SDK 33
         run: |
-          # Locate sdkmanager regardless of cmdline-tools version directory
-          SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -name "sdkmanager" \
-            -type f 2>/dev/null | head -1)
-          echo "Using sdkmanager: $SDKMANAGER"
+          echo "ANDROID_HOME = $ANDROID_HOME"
+          # Find sdkmanager regardless of cmdline-tools subdirectory name
+          SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" \
+                         -name "sdkmanager" -type f 2>/dev/null | head -1)
+          echo "sdkmanager = $SDKMANAGER"
+          if [ -z "$SDKMANAGER" ]; then
+            echo "ERROR: sdkmanager not found"; exit 1
+          fi
           yes | "$SDKMANAGER" --licenses 2>/dev/null || true
-          "$SDKMANAGER" "platforms;android-34" "build-tools;34.0.0"
+          # SDK 33 is pre-installed on ubuntu-latest; install only if missing
+          "$SDKMANAGER" "platforms;android-33" "build-tools;33.0.2" \
+                        2>/dev/null || true
+          echo "sdk.dir=$ANDROID_HOME" > android_app/local.properties
+          cat android_app/local.properties
 
-      - name: Create local.properties
-        working-directory: android_app
-        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
-
+      # ── Build ─────────────────────────────────────────────────────────────
       - name: Build Debug APK
         working-directory: android_app
         run: gradle assembleDebug --no-daemon --stacktrace
@@ -55,6 +65,6 @@ jobs:
           path: android_app/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-      - name: Show APK size
+      - name: APK size
         if: success()
         run: du -sh android_app/app/build/outputs/apk/debug/app-debug.apk

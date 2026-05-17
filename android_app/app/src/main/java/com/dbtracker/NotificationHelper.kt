@@ -47,11 +47,11 @@ object NotificationHelper {
         changes.forEach { change ->
             val depTime = try {
                 OffsetDateTime.parse(change.departure).format(timeFmt)
-            } catch (_: Exception) { change.departure.take(5) }
+            } catch (e: Exception) { change.departure.take(5) }
 
             val arrow = if (change.isDropped) "▼" else "▲"
             val emoji = if (change.isDropped) "🎉" else "⚠️"
-            val colorInt = if (change.isDropped) 0xFF2E7D32.toInt() else 0xFFCC0000.toInt()
+            val colorInt = if (change.isDropped) 0xFF2E7D32L.toInt() else 0xFFCC0000L.toInt()
 
             val title = "$emoji ${change.trainName ?: "Zug"} · $depTime Uhr · $arrow ${String.format("%.2f €", change.newPrice)}"
             val body = buildString {

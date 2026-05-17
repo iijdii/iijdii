@@ -250,7 +250,7 @@ class MainActivity : AppCompatActivity() {
         b.btnMonitor.text = if (active) "■ Stop" else "▶ Starten"
         b.tvMonitorStatus.text = if (active) "● Aktiv" else "○ Inaktiv"
         b.tvMonitorStatus.setTextColor(
-            if (active) 0xFF2E7D32.toInt() else 0xFF9E9E9E.toInt()
+            if (active) 0xFF2E7D32L.toInt() else 0xFF9E9E9EL.toInt()
         )
     }
 }
