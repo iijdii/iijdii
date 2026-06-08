@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "project": "Seitenwand / Glasschiebewand",
+    "order": "ANF-2026-001",
+    "date": "2026-06-08"
+  },
+  "H": 2170,
+  "bottom": [1370, 1280, 1080, 1070],
+  "top": [55, 55, 215, 50],
+  "controls": [
+    { "diagAC": 2540, "left": 2170 },
+    null,
+    { "left": 3300 },
+    null
+  ],
+  "options": {
+    "measureTolerance": 30,
+    "longSideFactor": 1.3
+  }
+}
