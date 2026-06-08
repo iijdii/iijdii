@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Glaszuschnittplan</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:12px;color:#222;background:#dde2ea}
+.page{width:297mm;margin:8mm auto;background:#fff;padding:14mm 16mm 14mm;
+       box-shadow:0 3px 18px rgba(0,0,0,.25)}
+/* ── Header ── */
+.hdr{border-bottom:3px solid #1a5fa8;padding-bottom:10px;margin-bottom:14px;
+      display:flex;justify-content:space-between;align-items:flex-end}
+.hdr-left h1{font-size:26px;color:#1a5fa8;letter-spacing:2px}
+.hdr-left .sub{font-size:9.5px;color:#666;margin-top:3px;line-height:1.6}
+.hdr-right{text-align:right;font-size:10px;color:#444;line-height:1.7}
+/* ── Input params ── */
+.params{display:flex;gap:18px;font-size:11px;padding:6px 12px;margin-bottom:12px;
+         background:#eef2ff;border:1px solid #c0cef8;border-radius:4px}
+.params b{color:#1a5fa8}
+/* ── Section titles ── */
+.sec{font-size:13px;font-weight:bold;color:#1a5fa8;border-left:4px solid #1a5fa8;
+      padding-left:8px;margin:14px 0 8px}
+/* ── Overview ── */
+.overview{border:1px solid #ddd;border-radius:5px;background:#f8f9fa;
+           padding:8px;overflow:hidden}
+.overview svg{display:block;max-width:100%}
+/* ── Glass cards grid ── */
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:18px}
+.glass-card{border:1px solid #ccd;border-radius:6px;background:#fafbfd;
+             padding:8px 10px;page-break-inside:avoid}
+.glass-card-head{display:flex;justify-content:space-between;align-items:baseline;
+                  margin-bottom:6px;border-bottom:1px solid #eee;padding-bottom:4px}
+.glas-nr{font-size:13px;font-weight:bold;color:#c00}
+.blank-size{font-size:10px;color:#555}
+.mbr-tag{background:#ffe0a0;color:#a06000;border-radius:3px;
+          padding:1px 4px;font-size:9px;font-weight:bold}
+.svg-wrap svg{display:block;max-width:100%;height:auto}
+.dims-row{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:9.5px;
+           color:#555;margin-top:5px;padding-top:4px;border-top:1px solid #eee}
+.dims-row b{color:#c00}
+/* ── Table ── */
+table.ct{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+table.ct th{background:#1a5fa8;color:#fff;padding:6px 8px;text-align:left;font-size:11px}
+table.ct td{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:top}
+table.ct tr:nth-child(even) td{background:#f4f7ff}
+.tc{text-align:center}.tr{text-align:right}
+.ok{color:#2a7a2a;font-weight:bold}
+.warn{color:#c06000;font-weight:bold}
+.waste-hi{color:#c00;font-weight:bold}
+.waste-mid{color:#b07000;font-weight:bold}
+.total-row td{background:#e6ecfa!important;font-weight:bold;border-top:2px solid #1a5fa8}
+/* ── Legend ── */
+.legend{display:flex;gap:18px;font-size:10px;padding:5px 12px;
+         background:#f7f7f7;border:1px solid #eee;border-radius:4px;margin-top:10px}
+.li{display:flex;align-items:center;gap:6px}
+.lc{width:26px;height:13px;border-radius:2px;display:inline-block}
+/* ── Footer ── */
+.foot{margin-top:14px;padding-top:8px;border-top:1px solid #ccc;
+       font-size:9px;color:#888;display:flex;justify-content:space-between}
+/* ── Print ── */
+@media print{
+  body{background:#fff}
+  .page{margin:0;padding:10mm;box-shadow:none;width:297mm}
+  @page{size:A4 landscape;margin:10mm}
+  .glass-card{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ─── Header ─── -->
+<div class="hdr">
+  <div class="hdr-left">
+    <h1>Glaszuschnittplan</h1>
+    <div class="sub">
+      Alle Maße in mm &nbsp;|&nbsp;
+      Zeichnung nicht maßstabsgetreu &nbsp;|&nbsp;
+      Fertigung nach Maßangaben
+    </div>
+  </div>
+  <div class="hdr-right">
+    Datum: 08.06.2026<br>
+    Höhe H: 2170 mm<br>
+    Anzahl Scheiben: 4
+  </div>
+</div>
+
+<!-- ─── Eingabeparameter ─── -->
+<div class="params">
+  <div><b>Höhe H:</b> 2170 mm</div>
+  <div><b>Maße Unten:</b> 1370 + 1280 + 1080 + 1070 = 4800 mm</div>
+  <div><b>Maße Oben:</b> 55 + 55 + 215 + 50 = 375 mm</div>
+</div>
+
+<!-- ─── Gesamtansicht ─── -->
+<div class="sec">Gesamtansicht der Konstruktion</div>
+<div class="overview"><svg width="552" height="340" xmlns="http://www.w3.org/2000/svg">
+<rect width="552" height="340" fill="#f8f9fa"/>
+<polygon points="55.0,255.0 181.3,255.0 60.1,55.0 55.0,55.0" fill="#4a90d9" fill-opacity="0.35" stroke="#4a90d9" stroke-width="1.5"/>
+<text x="87.8" y="149.0" text-anchor="middle" font-size="12" font-family="Arial" fill="#222" font-weight="bold">Glas 1</text>
+<text x="87.8" y="164.0" text-anchor="middle" font-size="9" font-family="Arial" fill="#555">1380×2180</text>
+<polygon points="181.3,255.0 299.2,255.0 65.1,55.0 60.1,55.0" fill="#5ba85e" fill-opacity="0.35" stroke="#5ba85e" stroke-width="1.5"/>
+<text x="151.4" y="149.0" text-anchor="middle" font-size="12" font-family="Arial" fill="#222" font-weight="bold">Glas 2</text>
+<text x="151.4" y="164.0" text-anchor="middle" font-size="9" font-family="Arial" fill="#555">3393×842</text>
+<polygon points="299.2,255.0 398.8,255.0 85.0,55.0 65.1,55.0" fill="#d9844a" fill-opacity="0.35" stroke="#d9844a" stroke-width="1.5"/>
+<text x="212.0" y="149.0" text-anchor="middle" font-size="12" font-family="Arial" fill="#222" font-weight="bold">Glas 3</text>
+<text x="212.0" y="164.0" text-anchor="middle" font-size="9" font-family="Arial" fill="#555">591×4230</text>
+<polygon points="398.8,255.0 497.4,255.0 89.6,55.0 85.0,55.0" fill="#a84a4a" fill-opacity="0.35" stroke="#a84a4a" stroke-width="1.5"/>
+<text x="267.7" y="149.0" text-anchor="middle" font-size="12" font-family="Arial" fill="#222" font-weight="bold">Glas 4</text>
+<text x="267.7" y="164.0" text-anchor="middle" font-size="9" font-family="Arial" fill="#555">488×4984</text>
+<circle cx="55.0" cy="255.0" r="3.5" fill="#333"/>
+<text x="55.0" y="271.0" text-anchor="middle" font-size="9" font-family="Arial" fill="#333">P0</text>
+<circle cx="181.3" cy="255.0" r="3.5" fill="#333"/>
+<text x="181.3" y="271.0" text-anchor="middle" font-size="9" font-family="Arial" fill="#333">P1</text>
+<circle cx="299.2" cy="255.0" r="3.5" fill="#333"/>
+<text x="299.2" y="271.0" text-anchor="middle" font-size="9" font-family="Arial" fill="#333">P2</text>
+<circle cx="398.8" cy="255.0" r="3.5" fill="#333"/>
+<text x="398.8" y="271.0" text-anchor="middle" font-size="9" font-family="Arial" fill="#333">P3</text>
+<circle cx="497.4" cy="255.0" r="3.5" fill="#333"/>
+<text x="497.4" y="271.0" text-anchor="middle" font-size="9" font-family="Arial" fill="#333">P4</text>
+<circle cx="55.0" cy="55.0" r="3" fill="#666"/>
+<line x1="55.0" y1="55.0" x2="55.0" y2="45.0" stroke="#999" stroke-width="0.7"/>
+<text x="55.0" y="41.0" text-anchor="middle" font-size="8" font-family="Arial" fill="#555">Q0(0)</text>
+<circle cx="60.1" cy="55.0" r="3" fill="#666"/>
+<line x1="60.1" y1="55.0" x2="60.1" y2="35.0" stroke="#999" stroke-width="0.7"/>
+<text x="60.1" y="31.0" text-anchor="middle" font-size="8" font-family="Arial" fill="#555">Q1(55)</text>
+<circle cx="65.1" cy="55.0" r="3" fill="#666"/>
+<line x1="65.1" y1="55.0" x2="65.1" y2="25.0" stroke="#999" stroke-width="0.7"/>
+<text x="65.1" y="21.0" text-anchor="middle" font-size="8" font-family="Arial" fill="#555">Q2(110)</text>
+<circle cx="85.0" cy="55.0" r="3" fill="#666"/>
+<line x1="85.0" y1="55.0" x2="85.0" y2="45.0" stroke="#999" stroke-width="0.7"/>
+<text x="85.0" y="41.0" text-anchor="middle" font-size="8" font-family="Arial" fill="#555">Q3(325)</text>
+<circle cx="89.6" cy="55.0" r="3" fill="#666"/>
+<line x1="89.6" y1="55.0" x2="89.6" y2="35.0" stroke="#999" stroke-width="0.7"/>
+<text x="89.6" y="31.0" text-anchor="middle" font-size="8" font-family="Arial" fill="#555">Q4(375)</text>
+<defs><marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#555"/></marker></defs>
+<line x1="37" y1="255.0" x2="37" y2="55.0" stroke="#555" stroke-width="1" marker-end="url(#arr)" marker-start="url(#arr)"/>
+<text x="32" y="155.0" text-anchor="middle" font-size="10" font-family="Arial" fill="#555" transform="rotate(-90,32,155.0)">H=2170 mm</text>
+<line x1="55.0" y1="277.0" x2="497.4" y2="277.0" stroke="#555" stroke-width="1" marker-end="url(#arr)" marker-start="url(#arr)"/>
+<text x="276.2" y="291.0" text-anchor="middle" font-size="10" font-family="Arial" fill="#555">Gesamtbreite: 4800 mm</text>
+</svg></div>
+
+<!-- ─── Einzelscheiben ─── -->
+<div class="sec">Einzelne Glasscheiben — Zuschnittdetails</div>
+<div class="cards">
+<div class="glass-card">
+  <div class="glass-card-head">
+    <span class="glas-nr">Glas 1</span>
+    <span class="blank-size">Rohling: 1380 × 2180 mm</span>
+  </div>
+  <div class="svg-wrap"><svg width="313" height="416" xmlns="http://www.w3.org/2000/svg">
+<rect width="313" height="416" fill="white"/>
+<polygon points="68.0,348.0 244.8,348.0 244.8,68.0 68.0,68.0" fill="#f0f0f0" fill-opacity="0.6" stroke="#aaa" stroke-width="1.5" stroke-dasharray="8,5"/>
+<polygon points="68.0,348.0 244.8,348.0 75.1,68.0 68.0,68.0" fill="#4a90d9" fill-opacity="0.28" stroke="#1a5fa8" stroke-width="2"/>
+<polygon points="68.0,348.0 244.8,348.0 75.1,68.0 68.0,68.0" fill="none" stroke="#e87722" stroke-width="1.5" stroke-dasharray="5,3"/>
+<line x1="68.0" y1="348.0" x2="75.1" y2="68.0" stroke="#ccc" stroke-width="0.6" stroke-dasharray="3,4"/>
+<line x1="244.8" y1="348.0" x2="68.0" y2="68.0" stroke="#ccc" stroke-width="0.6" stroke-dasharray="3,4"/>
+<line x1="156.4" y1="348.0" x2="156.4" y2="372.0" stroke="#bbb" stroke-width="0.8"/>
+
+<line x1="71.5" y1="68.0" x2="71.5" y2="44.0" stroke="#bbb" stroke-width="0.8"/>
+
+<line x1="68.0" y1="208.0" x2="44.0" y2="208.0" stroke="#bbb" stroke-width="0.8"/>
+
+<line x1="159.9" y1="208.0" x2="180.5" y2="195.6" stroke="#bbb" stroke-width="0.8"/>
+
+<text x="156.4" y="372.0" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#c00" font-weight="bold">1370</text>
+
+<text x="71.5" y="44.0" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#c00" font-weight="bold">55</text>
+
+<text x="44.0" y="208.0" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#1a5fa8" font-weight="bold" transform="rotate(-90.0,44.0,208.0)">2170</text>
+
+<text x="180.5" y="195.6" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#1a5fa8" font-weight="bold" transform="rotate(58.8,180.5,195.6)">2537</text>
+
+<text x="71.5" y="208.0" text-anchor="middle" dominant-baseline="middle" font-size="8" font-family="Arial" fill="#999" font-weight="normal">d₁=2171</text>
+
+<text x="114.0" y="194.0" text-anchor="middle" dominant-baseline="middle" font-size="13" font-family="Arial" fill="#c00" font-weight="bold">Glas 1</text>
+
+<text x="114.0" y="210.0" text-anchor="middle" dominant-baseline="middle" font-size="9" font-family="Arial" fill="#333" font-weight="normal">Fläche: 1.5461 m²</text>
+
+<text x="114.0" y="223.0" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#e87722" font-weight="bold">Abfall: 48.6%</text>
+
+<text x="68" y="58" font-size="9" font-family="Arial" fill="#666">Rohling: 1380×2180 mm</text>
+</svg></div>
+  <div class="dims-row">
+    <span>↔ Unten: <b>1370</b></span>
+    <span>↔ Oben: <b>55</b></span>
+    <span>↕ Links: <b>2170</b></span>
+    <span>↕ Rechts: <b>2537</b></span>
+    <span>d₁: 2171</span>
+    <span>d₂: 2566</span>
+  </div>
+</div>
+<div class="glass-card">
+  <div class="glass-card-head">
+    <span class="glas-nr">Glas 2</span>
+    <span class="blank-size">Rohling: 3393 × 842 mm<br><span class='mbr-tag'>MBR 140°</span></span>
+  </div>
+  <div class="svg-wrap"><svg width="416" height="370" xmlns="http://www.w3.org/2000/svg">
+<rect width="416" height="370" fill="white"/>
+<polygon points="68.0,302.1 348.0,302.1 348.0,68.0 68.0,68.0" fill="#f0f0f0" fill-opacity="0.6" stroke="#aaa" stroke-width="1.5" stroke-dasharray="8,5"/>
+<polygon points="209.9,302.1 348.0,302.1 73.9,68.0 68.0,68.0" fill="#4a90d9" fill-opacity="0.28" stroke="#1a5fa8" stroke-width="2"/>
+<polygon points="209.9,302.1 348.0,302.1 73.9,68.0 68.0,68.0" fill="none" stroke="#e87722" stroke-width="1.5" stroke-dasharray="5,3"/>
+<line x1="209.9" y1="302.1" x2="73.9" y2="68.0" stroke="#ccc" stroke-width="0.6" stroke-dasharray="3,4"/>
+<line x1="348.0" y1="302.1" x2="68.0" y2="68.0" stroke="#ccc" stroke-width="0.6" stroke-dasharray="3,4"/>
+<line x1="278.9" y1="302.1" x2="278.9" y2="326.1" stroke="#bbb" stroke-width="0.8"/>
+
+<line x1="71.0" y1="68.0" x2="71.0" y2="44.0" stroke="#bbb" stroke-width="0.8"/>
+
+<line x1="138.9" y1="185.1" x2="118.4" y2="197.5" stroke="#bbb" stroke-width="0.8"/>
+
+<line x1="211.0" y1="185.1" x2="226.6" y2="166.8" stroke="#bbb" stroke-width="0.8"/>
+
+<text x="278.9" y="326.1" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#c00" font-weight="bold">1280</text>
+
+<text x="71.0" y="44.0" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#c00" font-weight="bold">55</text>
+
+<text x="118.4" y="197.5" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#1a5fa8" font-weight="bold" transform="rotate(58.8,118.4,197.5)">2537</text>
+
+<text x="226.6" y="166.8" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#1a5fa8" font-weight="bold" transform="rotate(40.5,226.6,166.8)">3341</text>
+
+<text x="141.9" y="185.1" text-anchor="middle" dominant-baseline="middle" font-size="8" font-family="Arial" fill="#999" font-weight="normal">d₁=2509</text>
+
+<text x="175.0" y="171.1" text-anchor="middle" dominant-baseline="middle" font-size="13" font-family="Arial" fill="#c00" font-weight="bold">Glas 2</text>
+
+<text x="175.0" y="187.1" text-anchor="middle" dominant-baseline="middle" font-size="9" font-family="Arial" fill="#333" font-weight="normal">Fläche: 1.4485 m²</text>
+
+<text x="175.0" y="200.1" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#e87722" font-weight="bold">Abfall: 49.3%</text>
+
+<text x="68" y="58" font-size="9" font-family="Arial" fill="#666">Rohling: 3393×842 mm [MBR 140°]</text>
+</svg></div>
+  <div class="dims-row">
+    <span>↔ Unten: <b>1280</b></span>
+    <span>↔ Oben: <b>55</b></span>
+    <span>↕ Links: <b>2537</b></span>
+    <span>↕ Rechts: <b>3341</b></span>
+    <span>d₁: 2509</span>
+    <span>d₂: 3383</span>
+  </div>
+</div>
+<div class="glass-card">
+  <div class="glass-card-head">
+    <span class="glas-nr">Glas 3</span>
+    <span class="blank-size">Rohling: 591 × 4230 mm<br><span class='mbr-tag'>MBR 58°</span></span>
+  </div>
+  <div class="svg-wrap"><svg width="416" height="304" xmlns="http://www.w3.org/2000/svg">
+<rect width="416" height="304" fill="white"/>
+<polygon points="68.0,235.8 348.0,235.8 348.0,68.0 68.0,68.0" fill="#f0f0f0" fill-opacity="0.6" stroke="#aaa" stroke-width="1.5" stroke-dasharray="8,5"/>
+<polygon points="264.5,235.8 348.0,235.8 84.6,68.0 68.0,68.0" fill="#4a90d9" fill-opacity="0.28" stroke="#1a5fa8" stroke-width="2"/>
+<polygon points="264.5,235.8 348.0,235.8 84.6,68.0 68.0,68.0" fill="none" stroke="#e87722" stroke-width="1.5" stroke-dasharray="5,3"/>
+<line x1="264.5" y1="235.8" x2="84.6" y2="68.0" stroke="#ccc" stroke-width="0.6" stroke-dasharray="3,4"/>
+<line x1="348.0" y1="235.8" x2="68.0" y2="68.0" stroke="#ccc" stroke-width="0.6" stroke-dasharray="3,4"/>
+<line x1="306.2" y1="235.8" x2="306.2" y2="259.8" stroke="#bbb" stroke-width="0.8"/>
+
+<line x1="76.3" y1="68.0" x2="76.3" y2="44.0" stroke="#bbb" stroke-width="0.8"/>
+
+<line x1="166.2" y1="151.9" x2="150.6" y2="170.2" stroke="#bbb" stroke-width="0.8"/>
+
+<line x1="216.3" y1="151.9" x2="229.2" y2="131.7" stroke="#bbb" stroke-width="0.8"/>
+
+<text x="306.2" y="259.8" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#c00" font-weight="bold">1080</text>
+
+<text x="76.3" y="44.0" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#c00" font-weight="bold">215</text>
+
+<text x="150.6" y="170.2" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#1a5fa8" font-weight="bold" transform="rotate(40.5,150.6,170.2)">3341</text>
+
+<text x="229.2" y="131.7" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#1a5fa8" font-weight="bold" transform="rotate(32.5,229.2,131.7)">4038</text>
+
+<text x="174.5" y="151.9" text-anchor="middle" dominant-baseline="middle" font-size="8" font-family="Arial" fill="#999" font-weight="normal">d₁=3180</text>
+
+<text x="191.3" y="137.9" text-anchor="middle" dominant-baseline="middle" font-size="13" font-family="Arial" fill="#c00" font-weight="bold">Glas 3</text>
+
+<text x="191.3" y="153.9" text-anchor="middle" dominant-baseline="middle" font-size="9" font-family="Arial" fill="#333" font-weight="normal">Fläche: 1.4051 m²</text>
+
+<text x="191.3" y="166.9" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#e87722" font-weight="bold">Abfall: 43.8%</text>
+
+<text x="68" y="58" font-size="9" font-family="Arial" fill="#666">Rohling: 591×4230 mm [MBR 58°]</text>
+</svg></div>
+  <div class="dims-row">
+    <span>↔ Unten: <b>1080</b></span>
+    <span>↔ Oben: <b>215</b></span>
+    <span>↕ Links: <b>3341</b></span>
+    <span>↕ Rechts: <b>4038</b></span>
+    <span>d₁: 3180</span>
+    <span>d₂: 4221</span>
+  </div>
+</div>
+<div class="glass-card">
+  <div class="glass-card-head">
+    <span class="glas-nr">Glas 4</span>
+    <span class="blank-size">Rohling: 488 × 4984 mm<br><span class='mbr-tag'>MBR 64°</span></span>
+  </div>
+  <div class="svg-wrap"><svg width="416" height="272" xmlns="http://www.w3.org/2000/svg">
+<rect width="416" height="272" fill="white"/>
+<polygon points="68.0,203.8 348.0,203.8 348.0,68.0 68.0,68.0" fill="#f0f0f0" fill-opacity="0.6" stroke="#aaa" stroke-width="1.5" stroke-dasharray="8,5"/>
+<polygon points="281.1,203.8 348.0,203.8 71.1,68.0 68.0,68.0" fill="#4a90d9" fill-opacity="0.28" stroke="#1a5fa8" stroke-width="2"/>
+<polygon points="281.1,203.8 348.0,203.8 71.1,68.0 68.0,68.0" fill="none" stroke="#e87722" stroke-width="1.5" stroke-dasharray="5,3"/>
+<line x1="281.1" y1="203.8" x2="71.1" y2="68.0" stroke="#ccc" stroke-width="0.6" stroke-dasharray="3,4"/>
+<line x1="348.0" y1="203.8" x2="68.0" y2="68.0" stroke="#ccc" stroke-width="0.6" stroke-dasharray="3,4"/>
+<line x1="314.5" y1="203.8" x2="314.5" y2="227.8" stroke="#bbb" stroke-width="0.8"/>
+
+<line x1="69.6" y1="68.0" x2="69.6" y2="44.0" stroke="#bbb" stroke-width="0.8"/>
+
+<line x1="174.5" y1="135.9" x2="161.6" y2="156.1" stroke="#bbb" stroke-width="0.8"/>
+
+<line x1="209.6" y1="135.9" x2="220.1" y2="114.3" stroke="#bbb" stroke-width="0.8"/>
+
+<text x="314.5" y="227.8" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#c00" font-weight="bold">1070</text>
+
+<text x="69.6" y="44.0" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#c00" font-weight="bold">50</text>
+
+<text x="161.6" y="156.1" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#1a5fa8" font-weight="bold" transform="rotate(32.5,161.6,156.1)">4038</text>
+
+<text x="220.1" y="114.3" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#1a5fa8" font-weight="bold" transform="rotate(26.1,220.1,114.3)">4928</text>
+
+<text x="176.1" y="135.9" text-anchor="middle" dominant-baseline="middle" font-size="8" font-family="Arial" fill="#999" font-weight="normal">d₁=3996</text>
+
+<text x="192.0" y="121.9" text-anchor="middle" dominant-baseline="middle" font-size="13" font-family="Arial" fill="#c00" font-weight="bold">Glas 4</text>
+
+<text x="192.0" y="137.9" text-anchor="middle" dominant-baseline="middle" font-size="9" font-family="Arial" fill="#333" font-weight="normal">Fläche: 1.2152 m²</text>
+
+<text x="192.0" y="150.9" text-anchor="middle" dominant-baseline="middle" font-size="10" font-family="Arial" fill="#e87722" font-weight="bold">Abfall: 50.0%</text>
+
+<text x="68" y="58" font-size="9" font-family="Arial" fill="#666">Rohling: 488×4984 mm [MBR 64°]</text>
+</svg></div>
+  <div class="dims-row">
+    <span>↔ Unten: <b>1070</b></span>
+    <span>↔ Oben: <b>50</b></span>
+    <span>↕ Links: <b>4038</b></span>
+    <span>↕ Rechts: <b>4928</b></span>
+    <span>d₁: 3996</span>
+    <span>d₂: 4973</span>
+  </div>
+</div></div>
+
+<!-- ─── Zuschnittliste ─── -->
+<div class="sec">Zuschnittliste</div>
+<table class="ct">
+  <thead>
+    <tr>
+      <th>Nr.</th>
+      <th>Rohling (Zuschnitt)</th>
+      <th>Maße der Seiten (mm)</th>
+      <th>Diagonalen (mm)</th>
+      <th>Glasfläche</th>
+      <th>Rohlingfläche</th>
+      <th>Abfall&nbsp;%</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+<tr>
+  <td class="tc"><b>Glas 1</b></td>
+  <td class="tc">1380 × 2180 mm</td>
+  <td>
+    Unten: 1370 mm<br>
+    Oben: 55 mm<br>
+    Links: 2170 mm<br>
+    Rechts: 2537 mm
+  </td>
+  <td class="tc">d₁=2171<br>d₂=2566</td>
+  <td class="tr">1.5461 m²<br><small>1546125 mm²</small></td>
+  <td class="tr">3.0084 m²<br><small>3008400 mm²</small></td>
+  <td class="tc waste-hi">48.6%</td>
+  <td class="tc ok">✓ OK</td>
+</tr>
+<tr>
+  <td class="tc"><b>Glas 2</b></td>
+  <td class="tc">3393 × 842 mm <small>(MBR)</small></td>
+  <td>
+    Unten: 1280 mm<br>
+    Oben: 55 mm<br>
+    Links: 2537 mm<br>
+    Rechts: 3341 mm
+  </td>
+  <td class="tc">d₁=2509<br>d₂=3383</td>
+  <td class="tr">1.4485 m²<br><small>1448475 mm²</small></td>
+  <td class="tr">2.8569 m²<br><small>2856906 mm²</small></td>
+  <td class="tc waste-hi">49.3%</td>
+  <td class="tc ok">✓ OK</td>
+</tr>
+<tr>
+  <td class="tc"><b>Glas 3</b></td>
+  <td class="tc">591 × 4230 mm <small>(MBR)</small></td>
+  <td>
+    Unten: 1080 mm<br>
+    Oben: 215 mm<br>
+    Links: 3341 mm<br>
+    Rechts: 4038 mm
+  </td>
+  <td class="tc">d₁=3180<br>d₂=4221</td>
+  <td class="tr">1.4051 m²<br><small>1405075 mm²</small></td>
+  <td class="tr">2.4999 m²<br><small>2499930 mm²</small></td>
+  <td class="tc waste-mid">43.8%</td>
+  <td class="tc ok">✓ OK</td>
+</tr>
+<tr>
+  <td class="tc"><b>Glas 4</b></td>
+  <td class="tc">488 × 4984 mm <small>(MBR)</small></td>
+  <td>
+    Unten: 1070 mm<br>
+    Oben: 50 mm<br>
+    Links: 4038 mm<br>
+    Rechts: 4928 mm
+  </td>
+  <td class="tc">d₁=3996<br>d₂=4973</td>
+  <td class="tr">1.2152 m²<br><small>1215200 mm²</small></td>
+  <td class="tr">2.4322 m²<br><small>2432192 mm²</small></td>
+  <td class="tc waste-hi">50.0%</td>
+  <td class="tc ok">✓ OK</td>
+</tr>
+    <tr class="total-row">
+      <td class="tc" colspan="4">GESAMT</td>
+      <td class="tr">5.6149 m²</td>
+      <td class="tr">10.7974 m²</td>
+      <td class="tc">48.0%</td>
+      <td class="tc">—</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ─── Legende ─── -->
+<div class="legend">
+  <div class="li">
+    <div class="lc" style="background:#4a90d9;opacity:.5;border:2px solid #1a5fa8"></div>
+    <span>Glasscheibe</span>
+  </div>
+  <div class="li">
+    <div class="lc" style="background:#f0f0f0;border:2px dashed #aaa"></div>
+    <span>Rohling (Zuschnittrahmen)</span>
+  </div>
+  <div class="li">
+    <div class="lc" style="background:#e87722;opacity:.8"></div>
+    <span>Schnittlinien</span>
+  </div>
+  <div class="li">
+    <div class="lc" style="background:#ccc;border:1px dashed #999"></div>
+    <span>Kontrolldiagonalen</span>
+  </div>
+</div>
+
+<!-- ─── Footer ─── -->
+<div class="foot">
+  <div>Glaszuschnittplan — Automatisch generiert vom CRM-Modul</div>
+  <div>Alle Angaben in Millimeter (mm)</div>
+  <div>Alle Maße vor der Fertigung prüfen!</div>
+</div>
+
+</div><!-- .page -->
+</body>
+</html>
