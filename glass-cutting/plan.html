@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Glaszuschnittplan</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #1a1a1a; background: #f3f4f6; }
+.sheet-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; padding: 18px 24px; border-bottom: 3px solid #1a1a1a; background: #fff; }
+h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: 0.5px; }
+.subtitle { margin: 0; color: #555; font-size: 12px; line-height: 1.5; }
+.meta { font-size: 12px; text-align: right; }
+.meta div { margin: 2px 0; }
+.meta span { color: #777; display: inline-block; min-width: 70px; text-align: left; }
+.legend { display: flex; gap: 18px; padding: 10px 24px; font-size: 12px; background: #fff; border-bottom: 1px solid #ddd; flex-wrap: wrap; }
+.legend .sw { display: inline-block; width: 16px; height: 12px; margin-right: 4px; vertical-align: middle; border: 1px solid #999; }
+.sw.blank { background: repeating-linear-gradient(90deg,#888 0 4px,transparent 4px 8px); border-color:#888; }
+.sw.glass { background: rgba(56,135,209,0.30); border-color: #2b6cb0; }
+.sw.cut { background: #e8730c; border-color: #e8730c; }
+.sw.warn { background: #f6c6c6; border-color: #b23b3b; }
+.cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 16px 24px; }
+.glass-card { background: #fff; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
+.glass-head h3 { margin: 0; padding: 10px 12px; font-size: 15px; background: #1f2937; color: #fff; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.badge { font-size: 10px; font-weight: normal; background: #374151; padding: 2px 6px; border-radius: 3px; }
+.badge.mbr { background: #8a4b0c; }
+.status { font-size: 10px; padding: 2px 6px; border-radius: 3px; margin-left: auto; }
+.status.ok { background: #1f7a3d; color: #fff; }
+.status.warn { background: #b23b3b; color: #fff; }
+.status.neutral { background: #6b7280; color: #fff; }
+.glass-body { display: flex; gap: 8px; padding: 10px; }
+.glass-svg { flex: 1 1 55%; min-width: 0; }
+.glass-svg svg { width: 100%; height: auto; }
+.glass-data { flex: 1 1 45%; font-size: 11px; }
+.glass-data table { width: 100%; border-collapse: collapse; }
+.glass-data td { padding: 2px 4px; border-bottom: 1px solid #eee; }
+.glass-data td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.ctrl { margin-top: 6px; font-size: 10px; }
+.ctrl ul { margin: 4px 0 0; padding-left: 16px; }
+.ctrl li.warn { color: #b23b3b; font-weight: bold; }
+.ctrl li.ok { color: #1f7a3d; }
+.summary-wrap { padding: 8px 24px 24px; }
+h2 { font-size: 18px; }
+table.summary { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; }
+table.summary th, table.summary td { border: 1px solid #ccc; padding: 6px 8px; text-align: center; }
+table.summary th { background: #1f2937; color: #fff; }
+table.summary td.status.ok { background: #d6f0de; }
+table.summary td.status.warn { background: #f6d6d6; color: #b23b3b; font-weight: bold; }
+table.summary td.status.neutral { background: #eef0f2; }
+table.summary tr.total td { font-weight: bold; background: #eef2f7; }
+.sheet-foot { padding: 10px 24px; font-size: 11px; color: #777; text-align: center; border-top: 1px solid #ddd; }
+@page { size: A4; margin: 12mm; }
+@media print {
+  body { background: #fff; }
+  .sheet-head, .legend, .glass-card, table.summary { background: #fff; }
+  .cards { padding: 8px 0; gap: 10px; }
+  .summary-wrap, .sheet-head, .legend { padding-left: 0; padding-right: 0; }
+}
+</style>
+</head>
+<body>
+<header class="sheet-head">
+  <div>
+    <h1>Glaszuschnittplan</h1>
+    <p class="subtitle">Alle Maße in mm<br/>Zeichnung nicht maßstabsgetreu<br/>Fertigung nach Maßangaben</p>
+  </div>
+  <div class="meta">
+    <div><span>Projekt:</span> Seitenwand / Glasschiebewand</div>
+    <div><span>Auftrag:</span> ANF-2026-001</div>
+    <div><span>Höhe H:</span> 2170 mm</div>
+    <div><span>Gläser:</span> 4</div>
+    <div><span>Datum:</span> 2026-06-08</div>
+  </div>
+</header>
+<section class="legend">
+  <span><i class="sw blank"></i> Zuschnitt-Platte</span>
+  <span><i class="sw glass"></i> Glas</span>
+  <span><i class="sw cut"></i> Schnitte</span>
+  <span><i class="sw warn"></i> Nachmessen nötig</span>
+</section>
+<section class="cards">
+<div class="glass-card"><div class="glass-head"><h3>Glas 1 <span class="badge ">Standard-Zuschnitt</span><span class="status warn">NACHMESSEN ERFORDERLICH</span></h3></div><div class="glass-body"><div class="glass-svg"><svg viewBox="0 0 358 476" width="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+<polygon points="78,398 280,398 280,78 78,78" fill="none" stroke="#888" stroke-width="1.2" stroke-dasharray="6 4"/>
+<polygon points="78,398 280,398 86.1,78 78,78" fill="rgba(56,135,209,0.30)" stroke="#2b6cb0" stroke-width="1.2"/>
+<line x1="280" y1="398" x2="86.1" y2="78" stroke="#e8730c" stroke-width="2.4"/>
+<circle cx="78" cy="398" r="2.5" fill="#2b6cb0"/>
+<text x="74.8" y="407.6" font-size="11" fill="#2b6cb0" text-anchor="middle">A</text>
+<circle cx="280" cy="398" r="2.5" fill="#2b6cb0"/>
+<text x="289" y="407.6" font-size="11" fill="#2b6cb0" text-anchor="middle">B</text>
+<circle cx="86.1" cy="78" r="2.5" fill="#2b6cb0"/>
+<text x="83.4" y="68.4" font-size="11" fill="#2b6cb0" text-anchor="middle">C</text>
+<circle cx="78" cy="78" r="2.5" fill="#2b6cb0"/>
+<text x="74.8" y="68.4" font-size="11" fill="#2b6cb0" text-anchor="middle">D</text>
+<text x="184.3" y="415.4" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">1370</text>
+<text x="201.3" y="238" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">2537</text>
+<text x="76.8" y="60.6" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">55</text>
+<text x="59.8" y="238" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">2170</text>
+<text x="179" y="414.8" fill="#666" font-size="12" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">▭ 1370</text>
+<text x="296.8" y="238" fill="#666" font-size="12" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">▭ 2170</text>
+<text x="179" y="463" fill="#b23b3b" font-size="13" text-anchor="middle">Verschnitt: 48%</text>
+</svg></div><div class="glass-data"><table><tr><td>Unterkante (AB)</td><td>1370 mm</td></tr><tr><td>Oberkante (CD)</td><td>55 mm</td></tr><tr><td>Linke Seite (DA)</td><td>2170 mm</td></tr><tr><td>Rechte Seite (BC)</td><td>2537 mm</td></tr><tr><td>Diagonale A–C</td><td>2171 mm</td></tr><tr><td>Diagonale B–D</td><td>2566 mm</td></tr><tr><td>Zuschnitt (Platte)</td><td>1370 × 2170 mm</td></tr><tr><td>Glasfläche</td><td>1.546 m²</td></tr><tr><td>Plattenfläche</td><td>2.973 m²</td></tr><tr><td>Verschnitt</td><td>48 %</td></tr></table><div class="ctrl"><b>Kontrollmaße:</b><ul><li class="ok">left: Soll 2170 / Mess 2170 (Δ 0 mm)</li><li class="warn">diagAC: Soll 2171 / Mess 2540 (Δ 369 mm) ⚠</li></ul></div></div></div></div>
+<div class="glass-card"><div class="glass-head"><h3>Glas 2 <span class="badge mbr">gedrehter Zuschnitt (MBR)</span><span class="status neutral">OHNE KONTROLLMASS</span></h3></div><div class="glass-body"><div class="glass-svg"><svg viewBox="0 0 476 446.9" width="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+<polygon points="398,303.9 133.5,78 78,143 342.5,368.9" fill="none" stroke="#888" stroke-width="1.2" stroke-dasharray="6 4"/>
+<polygon points="266.4,303.9 398,303.9 136.8,80.8 131.1,80.8" fill="rgba(56,135,209,0.30)" stroke="#2b6cb0" stroke-width="1.2"/>
+<line x1="266.4" y1="303.9" x2="398" y2="303.9" stroke="#e8730c" stroke-width="2.4"/>
+<line x1="398" y1="303.9" x2="136.8" y2="80.8" stroke="#e8730c" stroke-width="2.4"/>
+<line x1="136.8" y1="80.8" x2="131.1" y2="80.8" stroke="#e8730c" stroke-width="2.4"/>
+<line x1="131.1" y1="80.8" x2="266.4" y2="303.9" stroke="#e8730c" stroke-width="2.4"/>
+<circle cx="266.4" cy="303.9" r="2.5" fill="#2b6cb0"/>
+<text x="268.4" y="310.6" font-size="11" fill="#2b6cb0" text-anchor="middle">A</text>
+<circle cx="398" cy="303.9" r="2.5" fill="#2b6cb0"/>
+<text x="407.9" y="310.6" font-size="11" fill="#2b6cb0" text-anchor="middle">B</text>
+<circle cx="136.8" cy="80.8" r="2.5" fill="#2b6cb0"/>
+<text x="131" y="74.1" font-size="11" fill="#2b6cb0" text-anchor="middle">C</text>
+<circle cx="131.1" cy="80.8" r="2.5" fill="#2b6cb0"/>
+<text x="125" y="74.1" font-size="11" fill="#2b6cb0" text-anchor="middle">D</text>
+<text x="344.3" y="317.5" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">1280</text>
+<text x="285.6" y="192.4" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">3341</text>
+<text x="121.9" y="67.2" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">55</text>
+<text x="180.6" y="192.4" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">2537</text>
+<text x="276.7" y="178.2" fill="#666" font-size="12" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">▭ 3383</text>
+<text x="93" y="99.6" fill="#666" font-size="12" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">▭ 831</text>
+<text x="238" y="433.9" fill="#b23b3b" font-size="13" text-anchor="middle">Verschnitt: 48.5%</text>
+</svg></div><div class="glass-data"><table><tr><td>Unterkante (AB)</td><td>1280 mm</td></tr><tr><td>Oberkante (CD)</td><td>55 mm</td></tr><tr><td>Linke Seite (DA)</td><td>2537 mm</td></tr><tr><td>Rechte Seite (BC)</td><td>3341 mm</td></tr><tr><td>Diagonale A–C</td><td>2509 mm</td></tr><tr><td>Diagonale B–D</td><td>3383 mm</td></tr><tr><td>Zuschnitt (Platte)</td><td>3383 × 831 mm (gedreht 139.5°)</td></tr><tr><td>Glasfläche</td><td>1.448 m²</td></tr><tr><td>Plattenfläche</td><td>2.812 m²</td></tr><tr><td>Verschnitt</td><td>48.5 %</td></tr></table></div></div></div>
+<div class="glass-card"><div class="glass-head"><h3>Glas 3 <span class="badge mbr">gedrehter Zuschnitt (MBR)</span><span class="status warn">NACHMESSEN ERFORDERLICH</span></h3></div><div class="glass-body"><div class="glass-svg"><svg viewBox="0 0 476 384" width="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+<polygon points="398,265.5 103.8,78 78,118.5 372.2,306" fill="none" stroke="#888" stroke-width="1.2" stroke-dasharray="6 4"/>
+<polygon points="308.7,265.5 398,265.5 116.4,86.1 98.7,86.1" fill="rgba(56,135,209,0.30)" stroke="#2b6cb0" stroke-width="1.2"/>
+<line x1="308.7" y1="265.5" x2="398" y2="265.5" stroke="#e8730c" stroke-width="2.4"/>
+<line x1="398" y1="265.5" x2="116.4" y2="86.1" stroke="#e8730c" stroke-width="2.4"/>
+<line x1="116.4" y1="86.1" x2="98.7" y2="86.1" stroke="#e8730c" stroke-width="2.4"/>
+<line x1="98.7" y1="86.1" x2="308.7" y2="265.5" stroke="#e8730c" stroke-width="2.4"/>
+<circle cx="308.7" cy="265.5" r="2.5" fill="#2b6cb0"/>
+<text x="313.4" y="270.9" font-size="11" fill="#2b6cb0" text-anchor="middle">A</text>
+<circle cx="398" cy="265.5" r="2.5" fill="#2b6cb0"/>
+<text x="408.1" y="270.9" font-size="11" fill="#2b6cb0" text-anchor="middle">B</text>
+<circle cx="116.4" cy="86.1" r="2.5" fill="#2b6cb0"/>
+<text x="109.6" y="80.7" font-size="11" fill="#2b6cb0" text-anchor="middle">C</text>
+<circle cx="98.7" cy="86.1" r="2.5" fill="#2b6cb0"/>
+<text x="90.8" y="80.7" font-size="11" fill="#2b6cb0" text-anchor="middle">D</text>
+<text x="368" y="276.2" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">1080</text>
+<text x="275.4" y="175.8" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">4038</text>
+<text x="92.8" y="75.3" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">215</text>
+<text x="185.5" y="175.8" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">3341</text>
+<text x="259.9" y="157.6" fill="#666" font-size="12" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">▭ 4219</text>
+<text x="76.7" y="89.2" fill="#666" font-size="12" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">▭ 580</text>
+<text x="238" y="371" fill="#b23b3b" font-size="13" text-anchor="middle">Verschnitt: 42.6%</text>
+</svg></div><div class="glass-data"><table><tr><td>Unterkante (AB)</td><td>1080 mm</td></tr><tr><td>Oberkante (CD)</td><td>215 mm</td></tr><tr><td>Linke Seite (DA)</td><td>3341 mm</td></tr><tr><td>Rechte Seite (BC)</td><td>4038 mm</td></tr><tr><td>Diagonale A–C</td><td>3180 mm</td></tr><tr><td>Diagonale B–D</td><td>4221 mm</td></tr><tr><td>Zuschnitt (Platte)</td><td>4219 × 580 mm (gedreht 147.5°)</td></tr><tr><td>Glasfläche</td><td>1.405 m²</td></tr><tr><td>Plattenfläche</td><td>2.449 m²</td></tr><tr><td>Verschnitt</td><td>42.6 %</td></tr></table><div class="ctrl"><b>Kontrollmaße:</b><ul><li class="warn">left: Soll 3341 / Mess 3300 (Δ 41 mm) ⚠</li></ul></div></div></div></div>
+<div class="glass-card"><div class="glass-head"><h3>Glas 4 <span class="badge mbr">gedrehter Zuschnitt (MBR)</span><span class="status neutral">OHNE KONTROLLMASS</span></h3></div><div class="glass-body"><div class="glass-svg"><svg viewBox="0 0 476 334.9" width="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+<polygon points="398,228 92.2,78 78,107 383.8,256.9" fill="none" stroke="#888" stroke-width="1.2" stroke-dasharray="6 4"/>
+<polygon points="324.7,228 398,228 95,79.4 91.5,79.4" fill="rgba(56,135,209,0.30)" stroke="#2b6cb0" stroke-width="1.2"/>
+<line x1="324.7" y1="228" x2="398" y2="228" stroke="#e8730c" stroke-width="2.4"/>
+<line x1="398" y1="228" x2="95" y2="79.4" stroke="#e8730c" stroke-width="2.4"/>
+<line x1="95" y1="79.4" x2="91.5" y2="79.4" stroke="#e8730c" stroke-width="2.4"/>
+<line x1="91.5" y1="79.4" x2="324.7" y2="228" stroke="#e8730c" stroke-width="2.4"/>
+<circle cx="324.7" cy="228" r="2.5" fill="#2b6cb0"/>
+<text x="330.6" y="232.4" font-size="11" fill="#2b6cb0" text-anchor="middle">A</text>
+<circle cx="398" cy="228" r="2.5" fill="#2b6cb0"/>
+<text x="408.2" y="232.4" font-size="11" fill="#2b6cb0" text-anchor="middle">B</text>
+<circle cx="95" cy="79.4" r="2.5" fill="#2b6cb0"/>
+<text x="87" y="74.9" font-size="11" fill="#2b6cb0" text-anchor="middle">C</text>
+<circle cx="91.5" cy="79.4" r="2.5" fill="#2b6cb0"/>
+<text x="83.4" y="74.9" font-size="11" fill="#2b6cb0" text-anchor="middle">D</text>
+<text x="377.3" y="236.8" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">1070</text>
+<text x="264.7" y="153.7" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">4928</text>
+<text x="77.3" y="70.5" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">50</text>
+<text x="189.9" y="153.7" fill="#222" font-size="13" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">4038</text>
+<text x="252.5" y="137.9" fill="#666" font-size="12" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">▭ 4973</text>
+<text x="70" y="85.1" fill="#666" font-size="12" font-family="Arial, Helvetica, sans-serif" text-anchor="middle" dominant-baseline="middle">▭ 471</text>
+<text x="238" y="321.9" fill="#b23b3b" font-size="13" text-anchor="middle">Verschnitt: 48.1%</text>
+</svg></div><div class="glass-data"><table><tr><td>Unterkante (AB)</td><td>1070 mm</td></tr><tr><td>Oberkante (CD)</td><td>50 mm</td></tr><tr><td>Linke Seite (DA)</td><td>4038 mm</td></tr><tr><td>Rechte Seite (BC)</td><td>4928 mm</td></tr><tr><td>Diagonale A–C</td><td>3996 mm</td></tr><tr><td>Diagonale B–D</td><td>4973 mm</td></tr><tr><td>Zuschnitt (Platte)</td><td>4973 × 471 mm (gedreht 153.9°)</td></tr><tr><td>Glasfläche</td><td>1.215 m²</td></tr><tr><td>Plattenfläche</td><td>2.343 m²</td></tr><tr><td>Verschnitt</td><td>48.1 %</td></tr></table></div></div></div>
+</section>
+<section class="summary-wrap"><h2>Schnittliste / Zusammenfassung</h2>
+<table class="summary"><thead><tr><th>Nr.</th><th>Zuschnitt (mm)</th><th>Glasmaß B×O / L / R</th><th>Glasfläche</th><th>Plattenfläche</th><th>Verschnitt</th><th>Prüfung</th></tr></thead><tbody><tr><td>1</td><td>1370 × 2170</td><td>1370 / 55 / 2170 / 2537</td><td>1.546 m²</td><td>2.973 m²</td><td>48 %</td><td class="status warn">NACHMESSEN ERFORDERLICH</td></tr><tr><td>2</td><td>3383 × 831 ↻</td><td>1280 / 55 / 2537 / 3341</td><td>1.448 m²</td><td>2.812 m²</td><td>48.5 %</td><td class="status neutral">OHNE KONTROLLMASS</td></tr><tr><td>3</td><td>4219 × 580 ↻</td><td>1080 / 215 / 3341 / 4038</td><td>1.405 m²</td><td>2.449 m²</td><td>42.6 %</td><td class="status warn">NACHMESSEN ERFORDERLICH</td></tr><tr><td>4</td><td>4973 × 471 ↻</td><td>1070 / 50 / 4038 / 4928</td><td>1.215 m²</td><td>2.343 m²</td><td>48.1 %</td><td class="status neutral">OHNE KONTROLLMASS</td></tr><tr class="total"><td colspan="3">Summe</td><td>5.615 m²</td><td>10.577 m²</td><td>46.9 %</td><td>NACHMESSEN</td></tr></tbody></table></section>
+<footer class="sheet-foot">Glaszuschnittplan · Fertigung nach Maßangaben · Alle Maße in mm</footer>
+</body>
+</html>
