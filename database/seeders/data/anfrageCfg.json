@@ -1,0 +1,475 @@
+{
+  "ANF-2026-012": {
+    "contact": "Herr Demo",
+    "street": "Musterstraße 12",
+    "plz": "10115",
+    "ort2": "Berlin",
+    "phone": "+49 170 1234567",
+    "email": "demo@example.de",
+    "terminDate": "04.07.2026",
+    "terminTime": "09:00–11:00",
+    "terminType": "Aufmaß",
+    "produkte": [
+      "Terrassenüberdachung",
+      "Keil",
+      "Seitenwand",
+      "Schiebe"
+    ],
+    "produktart": "Terrassenüberdachung",
+    "montage": "Wandmontage",
+    "farbe": "Anthrazit · RAL 7016",
+    "fassade": "Klinker",
+    "daemmung": "–",
+    "form": "Trapez",
+    "breite": "6.000 mm",
+    "tiefe": "3.500 mm",
+    "wandH": "3.000 mm",
+    "rinneH": "2.500 mm",
+    "neigung": "8,0°",
+    "gefaelle": "490 mm",
+    "bezug": "OK Terrasse",
+    "dachMat": "VSG-Glas",
+    "dachStk": "8 mm",
+    "dachTrans": "Klar",
+    "ledCount": "6 Stk.",
+    "ledPaket": "1 × 6er-Paket",
+    "pfAnzahl": "4 Stk.",
+    "pfVersatz": "150 / 150 mm",
+    "pfVerst": "Unterzug 110×190",
+    "pfBefest": "Eingraben (Betonfundament)",
+    "pfLaenge": "3.400 mm",
+    "hasTrapez": true,
+    "trapezWand": "6.000 mm",
+    "trapezRinne": "5.400 mm",
+    "versatzL": "300 mm",
+    "versatzR": "300 mm",
+    "winkel": "5,7° / 5,7°",
+    "posts": [
+      "150",
+      "2.050",
+      "3.950",
+      "5.850"
+    ],
+    "felder": [
+      [
+        "Rand links",
+        "900"
+      ],
+      [
+        "Feld 1",
+        "1.900"
+      ],
+      [
+        "Feld 2",
+        "1.900"
+      ],
+      [
+        "Rand rechts",
+        "900"
+      ]
+    ],
+    "deckType": "Glas",
+    "workW": "1.050 mm",
+    "axes": "1.079 mm",
+    "fieldCount": "6",
+    "rafterCount": "7",
+    "glassW": "1.030 mm",
+    "glassD": "3.480 mm",
+    "keils": [
+      [
+        "Rechts",
+        "Glas",
+        "Klar",
+        3000,
+        2500,
+        3500,
+        3520
+      ]
+    ],
+    "sidewalls": [
+      [
+        "Rechts",
+        "1",
+        "Glas",
+        "Klar"
+      ]
+    ],
+    "sliding": [
+      [
+        "4",
+        "VSG 10 klar",
+        "4200",
+        "2400",
+        "Mittig",
+        "Edelstahl-Muschel"
+      ]
+    ]
+  },
+  "ANF-2026-014": {
+    "contact": "Frau Weber",
+    "street": "Seeweg 4",
+    "plz": "14612",
+    "ort2": "Falkensee",
+    "phone": "+49 171 2223344",
+    "email": "weber@example.de",
+    "terminDate": "12.07.2026",
+    "terminTime": "14:00–16:00",
+    "terminType": "Aufmaß",
+    "produkte": [
+      "Terrassenüberdachung",
+      "Seitenwand"
+    ],
+    "produktart": "Terrassenüberdachung",
+    "montage": "Wandmontage",
+    "farbe": "Weiß · RAL 9016",
+    "fassade": "Putz",
+    "daemmung": "–",
+    "form": "Rechteck",
+    "breite": "5.000 mm",
+    "tiefe": "3.000 mm",
+    "wandH": "2.900 mm",
+    "rinneH": "2.500 mm",
+    "neigung": "8,0°",
+    "gefaelle": "420 mm",
+    "bezug": "OK Terrasse",
+    "dachMat": "VSG-Glas",
+    "dachStk": "8 mm",
+    "dachTrans": "Klar",
+    "ledCount": "–",
+    "ledPaket": "–",
+    "pfAnzahl": "3 Stk. (empfohlen)",
+    "pfVersatz": "150 / 150 mm",
+    "pfVerst": "–",
+    "pfBefest": "U-Profil",
+    "pfLaenge": "2.600 mm",
+    "posts": [
+      "150",
+      "2.500",
+      "4.850"
+    ],
+    "felder": [
+      [
+        "Rand links",
+        "1.100"
+      ],
+      [
+        "Feld 1",
+        "2.500"
+      ],
+      [
+        "Rand rechts",
+        "1.100"
+      ]
+    ],
+    "deckType": "Glas",
+    "workW": "1.050 mm",
+    "axes": "1.213 mm",
+    "fieldCount": "4",
+    "rafterCount": "5",
+    "glassW": "1.030 mm",
+    "glassD": "2.980 mm",
+    "keils": [],
+    "sidewalls": [
+      [
+        "Links",
+        "1",
+        "Polycarbonat",
+        "Opal"
+      ]
+    ],
+    "sliding": []
+  },
+  "ANF-2026-013": {
+    "contact": "Herr Bauer",
+    "street": "Industriestr. 22",
+    "plz": "10317",
+    "ort2": "Berlin",
+    "phone": "+49 30 998877",
+    "email": "kontakt@bauer-gmbh.de",
+    "terminDate": "–",
+    "terminTime": "–",
+    "terminType": "–",
+    "produkte": [
+      "Schiebe",
+      "Seitenwand"
+    ],
+    "produktart": "Glaswand-Schiebe",
+    "montage": "Wandmontage",
+    "farbe": "Anthrazit · RAL 7016",
+    "fassade": "Beton",
+    "daemmung": "–",
+    "form": "Rechteck",
+    "breite": "4.200 mm",
+    "tiefe": "–",
+    "wandH": "2.400 mm",
+    "rinneH": "–",
+    "neigung": "–",
+    "gefaelle": "–",
+    "bezug": "OK Boden",
+    "dachMat": "–",
+    "dachStk": "–",
+    "dachTrans": "–",
+    "ledCount": "–",
+    "ledPaket": "–",
+    "pfAnzahl": "–",
+    "pfVersatz": "–",
+    "pfVerst": "–",
+    "pfBefest": "–",
+    "pfLaenge": "–",
+    "posts": [],
+    "felder": [],
+    "deckType": "",
+    "keils": [],
+    "sidewalls": [
+      [
+        "Rechts",
+        "1",
+        "Glas",
+        "Klar"
+      ]
+    ],
+    "sliding": [
+      [
+        "3",
+        "VSG 10 klar",
+        "4200",
+        "2400",
+        "Nach links",
+        "Griffleiste"
+      ]
+    ]
+  },
+  "ANF-2026-011": {
+    "contact": "Herr Lentz",
+    "street": "Gartenweg 9",
+    "plz": "16321",
+    "ort2": "Bernau",
+    "phone": "+49 3338 5566",
+    "email": "info@gartenbau-lentz.de",
+    "terminDate": "15.07.2026",
+    "terminTime": "10:00–12:00",
+    "terminType": "Aufmaß",
+    "produkte": [
+      "Carport"
+    ],
+    "produktart": "Carport",
+    "montage": "Freistehend",
+    "farbe": "Anthrazit · RAL 7016",
+    "fassade": "–",
+    "daemmung": "–",
+    "form": "Rechteck",
+    "breite": "5.400 mm",
+    "tiefe": "5.400 mm",
+    "wandH": "2.600 mm",
+    "rinneH": "2.400 mm",
+    "neigung": "5,0°",
+    "gefaelle": "470 mm",
+    "bezug": "OK Boden",
+    "dachMat": "Polycarbonat",
+    "dachStk": "16 mm",
+    "dachTrans": "Opal",
+    "ledCount": "–",
+    "ledPaket": "–",
+    "pfAnzahl": "6 Stk.",
+    "pfVersatz": "200 / 200 mm",
+    "pfVerst": "Unterzug 110×190",
+    "pfBefest": "Eingraben (Betonfundament)",
+    "pfLaenge": "2.900 mm",
+    "posts": [
+      "200",
+      "2.700",
+      "5.200"
+    ],
+    "felder": [
+      [
+        "Rand links",
+        "1.150"
+      ],
+      [
+        "Feld 1",
+        "2.500"
+      ],
+      [
+        "Rand rechts",
+        "1.150"
+      ]
+    ],
+    "deckType": "Poly",
+    "workW": "980 mm",
+    "axes": "1.080 mm",
+    "fieldCount": "5",
+    "rafterCount": "6",
+    "glassW": "–",
+    "glassD": "5.380 mm",
+    "keils": [],
+    "sidewalls": [],
+    "sliding": []
+  },
+  "ANF-2026-010": {
+    "contact": "Herr Neumann",
+    "street": "Lindenallee 30",
+    "plz": "16515",
+    "ort2": "Oranienburg",
+    "phone": "+49 3301 4455",
+    "email": "a.neumann@example.de",
+    "terminDate": "–",
+    "terminTime": "–",
+    "terminType": "–",
+    "produkte": [
+      "Wintergarten"
+    ],
+    "produktart": "Wintergarten",
+    "montage": "Wandmontage",
+    "farbe": "Weiß · RAL 9016",
+    "fassade": "Putz",
+    "daemmung": "PUR 40 mm",
+    "form": "Rechteck",
+    "breite": "4.800 mm",
+    "tiefe": "3.600 mm",
+    "wandH": "3.100 mm",
+    "rinneH": "2.600 mm",
+    "neigung": "7,0°",
+    "gefaelle": "440 mm",
+    "bezug": "OK Terrasse",
+    "dachMat": "VSG-Glas",
+    "dachStk": "10 mm",
+    "dachTrans": "Klar",
+    "ledCount": "8 Stk.",
+    "ledPaket": "2 × 4er-Paket",
+    "pfAnzahl": "4 Stk.",
+    "pfVersatz": "150 / 150 mm",
+    "pfVerst": "–",
+    "pfBefest": "Konsole",
+    "pfLaenge": "3.000 mm",
+    "posts": [
+      "150",
+      "1.700",
+      "3.250",
+      "4.650"
+    ],
+    "felder": [
+      [
+        "Rand links",
+        "800"
+      ],
+      [
+        "Feld 1",
+        "1.550"
+      ],
+      [
+        "Feld 2",
+        "1.550"
+      ],
+      [
+        "Rand rechts",
+        "800"
+      ]
+    ],
+    "deckType": "Glas",
+    "workW": "1.050 mm",
+    "axes": "1.150 mm",
+    "fieldCount": "5",
+    "rafterCount": "6",
+    "glassW": "1.030 mm",
+    "glassD": "3.580 mm",
+    "keils": [],
+    "sidewalls": [
+      [
+        "Links",
+        "1",
+        "Glas",
+        "Klar"
+      ],
+      [
+        "Rechts",
+        "1",
+        "Glas",
+        "Klar"
+      ]
+    ],
+    "sliding": [
+      [
+        "3",
+        "VSG 10 klar",
+        "3600",
+        "2500",
+        "Mittig",
+        "Edelstahl-Muschel"
+      ]
+    ]
+  },
+  "ANF-2026-009": {
+    "contact": "Herr Schulze",
+    "street": "Am Park 7",
+    "plz": "14467",
+    "ort2": "Potsdam",
+    "phone": "+49 331 776655",
+    "email": "m.schulze@example.de",
+    "terminDate": "–",
+    "terminTime": "–",
+    "terminType": "–",
+    "produkte": [
+      "Terrassenüberdachung",
+      "Sonnenschutz"
+    ],
+    "produktart": "Terrassenüberdachung",
+    "montage": "Wandmontage",
+    "farbe": "Anthrazit · RAL 7016",
+    "fassade": "Klinker",
+    "daemmung": "–",
+    "form": "Rechteck",
+    "breite": "5.800 mm",
+    "tiefe": "3.200 mm",
+    "wandH": "3.000 mm",
+    "rinneH": "2.500 mm",
+    "neigung": "8,0°",
+    "gefaelle": "450 mm",
+    "bezug": "OK Terrasse",
+    "dachMat": "VSG-Glas",
+    "dachStk": "8 mm",
+    "dachTrans": "Klar",
+    "ledCount": "8 Stk.",
+    "ledPaket": "2 × 4er-Paket",
+    "pfAnzahl": "3 Stk. (empfohlen)",
+    "pfVersatz": "150 / 150 mm",
+    "pfVerst": "–",
+    "pfBefest": "U-Profil",
+    "pfLaenge": "3.000 mm",
+    "posts": [
+      "150",
+      "2.900",
+      "5.650"
+    ],
+    "felder": [
+      [
+        "Rand links",
+        "1.250"
+      ],
+      [
+        "Feld 1",
+        "2.900"
+      ],
+      [
+        "Rand rechts",
+        "1.250"
+      ]
+    ],
+    "deckType": "Glas",
+    "workW": "1.050 mm",
+    "axes": "1.160 mm",
+    "fieldCount": "5",
+    "rafterCount": "6",
+    "glassW": "1.030 mm",
+    "glassD": "3.180 mm",
+    "keils": [],
+    "sidewalls": [
+      [
+        "Links",
+        "1",
+        "Glas",
+        "Klar"
+      ]
+    ],
+    "sliding": []
+  }
+}

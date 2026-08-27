@@ -1,0 +1,108 @@
+{
+  "K-1071": {
+    "contact": "Herr Demo",
+    "street": "Musterstraße 12",
+    "plz": "10115",
+    "ort2": "Berlin",
+    "region": "Berlin",
+    "phone": "+49 170 2345678",
+    "email": "demo@example.de",
+    "quelle": "Empfehlung",
+    "tags": [
+      "VIP",
+      "LED-Paket"
+    ],
+    "notes": "Wünscht Markise auf der Südseite. Zufahrt über Hofeinfahrt möglich.",
+    "created": "30.06.2026"
+  },
+  "K-1031": {
+    "contact": "Herr Bauer",
+    "street": "Industriestr. 22",
+    "plz": "10317",
+    "ort2": "Berlin",
+    "region": "Berlin",
+    "phone": "+49 30 5512340",
+    "email": "kontakt@bauer-gmbh.de",
+    "quelle": "Google Ads",
+    "tags": [
+      "Gewerbe",
+      "Schiebe"
+    ],
+    "notes": "Mehrere Objekte in Planung. Ansprechpartner nur vormittags erreichbar.",
+    "created": "02.07.2026"
+  },
+  "K-1042": {
+    "contact": "Herr Schulze",
+    "street": "Am Park 7",
+    "plz": "14467",
+    "ort2": "Potsdam",
+    "region": "Brandenburg",
+    "phone": "+49 171 8890210",
+    "email": "m.schulze@example.de",
+    "quelle": "Empfehlung",
+    "tags": [
+      "Lead"
+    ],
+    "notes": "",
+    "created": "26.06.2026"
+  },
+  "K-1048": {
+    "contact": "Herr Lentz",
+    "street": "Gartenweg 9",
+    "plz": "16321",
+    "ort2": "Bernau",
+    "region": "Brandenburg",
+    "phone": "+49 3338 45120",
+    "email": "info@gartenbau-lentz.de",
+    "quelle": "Website",
+    "tags": [
+      "Gewerbe"
+    ],
+    "notes": "Wiederkehrender Gewerbekunde.",
+    "created": "02.07.2026"
+  },
+  "K-1055": {
+    "contact": "Frau Weber",
+    "street": "Seeweg 4",
+    "plz": "14612",
+    "ort2": "Falkensee",
+    "region": "Brandenburg",
+    "phone": "+49 172 3345567",
+    "email": "weber@example.de",
+    "quelle": "Website",
+    "tags": [
+      "Lead"
+    ],
+    "notes": "",
+    "created": "05.07.2026"
+  },
+  "K-1060": {
+    "contact": "Herr Neumann",
+    "street": "Lindenallee 30",
+    "plz": "16515",
+    "ort2": "Oranienburg",
+    "region": "Brandenburg",
+    "phone": "+49 160 7788990",
+    "email": "a.neumann@example.de",
+    "quelle": "Website",
+    "tags": [],
+    "notes": "Interesse an Wintergarten, Budget noch offen.",
+    "created": "28.06.2026"
+  },
+  "K-1063": {
+    "contact": "Frau König",
+    "street": "Nordstr. 55",
+    "plz": "13407",
+    "ort2": "Berlin",
+    "region": "Berlin",
+    "phone": "+49 30 9987120",
+    "email": "info@hv-nord.de",
+    "quelle": "Empfehlung",
+    "tags": [
+      "Gewerbe",
+      "Großkunde"
+    ],
+    "notes": "Rahmenvertrag in Prüfung. Sammelobjekte über mehrere Standorte.",
+    "created": "22.06.2026"
+  }
+}

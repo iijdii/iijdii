@@ -1,0 +1,56 @@
+[
+  [
+    "ANG-2026-010",
+    "DEMO Demo",
+    "17.671,50 €",
+    "12.05.",
+    "Angenommen",
+    "b-green",
+    1
+  ],
+  [
+    "ANG-2026-071",
+    "Bauer GmbH",
+    "28.400,00 €",
+    "06.07.",
+    "Versendet",
+    "b-yellow",
+    0
+  ],
+  [
+    "ANG-2026-070",
+    "Gartenbau Lentz",
+    "9.850,00 €",
+    "04.07.",
+    "Versendet",
+    "b-yellow",
+    0
+  ],
+  [
+    "ANG-2026-069",
+    "Familie Weber",
+    "14.200,00 €",
+    "–",
+    "Entwurf",
+    "b-gray",
+    0
+  ],
+  [
+    "ANG-2026-066",
+    "M. Schulze",
+    "6.320,00 €",
+    "28.06.",
+    "Abgelehnt",
+    "b-red",
+    0
+  ],
+  [
+    "ANG-2026-064",
+    "Hausverwaltung Nord",
+    "42.100,00 €",
+    "22.06.",
+    "Angenommen",
+    "b-green",
+    0
+  ]
+]

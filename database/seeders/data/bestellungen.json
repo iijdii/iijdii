@@ -1,0 +1,275 @@
+[
+  {
+    "nr": "BST-2026-112",
+    "lief": "Solarlux",
+    "cat": "glas",
+    "title": "Dachverglasung — Terrasse",
+    "projekt": "PRJ-2026-011",
+    "kunde": "DEMO Demo",
+    "ersteller": "Max Schneider",
+    "erstellt": "30.06.2026",
+    "termin": "15.07.",
+    "stat": "geliefert",
+    "notes": "Lieferung an Baustelle Musterstraße 12. Gläser einzeln mit Saugheber.",
+    "glas": [
+      {
+        "n": 1,
+        "name": "Dachfeld Standard",
+        "form": "Rechteck",
+        "w": 1078,
+        "hL": 3480,
+        "hR": 3480,
+        "menge": 8,
+        "glas": "VSG 8 mm klar",
+        "src": "live"
+      }
+    ],
+    "schiebe": [],
+    "mat": []
+  },
+  {
+    "nr": "BST-2026-111",
+    "lief": "Sunshine",
+    "cat": "aluminium",
+    "title": "Aluminium-Konstruktion",
+    "projekt": "PRJ-2026-011",
+    "kunde": "DEMO Demo",
+    "ersteller": "Max Schneider",
+    "erstellt": "30.06.2026",
+    "termin": "18.07.",
+    "stat": "bestellt",
+    "notes": "Pulverbeschichtet RAL 7016 anthrazit, matt.",
+    "glas": [],
+    "schiebe": [],
+    "mat": [
+      [
+        "Pfosten 110×110 anthrazit",
+        6
+      ],
+      [
+        "Firstträger 120×60",
+        1
+      ],
+      [
+        "Sparren 80×60",
+        7
+      ],
+      [
+        "Gigarinne 8630",
+        1
+      ],
+      [
+        "Wandanschlussprofil",
+        1
+      ],
+      [
+        "Pfostenanker A2 M12",
+        6
+      ]
+    ]
+  },
+  {
+    "nr": "BST-2026-110",
+    "lief": "Solarlux",
+    "cat": "gemischt",
+    "title": "Glas & Schiebe — Anbau",
+    "projekt": "PRJ-2026-038",
+    "kunde": "Bauer GmbH",
+    "ersteller": "Anna Vogt",
+    "erstellt": "02.07.2026",
+    "termin": "24.07.",
+    "stat": "geprueft",
+    "notes": "Trapezfelder gemäß Aufmaß vom 01.07. Schiebeanlage mittig öffnend.",
+    "glas": [
+      {
+        "n": 1,
+        "name": "Feld links",
+        "form": "Trapez",
+        "w": 1200,
+        "hL": 2600,
+        "hR": 2150,
+        "menge": 2,
+        "glas": "VSG 8 mm klar",
+        "src": "live"
+      },
+      {
+        "n": 2,
+        "name": "Feld Mitte",
+        "form": "Rechteck",
+        "w": 1200,
+        "hL": 2600,
+        "hR": 2600,
+        "menge": 2,
+        "glas": "VSG 8 mm klar",
+        "src": "live"
+      },
+      {
+        "n": 3,
+        "name": "Feld rechts",
+        "form": "Trapez",
+        "w": 980,
+        "hL": 2150,
+        "hR": 1900,
+        "menge": 2,
+        "glas": "VSG 8 mm klar",
+        "src": "manuell"
+      },
+      {
+        "n": 4,
+        "name": "Oberlicht",
+        "form": "Rechteck",
+        "w": 1600,
+        "hL": 900,
+        "hR": 900,
+        "menge": 1,
+        "glas": "VSG 6 mm mattiert",
+        "src": "live"
+      },
+      {
+        "n": 5,
+        "name": "Seitenteil links",
+        "form": "Trapez",
+        "w": 820,
+        "hL": 2400,
+        "hR": 2000,
+        "menge": 1,
+        "glas": "VSG 8 mm klar",
+        "src": "manuell"
+      },
+      {
+        "n": 6,
+        "name": "Festfeld breit",
+        "form": "Rechteck",
+        "w": 2200,
+        "hL": 2500,
+        "hR": 2500,
+        "menge": 2,
+        "glas": "VSG 10 mm klar",
+        "src": "live"
+      }
+    ],
+    "schiebe": [
+      {
+        "name": "Schiebeanlage Süd",
+        "w": 4200,
+        "h": 2400,
+        "count": 4,
+        "glas": "VSG 10 klar",
+        "dir": "center",
+        "src": "manuell"
+      }
+    ],
+    "mat": [
+      [
+        "Laufschiene 4200 mm",
+        1
+      ],
+      [
+        "Rollenwagen-Set",
+        4
+      ],
+      [
+        "Bürstendichtung",
+        18
+      ],
+      [
+        "Griffmuschel Edelstahl",
+        4
+      ],
+      [
+        "Boden-Führungsschiene",
+        1
+      ]
+    ]
+  },
+  {
+    "nr": "BST-2026-109",
+    "lief": "Sunshine",
+    "cat": "aluminium",
+    "title": "Aluminium-Profile",
+    "projekt": "PRJ-2026-035",
+    "kunde": "HV Nord",
+    "ersteller": "Max Schneider",
+    "erstellt": "28.06.2026",
+    "termin": "12.07.",
+    "stat": "bereit",
+    "notes": "Abholung durch eigene Logistik (Team Berlin K1).",
+    "glas": [],
+    "schiebe": [],
+    "mat": [
+      [
+        "Pfosten 110×110",
+        8
+      ],
+      [
+        "Rinne 6000",
+        2
+      ],
+      [
+        "Sparren 80×60",
+        10
+      ],
+      [
+        "Wandanschluss",
+        1
+      ]
+    ]
+  },
+  {
+    "nr": "BST-2026-108",
+    "lief": "Solarlux",
+    "cat": "glas",
+    "title": "Dachglas Carport",
+    "projekt": "PRJ-2026-033",
+    "kunde": "Gartenbau Lentz",
+    "ersteller": "Anna Vogt",
+    "erstellt": "20.06.2026",
+    "termin": "erledigt",
+    "stat": "montiert",
+    "notes": "Montage abgeschlossen, Restglas eingelagert.",
+    "glas": [
+      {
+        "n": 1,
+        "name": "Carport-Feld",
+        "form": "Rechteck",
+        "w": 1200,
+        "hL": 2600,
+        "hR": 2600,
+        "menge": 6,
+        "glas": "VSG 8 mm klar",
+        "src": "manuell"
+      }
+    ],
+    "schiebe": [],
+    "mat": []
+  },
+  {
+    "nr": "BST-2026-107",
+    "lief": "Sunshine",
+    "cat": "aluminium",
+    "title": "Zubehör: LED & Markise",
+    "projekt": "PRJ-2026-011",
+    "kunde": "DEMO Demo",
+    "ersteller": "Max Schneider",
+    "erstellt": "05.07.2026",
+    "termin": "–",
+    "stat": "entwurf",
+    "notes": "LED warmweiß 3000K, dimmbar. Markise-Vorrüstung Südseite.",
+    "glas": [],
+    "schiebe": [],
+    "mat": [
+      [
+        "LED-Spot 3000K",
+        8
+      ],
+      [
+        "Trafo 24 V",
+        1
+      ],
+      [
+        "Markise-Vorrüstung",
+        1
+      ]
+    ]
+  }
+]

@@ -1,0 +1,72 @@
+[
+  [
+    "K-1071",
+    "DEMO Demo",
+    "Privatkunde",
+    "Berlin",
+    "+49 170 2345678",
+    "Aktiv",
+    "b-green",
+    1
+  ],
+  [
+    "K-1031",
+    "Bauer GmbH",
+    "Gewerbe",
+    "Berlin",
+    "+49 30 5512340",
+    "Aktiv",
+    "b-green",
+    0
+  ],
+  [
+    "K-1042",
+    "M. Schulze",
+    "Privatkunde",
+    "Potsdam",
+    "+49 171 8890210",
+    "Lead",
+    "b-yellow",
+    0
+  ],
+  [
+    "K-1048",
+    "Gartenbau Lentz",
+    "Gewerbe",
+    "Bernau",
+    "+49 3338 45120",
+    "Aktiv",
+    "b-green",
+    0
+  ],
+  [
+    "K-1055",
+    "Familie Weber",
+    "Privatkunde",
+    "Falkensee",
+    "+49 172 3345567",
+    "Lead",
+    "b-yellow",
+    0
+  ],
+  [
+    "K-1060",
+    "A. Neumann",
+    "Privatkunde",
+    "Oranienburg",
+    "+49 160 7788990",
+    "Inaktiv",
+    "b-gray",
+    0
+  ],
+  [
+    "K-1063",
+    "Hausverwaltung Nord",
+    "Gewerbe",
+    "Berlin",
+    "+49 30 9987120",
+    "Aktiv",
+    "b-green",
+    0
+  ]
+]

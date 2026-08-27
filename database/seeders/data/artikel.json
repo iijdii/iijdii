@@ -1,0 +1,598 @@
+[
+  {
+    "art": "35722",
+    "name": "Wandanschlussprofil",
+    "kat": "profile",
+    "img": "wandanschluss",
+    "einheit": "Stück",
+    "ort": "H1-A-01",
+    "bestand": 9,
+    "min": 4,
+    "ek": 62.4,
+    "lief": "Sunshine",
+    "alias": [
+      "Wandanschluss"
+    ]
+  },
+  {
+    "art": "35720",
+    "name": "Gigarinne (Regenrinne)",
+    "kat": "profile",
+    "img": "rinne",
+    "einheit": "Stück",
+    "ort": "H1-A-02",
+    "bestand": 6,
+    "min": 4,
+    "ek": 88.9,
+    "lief": "Sunshine",
+    "alias": [
+      "Gigarinne 8630",
+      "Rinne 6000",
+      "Entwässerungsrinne inkl. Fallrohr"
+    ]
+  },
+  {
+    "art": "35732",
+    "name": "Tragprofil / Sparren 80×60",
+    "kat": "profile",
+    "img": "tragprofil",
+    "einheit": "Stück",
+    "ort": "H1-A-03",
+    "bestand": 34,
+    "min": 20,
+    "ek": 41.2,
+    "lief": "Sunshine",
+    "alias": [
+      "Sparren 80×60",
+      "Dachsparren 80×60 mm"
+    ]
+  },
+  {
+    "art": "47047",
+    "name": "Seitenträger (Randsparren)",
+    "kat": "profile",
+    "img": "seitentraeger",
+    "einheit": "Stück",
+    "ort": "H1-A-04",
+    "bestand": 11,
+    "min": 8,
+    "ek": 46.8,
+    "lief": "Sunshine",
+    "alias": []
+  },
+  {
+    "art": "PF-110110",
+    "name": "Alu-Pfosten 110×110",
+    "kat": "profile",
+    "img": "pfosten",
+    "einheit": "Stück",
+    "ort": "H1-B-01",
+    "bestand": 4,
+    "min": 12,
+    "ek": 86.9,
+    "lief": "Sunshine",
+    "alias": [
+      "Pfosten 110×110 anthrazit",
+      "Pfosten 110×110",
+      "Pfosten 110×110×3, Alu weiß RAL 9016",
+      "Pfosten 90×90 anthrazit",
+      "Pfosten 90×90"
+    ]
+  },
+  {
+    "art": "UZ-12060",
+    "name": "Unterzug / Firstträger 120×60",
+    "kat": "profile",
+    "img": "tragprofil",
+    "einheit": "Stück",
+    "ort": "H1-B-02",
+    "bestand": 7,
+    "min": 4,
+    "ek": 68.3,
+    "lief": "Sunshine",
+    "alias": [
+      "Firstträger 120×60",
+      "Unterzug 120×60 mm, Alu weiß"
+    ]
+  },
+  {
+    "art": "35721",
+    "name": "Wandblende",
+    "kat": "profile",
+    "img": "wandblende",
+    "einheit": "Satz",
+    "ort": "H1-B-03",
+    "bestand": 5,
+    "min": 3,
+    "ek": 34,
+    "lief": "Sunshine",
+    "alias": []
+  },
+  {
+    "art": "35715",
+    "name": "Abdeckprofil Rundleiste",
+    "kat": "profile",
+    "img": "rundleiste",
+    "einheit": "Stück",
+    "ort": "H1-B-04",
+    "bestand": 28,
+    "min": 20,
+    "ek": 12.6,
+    "lief": "Sunshine",
+    "alias": []
+  },
+  {
+    "art": "35715-E",
+    "name": "Eckleiste (Seitenabdeckung)",
+    "kat": "profile",
+    "img": "eckleiste",
+    "einheit": "Stück",
+    "ort": "H1-B-05",
+    "bestand": 12,
+    "min": 8,
+    "ek": 14.2,
+    "lief": "Sunshine",
+    "alias": []
+  },
+  {
+    "art": "35906",
+    "name": "Glas-/Deckleiste",
+    "kat": "profile",
+    "img": "deckleiste",
+    "einheit": "Stück",
+    "ort": "H1-C-01",
+    "bestand": 16,
+    "min": 20,
+    "ek": 16.9,
+    "lief": "Sunshine",
+    "alias": []
+  },
+  {
+    "art": "U-110",
+    "name": "U-Bodenhalter (Bodenprofil)",
+    "kat": "profile",
+    "img": "bodenprofil",
+    "einheit": "Stück",
+    "ort": "H1-C-02",
+    "bestand": 22,
+    "min": 10,
+    "ek": 9.8,
+    "lief": "Sunshine",
+    "alias": []
+  },
+  {
+    "art": "DN75",
+    "name": "Fallrohr DN75 HT + Bogen",
+    "kat": "profile",
+    "img": "fallrohr",
+    "einheit": "Satz",
+    "ort": "H1-C-03",
+    "bestand": 7,
+    "min": 4,
+    "ek": 23.4,
+    "lief": "Sunshine",
+    "alias": []
+  },
+  {
+    "art": "KAP-110",
+    "name": "Pfostenkappe 110×110",
+    "kat": "profile",
+    "img": "kappe",
+    "einheit": "Stück",
+    "ort": "H1-C-04",
+    "bestand": 30,
+    "min": 12,
+    "ek": 5.2,
+    "lief": "Sunshine",
+    "alias": []
+  },
+  {
+    "art": "GL-VSG8-K",
+    "name": "VSG-Glas 8 mm klar",
+    "kat": "glas",
+    "img": "",
+    "einheit": "Feld",
+    "ort": "G-Bock 01",
+    "bestand": 14,
+    "min": 6,
+    "ek": 148,
+    "lief": "Solarlux",
+    "alias": [
+      "VSG 8 mm klar",
+      "VSG-Glas 8 mm klar, 1050×3450"
+    ]
+  },
+  {
+    "art": "GL-VSG6-M",
+    "name": "VSG-Glas 6 mm mattiert",
+    "kat": "glas",
+    "img": "",
+    "einheit": "Feld",
+    "ort": "G-Bock 02",
+    "bestand": 3,
+    "min": 2,
+    "ek": 132,
+    "lief": "Solarlux",
+    "alias": [
+      "VSG 6 mm mattiert"
+    ]
+  },
+  {
+    "art": "GL-VSG10-K",
+    "name": "VSG-Glas 10 mm klar",
+    "kat": "glas",
+    "img": "",
+    "einheit": "Feld",
+    "ort": "G-Bock 03",
+    "bestand": 0,
+    "min": 4,
+    "ek": 186,
+    "lief": "Solarlux",
+    "alias": [
+      "VSG 10 mm klar",
+      "VSG 10 klar"
+    ]
+  },
+  {
+    "art": "SCH-EL",
+    "name": "Schiebe-Element (Flügel)",
+    "kat": "zubehoer",
+    "img": "",
+    "einheit": "Stück",
+    "ort": "H2-C-01",
+    "bestand": 2,
+    "min": 2,
+    "ek": 410,
+    "lief": "Solarlux",
+    "alias": [
+      "Schiebe-Element"
+    ]
+  },
+  {
+    "art": "LS-4200",
+    "name": "Laufschiene 4200 mm",
+    "kat": "zubehoer",
+    "img": "",
+    "einheit": "Stück",
+    "ort": "H2-C-02",
+    "bestand": 3,
+    "min": 2,
+    "ek": 214,
+    "lief": "Solarlux",
+    "alias": [
+      "Laufschiene 4200 mm"
+    ]
+  },
+  {
+    "art": "RW-SET",
+    "name": "Rollenwagen-Set",
+    "kat": "zubehoer",
+    "img": "",
+    "einheit": "Satz",
+    "ort": "H2-C-03",
+    "bestand": 6,
+    "min": 4,
+    "ek": 78.5,
+    "lief": "Solarlux",
+    "alias": [
+      "Rollenwagen-Set"
+    ]
+  },
+  {
+    "art": "GR-ES",
+    "name": "Griffmuschel Edelstahl",
+    "kat": "zubehoer",
+    "img": "",
+    "einheit": "Stück",
+    "ort": "H2-C-04",
+    "bestand": 9,
+    "min": 4,
+    "ek": 28.9,
+    "lief": "Solarlux",
+    "alias": [
+      "Griffmuschel Edelstahl"
+    ]
+  },
+  {
+    "art": "BF-SCH",
+    "name": "Boden-Führungsschiene",
+    "kat": "zubehoer",
+    "img": "",
+    "einheit": "Stück",
+    "ort": "H2-C-05",
+    "bestand": 2,
+    "min": 2,
+    "ek": 96,
+    "lief": "Solarlux",
+    "alias": [
+      "Boden-Führungsschiene"
+    ]
+  },
+  {
+    "art": "MK-VOR",
+    "name": "Markise-Vorrüstung",
+    "kat": "zubehoer",
+    "img": "",
+    "einheit": "Satz",
+    "ort": "H2-C-06",
+    "bestand": 1,
+    "min": 1,
+    "ek": 142,
+    "lief": "Sunshine",
+    "alias": [
+      "Markise-Vorrüstung"
+    ]
+  },
+  {
+    "art": "GU-W",
+    "name": "Abschlussgummi (Wand)",
+    "kat": "dicht",
+    "img": "gummi",
+    "einheit": "lfm",
+    "ort": "H2-A-01",
+    "bestand": 48,
+    "min": 30,
+    "ek": 3.2,
+    "lief": "Sunshine",
+    "alias": []
+  },
+  {
+    "art": "GU-4",
+    "name": "Gummi-Dichtung 4 mm (Glas)",
+    "kat": "dicht",
+    "img": "gummi",
+    "einheit": "lfm",
+    "ort": "H2-A-02",
+    "bestand": 210,
+    "min": 100,
+    "ek": 2.4,
+    "lief": "Sunshine",
+    "alias": [
+      "Glashalteleisten EPDM",
+      "EPDM-Dichtung"
+    ]
+  },
+  {
+    "art": "GU-2",
+    "name": "Gummi-Dichtung 2 mm (Falz)",
+    "kat": "dicht",
+    "img": "gummi",
+    "einheit": "lfm",
+    "ort": "H2-A-03",
+    "bestand": 40,
+    "min": 60,
+    "ek": 1.9,
+    "lief": "Sunshine",
+    "alias": []
+  },
+  {
+    "art": "BD-BU",
+    "name": "Bürstendichtung",
+    "kat": "dicht",
+    "img": "gummi",
+    "einheit": "lfm",
+    "ort": "H2-A-04",
+    "bestand": 18,
+    "min": 20,
+    "ek": 4.1,
+    "lief": "Solarlux",
+    "alias": [
+      "Bürstendichtung"
+    ]
+  },
+  {
+    "art": "CB-15",
+    "name": "Compriband 15 mm",
+    "kat": "dicht",
+    "img": "",
+    "einheit": "Rolle",
+    "ort": "H2-A-05",
+    "bestand": 6,
+    "min": 4,
+    "ek": 18.7,
+    "lief": "Sunshine",
+    "alias": [
+      "Compriband"
+    ]
+  },
+  {
+    "art": "PA-A2-110",
+    "name": "Pfostenanker Edelstahl A2",
+    "kat": "verbind",
+    "img": "",
+    "einheit": "Stück",
+    "ort": "H2-B-01",
+    "bestand": 18,
+    "min": 12,
+    "ek": 32.8,
+    "lief": "Würth",
+    "alias": [
+      "Pfostenanker A2 M12"
+    ]
+  },
+  {
+    "art": "WB-10",
+    "name": "Schlagdübel 10×80 (Wand)",
+    "kat": "verbind",
+    "img": "",
+    "einheit": "Stück",
+    "ort": "H2-B-02",
+    "bestand": 240,
+    "min": 100,
+    "ek": 0.85,
+    "lief": "Würth",
+    "alias": [
+      "Wandbefestigung (Schlagdübel)"
+    ]
+  },
+  {
+    "art": "BB-M10",
+    "name": "Bodenbefestigung M10",
+    "kat": "verbind",
+    "img": "",
+    "einheit": "Stück",
+    "ort": "H2-B-03",
+    "bestand": 96,
+    "min": 60,
+    "ek": 1.4,
+    "lief": "Würth",
+    "alias": [
+      "Bodenbefestigung"
+    ]
+  },
+  {
+    "art": "VS-SET-A2",
+    "name": "Verschraubungsset Edelstahl",
+    "kat": "verbind",
+    "img": "",
+    "einheit": "Satz",
+    "ort": "H2-B-04",
+    "bestand": 8,
+    "min": 5,
+    "ek": 26.4,
+    "lief": "Würth",
+    "alias": []
+  },
+  {
+    "art": "ES-30",
+    "name": "Endstopp / Stoppwinkel",
+    "kat": "verbind",
+    "img": "",
+    "einheit": "Stück",
+    "ort": "H2-B-05",
+    "bestand": 44,
+    "min": 20,
+    "ek": 2.1,
+    "lief": "Sunshine",
+    "alias": []
+  },
+  {
+    "art": "LED-WW-30",
+    "name": "LED-Spot warmweiß 3000 K",
+    "kat": "elektro",
+    "img": "",
+    "einheit": "Stück",
+    "ort": "H3-A-01",
+    "bestand": 36,
+    "min": 24,
+    "ek": 18.9,
+    "lief": "Sunshine",
+    "alias": [
+      "LED-Spot 3000K",
+      "LED-Set warmweiß 3000K",
+      "LED-Spot Warmweiß 3000K"
+    ]
+  },
+  {
+    "art": "TR-24V",
+    "name": "Trafo 24 V / 60 W",
+    "kat": "elektro",
+    "img": "",
+    "einheit": "Stück",
+    "ort": "H3-A-02",
+    "bestand": 5,
+    "min": 4,
+    "ek": 52,
+    "lief": "Sunshine",
+    "alias": [
+      "Trafo 24 V"
+    ]
+  },
+  {
+    "art": "LED-DIM",
+    "name": "Funk-Dimmer 24 V",
+    "kat": "elektro",
+    "img": "",
+    "einheit": "Stück",
+    "ort": "H3-A-03",
+    "bestand": 2,
+    "min": 3,
+    "ek": 44.5,
+    "lief": "Sunshine",
+    "alias": []
+  },
+  {
+    "art": "SIL-N",
+    "name": "Silikon neutral transparent",
+    "kat": "verbrauch",
+    "img": "",
+    "einheit": "Kart.",
+    "ort": "V-01",
+    "bestand": 26,
+    "min": 12,
+    "ek": 6.9,
+    "lief": "Würth",
+    "alias": [
+      "Silikon neutral"
+    ]
+  },
+  {
+    "art": "AD-T",
+    "name": "Antidust-Klebeband",
+    "kat": "verbrauch",
+    "img": "",
+    "einheit": "Rolle",
+    "ort": "V-02",
+    "bestand": 9,
+    "min": 6,
+    "ek": 11.4,
+    "lief": "Würth",
+    "alias": [
+      "Antidust-Klebeband (bei Poly)"
+    ]
+  },
+  {
+    "art": "LF-75",
+    "name": "Laubfänger DN75",
+    "kat": "verbrauch",
+    "img": "",
+    "einheit": "Stück",
+    "ort": "V-03",
+    "bestand": 6,
+    "min": 4,
+    "ek": 7.8,
+    "lief": "Sunshine",
+    "alias": [
+      "Laubfänger"
+    ]
+  },
+  {
+    "art": "REIN-GL",
+    "name": "Glasreiniger 1 l",
+    "kat": "verbrauch",
+    "img": "",
+    "einheit": "Flasche",
+    "ort": "V-04",
+    "bestand": 3,
+    "min": 6,
+    "ek": 4.2,
+    "lief": "Würth",
+    "alias": []
+  },
+  {
+    "art": "SB-250",
+    "name": "Sägeblatt Alu 250 mm",
+    "kat": "verbrauch",
+    "img": "",
+    "einheit": "Stück",
+    "ort": "V-05",
+    "bestand": 4,
+    "min": 3,
+    "ek": 38,
+    "lief": "Würth",
+    "alias": []
+  },
+  {
+    "art": "BO-10",
+    "name": "SDS-Bohrer 10 mm",
+    "kat": "verbrauch",
+    "img": "",
+    "einheit": "Stück",
+    "ort": "V-06",
+    "bestand": 8,
+    "min": 5,
+    "ek": 9.6,
+    "lief": "Würth",
+    "alias": []
+  }
+]

@@ -1,0 +1,92 @@
+[
+  [
+    "15.07.2026",
+    "Eingang",
+    "b-green",
+    "GL-VSG8-K",
+    "+8",
+    "BST-2026-112",
+    "S. Krüger · Lager"
+  ],
+  [
+    "14.07.2026",
+    "Ausgang",
+    "b-gray",
+    "SIL-N",
+    "−2",
+    "PRJ-2026-011 · Montage",
+    "Team Berlin K1"
+  ],
+  [
+    "12.07.2026",
+    "Reservierung",
+    "b-blue",
+    "PF-110110",
+    "3",
+    "PRJ-2026-035",
+    "M. Schneider"
+  ],
+  [
+    "10.07.2026",
+    "Eingang",
+    "b-green",
+    "WB-10",
+    "+200",
+    "BST-2026-104",
+    "S. Krüger · Lager"
+  ],
+  [
+    "08.07.2026",
+    "Korrektur",
+    "b-yellow",
+    "GU-2",
+    "−6",
+    "Inventur KW 28",
+    "S. Krüger · Lager"
+  ],
+  [
+    "05.07.2026",
+    "Ausgang",
+    "b-gray",
+    "35906",
+    "−8",
+    "PRJ-2026-033 · Montage",
+    "Team Brandenburg K2"
+  ],
+  [
+    "02.07.2026",
+    "Reservierung",
+    "b-blue",
+    "GL-VSG8-K",
+    "8",
+    "PRJ-2026-011",
+    "M. Schneider"
+  ],
+  [
+    "28.06.2026",
+    "Eingang",
+    "b-green",
+    "LED-WW-30",
+    "+24",
+    "BST-2026-101",
+    "S. Krüger · Lager"
+  ],
+  [
+    "22.06.2026",
+    "Eingang",
+    "b-green",
+    "GL-VSG8-K",
+    "+6",
+    "BST-2026-108",
+    "S. Krüger · Lager"
+  ],
+  [
+    "22.06.2026",
+    "Ausgang",
+    "b-gray",
+    "GL-VSG8-K",
+    "−6",
+    "PRJ-2026-033 · Montage",
+    "Team Brandenburg K2"
+  ]
+]
