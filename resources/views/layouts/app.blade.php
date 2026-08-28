@@ -10,6 +10,7 @@
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
+@include('partials.icons')
 <div class="app" id="app">
     @include('partials.sidebar')
     <div class="main">
@@ -35,5 +36,9 @@
     </div>
 </div>
 <div class="nav-backdrop" id="navBackdrop" hidden></div>
+<div class="modal" id="modal" hidden><div class="modalc lg" id="modalContent"></div></div>
+@if (session('toast'))
+    <div class="toast" data-autotoast>{{ session('toast') }}</div>
+@endif
 </body>
 </html>

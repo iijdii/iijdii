@@ -35,3 +35,56 @@ if (btn && app && drop && backdrop) {
     });
     window.addEventListener('resize', () => { if (wide()) closeDrop(); });
 }
+
+// ---------- Toasts ----------
+// Echte Aktionen flashen session('toast') (Element [data-autotoast]);
+// Stub-Buttons tragen data-toast und zeigen denselben Toast clientseitig.
+function showToast(text) {
+    document.querySelectorAll('.toast').forEach((t) => t.remove());
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = text;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2600);
+}
+
+const flashed = document.querySelector('[data-autotoast]');
+if (flashed) setTimeout(() => flashed.remove(), 2600);
+
+document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-toast]');
+    if (t) {
+        e.preventDefault();
+        showToast(t.dataset.toast);
+    }
+});
+
+// ---------- Artikel-Modal ----------
+// Zeilen/Karten tragen data-modal-url; das Fragment wird per fetch()
+// in die Modal-Hülle geladen (ein Template für Lager und Katalog).
+const modal = document.getElementById('modal');
+const modalContent = document.getElementById('modalContent');
+
+function closeModal() {
+    if (!modal) return;
+    modal.hidden = true;
+    modalContent.innerHTML = '';
+}
+
+if (modal) {
+    document.addEventListener('click', async (e) => {
+        const row = e.target.closest('[data-modal-url]');
+        if (row && !e.target.closest('a,button,form')) {
+            const res = await fetch(row.dataset.modalUrl, { headers: { 'X-Requested-With': 'fetch' } });
+            if (res.ok) {
+                modalContent.innerHTML = await res.text();
+                modal.hidden = false;
+            }
+            return;
+        }
+        if (e.target === modal || e.target.closest('[data-modal-close]')) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+    });
+}
