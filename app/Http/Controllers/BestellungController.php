@@ -1,0 +1,164 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Enums\BestellungPositionTyp;
+use App\Enums\BestellungStatus;
+use App\Models\Bestellung;
+use App\Services\LagerService;
+use App\Support\GlasSkizze;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
+
+class BestellungController extends Controller
+{
+    public function __construct(private readonly LagerService $lager)
+    {
+    }
+
+    public function index(Request $request): View
+    {
+        $ansicht = $request->query('ansicht') === 'tabelle' ? 'tabelle' : 'karten';
+        $filter = $request->query('status', 'alle');
+
+        $alle = Bestellung::query()
+            ->with(['lieferant', 'projekt', 'kunde', 'positionen'])
+            ->orderByDesc('nr')
+            ->get();
+
+        $chips = collect([['alle', 'Alle']])
+            ->concat(collect([
+                BestellungStatus::Entwurf, BestellungStatus::Geprueft, BestellungStatus::Bestellt,
+                BestellungStatus::Bereit, BestellungStatus::Geliefert,
+            ])->map(fn ($s) => [$s->value, $s->label()]))
+            ->map(fn (array $chip) => [
+                'key' => $chip[0],
+                'label' => $chip[1],
+                'anzahl' => $chip[0] === 'alle'
+                    ? $alle->count()
+                    : $alle->where('status.value', $chip[0])->count(),
+                'aktiv' => $chip[0] === $filter,
+            ]);
+
+        $bestellungen = $filter === 'alle'
+            ? $alle
+            : $alle->filter(fn (Bestellung $b) => $b->status->value === $filter)->values();
+
+        return view('bestellungen.index', [
+            'ansicht' => $ansicht,
+            'filter' => $filter,
+            'chips' => $chips,
+            'karten' => $bestellungen->map(fn (Bestellung $b) => $this->karte($b)),
+        ]);
+    }
+
+    public function show(Bestellung $bestellung): View
+    {
+        $bestellung->load([
+            'lieferant', 'projekt', 'kunde', 'ersteller',
+            'positionen.artikel', 'wareneingaenge.benutzer', 'wareneingaenge.positionen',
+        ]);
+
+        $wareneingang = $bestellung->wareneingaenge->first();
+
+        $glasPositionen = $bestellung->positionen
+            ->where('typ', BestellungPositionTyp::Glas)
+            ->values()
+            ->map(function ($p, $i) {
+                $d = $p->details ?? [];
+                $hL = (int) ($d['hL'] ?? $p->hoehe_mm ?? 0);
+                $hR = (int) ($d['hR'] ?? $hL);
+                $trapez = ($d['form'] ?? 'Rechteck') === 'Trapez';
+
+                return [
+                    'position' => $p,
+                    'nr' => $i + 1,
+                    'form' => $d['form'] ?? 'Rechteck',
+                    'glas' => $d['glas'] ?? '–',
+                    'quelle' => $d['quelle'] ?? 'manuell',
+                    'skizze' => GlasSkizze::position((int) $p->breite_mm, $hL, $hR, $trapez),
+                ];
+            });
+
+        $schiebePositionen = $bestellung->positionen
+            ->where('typ', BestellungPositionTyp::Schiebe)
+            ->values()
+            ->map(function ($p, $i) {
+                $d = $p->details ?? [];
+                $anzahl = (int) ($d['count'] ?? $p->menge);
+                $richtung = match (mb_strtolower($d['dir'] ?? '')) {
+                    'links', 'left' => 'left',
+                    'rechts', 'right' => 'right',
+                    'mittig', 'center' => 'center',
+                    default => null,
+                };
+
+                return [
+                    'position' => $p,
+                    'nr' => $i + 1,
+                    'glas' => $d['glas'] ?? '–',
+                    'anzahl' => $anzahl,
+                    'richtung' => $d['dir'] ?? '–',
+                    'quelle' => $d['quelle'] ?? 'manuell',
+                    'skizze' => GlasSkizze::schiebe((int) $p->breite_mm, (int) $p->hoehe_mm, max(1, $anzahl), $richtung),
+                ];
+            });
+
+        return view('bestellungen.show', [
+            'bestellung' => $bestellung,
+            'wareneingang' => $wareneingang,
+            'materialPositionen' => $bestellung->positionen->where('typ', BestellungPositionTyp::Material)->values(),
+            'glasPositionen' => $glasPositionen,
+            'schiebePositionen' => $schiebePositionen,
+        ]);
+    }
+
+    public function setzeStatus(Request $request, Bestellung $bestellung): RedirectResponse
+    {
+        $validiert = $request->validate([
+            'status' => ['required', Rule::enum(BestellungStatus::class)],
+        ]);
+
+        $status = BestellungStatus::from($validiert['status']);
+        $bestellung->update(['status' => $status]);
+
+        // Zentrale Regel: Geliefert/Montiert lagert automatisch ein.
+        if (in_array($status, [BestellungStatus::Geliefert, BestellungStatus::Montiert], true)
+            && ! $this->lager->istGebucht($bestellung)) {
+            $wareneingang = $this->lager->bucheWareneingang($bestellung, $request->user());
+            $toast = 'Wareneingang '.$bestellung->nr.' gebucht · '.$wareneingang->positionen()->count().' Artikel eingelagert';
+        } else {
+            $toast = 'Status: '.$status->label();
+        }
+
+        return redirect()->route('bestellungen.show', $bestellung)->with('toast', $toast);
+    }
+
+    private function karte(Bestellung $bestellung): array
+    {
+        $glas = $bestellung->positionen->where('typ', BestellungPositionTyp::Glas)->values();
+        $material = $bestellung->positionen->where('typ', BestellungPositionTyp::Material)->values();
+        $schiebe = $bestellung->positionen->where('typ', BestellungPositionTyp::Schiebe)->values();
+
+        return [
+            'bestellung' => $bestellung,
+            'tiles' => $glas->take(4)->map(function ($p) {
+                $d = $p->details ?? [];
+                $hL = (int) ($d['hL'] ?? $p->hoehe_mm ?? 0);
+
+                return [
+                    'skizze' => GlasSkizze::kachel((int) $p->breite_mm, $hL, (int) ($d['hR'] ?? $hL)),
+                    'trapez' => ($d['form'] ?? '') === 'Trapez',
+                    'menge' => (int) $p->menge,
+                ];
+            }),
+            'mehr' => max(0, $glas->count() - 4),
+            'materialChips' => $material->take(6)->map(
+                fn ($p) => \App\Support\Format::menge($p->menge).'× '.$p->bezeichnung
+            ),
+            'posCount' => (int) $glas->sum('menge') + (int) $schiebe->sum('menge') + $material->count(),
+        ];
+    }
+}

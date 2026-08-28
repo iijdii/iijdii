@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BestellungController;
 use App\Http\Controllers\LagerController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,7 +14,6 @@ Route::middleware('auth')->group(function () {
         'anfragen' => 'Anfragen',
         'angebote' => 'Angebote',
         'projekte' => 'Projekte',
-        'bestellungen' => 'Bestellungen',
         'logistik' => 'Logistik',
         'kalender' => 'Kalender',
         'material-katalog' => 'Material-Katalog',
@@ -23,6 +23,11 @@ Route::middleware('auth')->group(function () {
     foreach ($module as $route => $titel) {
         Route::view('/'.$route, 'pages.placeholder', ['titel' => $titel])->name($route);
     }
+
+    Route::get('/bestellungen', [BestellungController::class, 'index'])->name('bestellungen');
+    Route::get('/bestellungen/{bestellung:nr}', [BestellungController::class, 'show'])->name('bestellungen.show');
+    Route::post('/bestellungen/{bestellung:nr}/status', [BestellungController::class, 'setzeStatus'])
+        ->name('bestellungen.status');
 
     Route::get('/lager', [LagerController::class, 'index'])->name('lager');
     Route::get('/lager/artikel/{artikel}', [LagerController::class, 'artikel'])->name('lager.artikel');
