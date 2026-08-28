@@ -349,3 +349,9 @@ body{margin:0;font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);backgr
   .modalc{max-height:92vh}
   .mfoot{gap:10px;flex-wrap:wrap}
 }
+/* Tabs/Chips als Links (Server-Navigation statt JS-State): */
+.seg a{height:33px;padding:0 13px;border:0;background:none;font-size:12.5px;font-weight:600;color:var(--ink2);cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-family:inherit;text-decoration:none}
+.seg a.on{background:var(--accbg);color:var(--accd)}
+.seg a+a,.seg a+button,.seg button+a{border-left:1px solid var(--bd)}
+a.chip{text-decoration:none}
+@media(max-width:1024px){.seg a{flex:1;justify-content:center}}
