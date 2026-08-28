@@ -5,12 +5,12 @@ namespace App\Support;
 /** Deutsche Zahlen- und Datumsformate der UI. */
 final class Format
 {
-    public static function eur(float|string $wert): string
+    public static function eur(float|string|null $wert): string
     {
         return number_format((float) $wert, 2, ',', '.').' €';
     }
 
-    public static function eur0(float|string $wert): string
+    public static function eur0(float|string|null $wert): string
     {
         return number_format(round((float) $wert), 0, ',', '.').' €';
     }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BestellungController;
 use App\Http\Controllers\LagerController;
+use App\Http\Controllers\MaterialKatalogController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('dashboard'));
@@ -16,7 +17,6 @@ Route::middleware('auth')->group(function () {
         'projekte' => 'Projekte',
         'logistik' => 'Logistik',
         'kalender' => 'Kalender',
-        'material-katalog' => 'Material-Katalog',
         'lieferanten' => 'Lieferanten',
     ];
 
@@ -33,6 +33,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/lager/artikel/{artikel}', [LagerController::class, 'artikel'])->name('lager.artikel');
     Route::post('/lager/wareneingang/{bestellung:nr}', [LagerController::class, 'bucheWareneingang'])
         ->name('lager.wareneingang.buchen');
+
+    Route::get('/material-katalog', [MaterialKatalogController::class, 'index'])->name('material-katalog');
 
     // Einstellungen: Admin und Projektleitung.
     Route::view('/einstellungen', 'pages.placeholder', ['titel' => 'Einstellungen'])
