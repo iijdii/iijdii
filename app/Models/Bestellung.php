@@ -27,6 +27,25 @@ class Bestellung extends Model
         ];
     }
 
+    public function kategorieLabel(): string
+    {
+        return match ($this->kategorie) {
+            'glas' => 'Glas',
+            'aluminium' => 'Aluminium / Zubehör',
+            'gemischt' => 'Gemischt',
+            default => $this->kategorie ?? '–',
+        };
+    }
+
+    public function kategoriePillClass(): string
+    {
+        return match ($this->kategorie) {
+            'glas' => 'kat-glas',
+            'aluminium' => 'kat-alu',
+            default => 'kat-mix',
+        };
+    }
+
     public function lieferant(): BelongsTo
     {
         return $this->belongsTo(Lieferant::class, 'lieferant_id');

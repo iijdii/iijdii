@@ -52,6 +52,43 @@ class Artikel extends Model
         return $this->hasMany(Lagerbewegung::class, 'artikel_id');
     }
 
+    /** Reservierte Menge — nutzt withSum('reservierungen','menge'), wenn geladen. */
+    public function reserviert(): int
+    {
+        $summe = $this->attributes['reservierungen_sum_menge']
+            ?? $this->reservierungen()->sum('menge');
+
+        return (int) $summe;
+    }
+
+    public function verfuegbar(): int
+    {
+        return $this->bestand - $this->reserviert();
+    }
+
+    /** 'leer' | 'niedrig' | 'ok' — Schwellen auf dem verfügbaren Bestand. */
+    public function bestandsstatus(): string
+    {
+        $verf = $this->verfuegbar();
+
+        if ($verf <= 0) {
+            return 'leer';
+        }
+
+        return $verf < $this->min_bestand ? 'niedrig' : 'ok';
+    }
+
+    /** Füllbalken: 100 % beim doppelten Mindestbestand, min. 3 % sichtbar. */
+    public function fuellstandProzent(): int
+    {
+        return (int) min(100, max(3, round($this->bestand / max($this->min_bestand * 2, 1) * 100)));
+    }
+
+    public function lagerwert(): float
+    {
+        return $this->bestand * (float) $this->ek_preis;
+    }
+
     /**
      * Freitext (Bestellzeile, Konfigurator-Ausgabe) auf einen Artikel
      * auflösen: erst exakte Art-Nr., dann Name, dann Alias — jeweils
