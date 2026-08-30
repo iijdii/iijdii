@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnfrageController;
 use App\Http\Controllers\BestellungController;
 use App\Http\Controllers\LagerController;
 use App\Http\Controllers\MaterialKatalogController;
@@ -13,7 +14,6 @@ Route::middleware('auth')->group(function () {
         // route-Name => Seitentitel
         'dashboard' => 'Dashboard',
         'kunden' => 'Kunden',
-        'anfragen' => 'Anfragen',
         'angebote' => 'Angebote',
         'logistik' => 'Logistik',
         'kalender' => 'Kalender',
@@ -23,6 +23,15 @@ Route::middleware('auth')->group(function () {
     foreach ($module as $route => $titel) {
         Route::view('/'.$route, 'pages.placeholder', ['titel' => $titel])->name($route);
     }
+
+    Route::get('/anfragen', [AnfrageController::class, 'index'])->name('anfragen');
+    Route::get('/anfragen/neu', [AnfrageController::class, 'create'])->name('anfragen.create');
+    Route::post('/anfragen', [AnfrageController::class, 'store'])->name('anfragen.store');
+    Route::get('/anfragen/{anfrage:nummer}', [AnfrageController::class, 'show'])->name('anfragen.show');
+    Route::get('/anfragen/{anfrage:nummer}/bearbeiten', [AnfrageController::class, 'edit'])->name('anfragen.edit');
+    Route::put('/anfragen/{anfrage:nummer}', [AnfrageController::class, 'update'])->name('anfragen.update');
+    Route::post('/anfragen/{anfrage:nummer}/status', [AnfrageController::class, 'setzeStatus'])->name('anfragen.status');
+    Route::post('/anfragen/{anfrage:nummer}/projekt', [AnfrageController::class, 'erstelleProjekt'])->name('anfragen.projekt');
 
     Route::get('/projekte', [ProjektController::class, 'index'])->name('projekte');
     Route::get('/projekte/{projekt:nr}', [ProjektController::class, 'show'])->name('projekte.show');
