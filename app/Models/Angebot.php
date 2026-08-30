@@ -18,6 +18,7 @@ class Angebot extends Model
     protected function casts(): array
     {
         return [
+            'status' => \App\Enums\AngebotStatus::class,
             'datum' => 'date',
             'summe' => 'decimal:2',
             'konfiguration' => 'array',

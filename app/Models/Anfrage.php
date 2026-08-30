@@ -23,6 +23,7 @@ class Anfrage extends Model
     {
         return [
             'status' => AnfrageStatus::class,
+            'details' => 'array',
             'prioritaet' => Prioritaet::class,
             'interessierte_produkte' => 'array',
             'objekt_ist_gleich_kunde' => 'boolean',

@@ -22,6 +22,7 @@ class Projekt extends Model
     protected function casts(): array
     {
         return [
+            'status' => \App\Enums\ProjektStatus::class,
             'termin_von' => 'date',
             'termin_bis' => 'date',
             'konfiguration' => 'array',
@@ -62,5 +63,39 @@ class Projekt extends Model
     public function montageAufgaben(): HasMany
     {
         return $this->hasMany(MontageAufgabe::class, 'projekt_id');
+    }
+
+    public function aktivitaeten(): HasMany
+    {
+        return $this->hasMany(ProjektAktivitaet::class, 'projekt_id');
+    }
+
+    /**
+     * Fünf-Stufen-Fortschritt der Detailkopfzeile (Aufmaß → Angebot →
+     * Produktion → Lieferung → Montage), abgeleitet aus dem Status —
+     * im Prototyp waren die Stufen hartkodiert.
+     */
+    public function stepper(): array
+    {
+        $stufe = match ($this->status) {
+            \App\Enums\ProjektStatus::InPlanung => $this->angebot_id ? 2 : 1,
+            \App\Enums\ProjektStatus::InMontageplanung => 4,
+            \App\Enums\ProjektStatus::InMontage => 5,
+            \App\Enums\ProjektStatus::Abgeschlossen => 6,
+        };
+
+        $daten = [
+            ['Aufmaß', null],
+            ['Angebot', $this->angebot?->datum],
+            ['Produktion', null],
+            ['Lieferung', null],
+            ['Montage', $this->termin_von],
+        ];
+
+        return collect($daten)->map(fn ($s, $i) => [
+            'label' => $s[0],
+            'datum' => $s[1] ? $s[1]->format('d.m.Y') : '–',
+            'cls' => $i + 1 < $stufe ? 'done' : ($i + 1 === $stufe ? 'now' : ''),
+        ])->all();
     }
 }

@@ -52,6 +52,8 @@ class DemoSeeder extends Seeder
         $this->seedBestellungen($kunden, $projekte);
         $this->seedReservierungen($projekte);
         $this->seedBewegungen();
+        $this->seedDokumente($projekte);
+        $this->seedProjektAktivitaeten($projekte);
     }
 
     private function data(string $name): array
@@ -168,6 +170,7 @@ class DemoSeeder extends Seeder
                     default => null,
                 },
                 'anfrage_quelle' => mb_strtolower(str_replace(' ', '_', $quelle)),
+                'details' => $g ?: null,
                 'created_at' => $this->datum(str_replace('Eingang ', '', $eingang).'2026'),
             ]);
         }
@@ -367,6 +370,57 @@ class DemoSeeder extends Seeder
                 ['projekt_id' => $projekt->id, 'artikel_id' => $artikel->id],
                 ['menge' => $menge],
             );
+        }
+    }
+
+    /** Projektdokumente des Demo-Projekts (Prototyp, Dokumente-Tab). */
+    private function seedDokumente(array $projekte): void
+    {
+        $projekt = $projekte['PRJ-2026-011'] ?? null;
+        if (! $projekt) {
+            return;
+        }
+
+        $dateien = [
+            ['angebot', 'Angebot_ANG-2026-010.pdf', 245 * 1024, '2026-05-12'],
+            ['zeichnung', 'Zeichnung_PRJ-2026-011.dwg', 1228 * 1024, '2026-05-12'],
+            ['materialliste', 'Materialliste_PRJ-2026-011.xlsx', 98 * 1024, '2026-05-14'],
+            ['statik', 'Statik-Nachweis.pdf', 512 * 1024, '2026-05-15'],
+            ['aufmass', 'Aufmassprotokoll_05-05.pdf', 176 * 1024, '2026-05-05'],
+            ['auftrag', 'Auftragsbestaetigung.pdf', 88 * 1024, '2026-05-13'],
+        ];
+
+        foreach ($dateien as [$typ, $name, $groesse, $datum]) {
+            $projekt->dokumente()->updateOrCreate(
+                ['dateiname' => $name],
+                ['typ' => $typ, 'groesse' => $groesse, 'datum' => $datum],
+            );
+        }
+    }
+
+    /** Projektverlauf des Demo-Projekts (Prototyp, Aktivität-Tab). */
+    private function seedProjektAktivitaeten(array $projekte): void
+    {
+        $projekt = $projekte['PRJ-2026-011'] ?? null;
+        if (! $projekt || $projekt->aktivitaeten()->exists()) {
+            return;
+        }
+
+        $eintraege = [
+            ['Aufmaß abgeschlossen', 'Max Schneider', '05.05.', 'done'],
+            ['Angebot versendet', 'Max Schneider', '12.05.', 'done'],
+            ['Auftrag bestätigt', 'DEMO Demo', '13.05.', 'done'],
+            ['Anzahlung eingegangen', 'Buchhaltung', '14.05.', 'done'],
+            ['Produktion gestartet', 'Fertigungsteam', '26.05.', 'done'],
+            ['Glasbestellung ausgelöst', 'Einkauf', '28.05.', 'done'],
+            ['Lieferung geplant', 'Logistik', '15.07.', 'now'],
+            ['In Planung', 'Montageteam', '18.07.', null],
+        ];
+
+        foreach ($eintraege as [$titel, $wer, $datum, $status]) {
+            $projekt->aktivitaeten()->create([
+                'titel' => $titel, 'wer' => $wer, 'datum' => $datum, 'status' => $status,
+            ]);
         }
     }
 

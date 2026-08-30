@@ -119,6 +119,33 @@ final class GlasSkizze
     }
 
     /**
+     * Keil-Miniskizze 200×150 für die Anfrage-Detailkarte (kSk):
+     * Trapez aus Höhe hinten / Höhe vorne / Breite unten.
+     */
+    public static function keil(int $hB, int $hF, int $bU): array
+    {
+        $bU = max(1, $bU);
+        $BW = 200; $H = 150; $pL = 22; $pR = 22; $pT = 24; $pB = 26;
+        $aw = $BW - $pL - $pR;
+        $ah = $H - $pT - $pB;
+        $mx = max(1, $hB, $hF);
+        $s = min($aw / $bU, $ah / $mx);
+        $w = $bU * $s; $hb = $hB * $s; $hf = $hF * $s;
+        $oX = $pL + ($aw - $w) / 2;
+        $baseY = $pT + $ah;
+        $blX = $oX; $brX = $oX + $w;
+        $tlY = $baseY - $hb; $trY = $baseY - $hf;
+
+        return [
+            'pts' => self::f($blX).','.self::f($baseY).' '.self::f($brX).','.self::f($baseY).' '
+                .self::f($brX).','.self::f($trY).' '.self::f($blX).','.self::f($tlY),
+            'hbL' => 'left:'.self::px($oX - 9).';top:'.self::px(($tlY + $baseY) / 2).';transform:translate(-50%,-50%) rotate(-90deg)',
+            'hfL' => 'left:'.self::px($brX + 9).';top:'.self::px(($trY + $baseY) / 2).';transform:translate(-50%,-50%) rotate(90deg)',
+            'buL' => 'left:'.self::px($oX + $w / 2).';top:'.self::px($baseY + 11).';transform:translate(-50%,-50%)',
+        ];
+    }
+
+    /**
      * Schiebeanlagen-Skizze 360×260: Flügelteiler, Laufrichtungs-Pfeile,
      * Maßketten (skSchiebe). $richtung: 'left' | 'right' | 'center' | null.
      */
