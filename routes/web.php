@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\AnfrageController;
+use App\Http\Controllers\AngebotController;
 use App\Http\Controllers\BestellungController;
+use App\Http\Controllers\KundeController;
 use App\Http\Controllers\LagerController;
 use App\Http\Controllers\MaterialKatalogController;
 use App\Http\Controllers\ProjektController;
@@ -13,8 +15,6 @@ Route::middleware('auth')->group(function () {
     $module = [
         // route-Name => Seitentitel
         'dashboard' => 'Dashboard',
-        'kunden' => 'Kunden',
-        'angebote' => 'Angebote',
         'logistik' => 'Logistik',
         'kalender' => 'Kalender',
         'lieferanten' => 'Lieferanten',
@@ -23,6 +23,10 @@ Route::middleware('auth')->group(function () {
     foreach ($module as $route => $titel) {
         Route::view('/'.$route, 'pages.placeholder', ['titel' => $titel])->name($route);
     }
+
+    Route::get('/kunden', [KundeController::class, 'index'])->name('kunden');
+    Route::get('/kunden/{kunde:kunden_nr}', [KundeController::class, 'show'])->name('kunden.show');
+    Route::get('/angebote', [AngebotController::class, 'index'])->name('angebote');
 
     Route::get('/anfragen', [AnfrageController::class, 'index'])->name('anfragen');
     Route::get('/anfragen/neu', [AnfrageController::class, 'create'])->name('anfragen.create');
