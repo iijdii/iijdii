@@ -88,3 +88,38 @@ if (modal) {
         if (e.key === 'Escape') closeModal();
     });
 }
+
+// ---------- Live-Dach-Kalkulation (Konfigurator / Anfrage-Formular) ----------
+// Progressive enhancement: die Formeln des Rechenkerns spiegeln, damit
+// die kbox ohne Server-Roundtrip aktualisiert. Der POST bleibt Quelle
+// der Wahrheit.
+function kalkUpdate() {
+    const w = parseInt(document.querySelector('[data-kalk="width"]')?.value, 10) || 0;
+    const postN = parseInt(document.querySelector('[data-kalk="postN"]')?.value, 10) || 0;
+    const ledSel = document.querySelector('[data-kalk="ledTotal"]');
+    const rec = w > 0 ? Math.ceil(w / 4000) + 1 : 0;
+    const pn = postN > 0 ? postN : rec;
+    const rafters = w > 0 ? Math.round(w / 1080) + 1 : 0;
+    const fields = Math.max(0, rafters - 1);
+    const spar = fields > 0 ? Math.round(w / fields) : 0;
+    const blende = Math.max(0, spar - 60);
+    const ledTot = ledSel && parseInt(ledSel.value, 10) === 6 ? 6 : 12;
+    const de = (n) => n.toLocaleString('de-DE');
+    const out = {
+        pn: pn || '–', rafters: rafters || '–', fields: fields || '–', rec: rec || '–',
+        spar: spar ? de(spar) + ' mm' : '–',
+        blende: de(blende) + ' mm', blende2: de(blende) + ' mm',
+        ledTot: ledTot, ledTot2: ledTot,
+    };
+    document.querySelectorAll('[data-kalk-out]').forEach((el) => {
+        const key = el.dataset.kalkOut;
+        if (key in out) el.textContent = out[key];
+    });
+}
+
+if (document.querySelector('[data-kalk]')) {
+    document.querySelectorAll('[data-kalk]').forEach((el) => {
+        el.addEventListener('input', kalkUpdate);
+        el.addEventListener('change', kalkUpdate);
+    });
+}

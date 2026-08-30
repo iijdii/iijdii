@@ -85,6 +85,64 @@ final class LagerService
         return 'LS-'.(max($max, 88214) + 1);
     }
 
+    /**
+     * Live-Materialliste eines Projekts (README-Regel): Status, Lagerort
+     * und Beleg je Position kommen aus dem Lagerzustand — Geliefert bei
+     * gebuchtem Wareneingang, Bestellt bei offener Bestellung, sonst
+     * Auf Lager.
+     *
+     * @return list<array{pos:int,artikel:\App\Models\Artikel,menge:float,status:string,badge:string,beleg:string}>
+     */
+    public function materialListe(\App\Models\Projekt $projekt): array
+    {
+        $bestellungen = $projekt->bestellungen()
+            ->with(['wareneingaenge.positionen'])
+            ->get();
+
+        $zeilen = [];
+        $pos = 0;
+
+        foreach ($projekt->reservierungen()->with('artikel')->get() as $reservierung) {
+            $artikel = $reservierung->artikel;
+            $status = 'Auf Lager';
+            $badge = 'b-gray';
+            $beleg = '–';
+
+            foreach ($bestellungen as $bestellung) {
+                $wareneingang = $bestellung->wareneingaenge
+                    ->first(fn ($we) => $we->positionen->contains('artikel_id', $artikel->id));
+                if ($wareneingang) {
+                    $status = 'Geliefert';
+                    $badge = 'b-green';
+                    $beleg = $bestellung->nr.' · '.$wareneingang->datum->format('d.m.Y');
+                    break;
+                }
+
+                $offen = ! in_array($bestellung->status, [BestellungStatus::Entwurf, BestellungStatus::Storniert], true)
+                    && $this->aggregierePositionen($bestellung) !== []
+                    && collect($this->aggregierePositionen($bestellung))->contains(
+                        fn ($zeile) => $zeile['artikel']?->id === $artikel->id
+                    );
+                if ($offen) {
+                    $status = 'Bestellt';
+                    $badge = 'b-yellow';
+                    $beleg = $bestellung->nr.($bestellung->liefertermin ? ' · '.$bestellung->liefertermin->format('d.m.') : '');
+                }
+            }
+
+            $zeilen[] = [
+                'pos' => ++$pos,
+                'artikel' => $artikel,
+                'menge' => (float) $reservierung->menge,
+                'status' => $status,
+                'badge' => $badge,
+                'beleg' => $beleg,
+            ];
+        }
+
+        return $zeilen;
+    }
+
     public function bucheWareneingang(Bestellung $bestellung, User $benutzer): Wareneingang
     {
         if ($vorhanden = $bestellung->wareneingaenge()->first()) {
