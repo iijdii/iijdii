@@ -26,4 +26,9 @@ class MontageAufgabe extends Model
     {
         return $this->belongsTo(Projekt::class, 'projekt_id');
     }
+
+    public function ersteller(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'erstellt_von');
+    }
 }

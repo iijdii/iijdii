@@ -16,8 +16,8 @@
                     <svg class="i"><use href="#ic-download"/></svg>PDF exportieren</button>
                 <a class="btn btns" href="{{ route('projekte.show', [$projekt, 'tab' => 'konfig']) }}">
                     <svg class="i"><use href="#ic-edit"/></svg>Bearbeiten</a>
-                <button class="btn btns btnp" type="button" data-toast="Montage-Modus folgt">
-                    <svg class="i"><use href="#ic-layers"/></svg>Montage-Modus</button>
+                <a class="btn btns btnp" href="{{ route('projekte.montage', $projekt) }}">
+                    <svg class="i"><use href="#ic-layers"/></svg>Montage-Modus</a>
             </span>
         </div>
         <div class="fx" style="margin-top:14px">

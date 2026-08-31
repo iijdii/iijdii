@@ -6,6 +6,7 @@ use App\Http\Controllers\BestellungController;
 use App\Http\Controllers\KundeController;
 use App\Http\Controllers\LagerController;
 use App\Http\Controllers\MaterialKatalogController;
+use App\Http\Controllers\MontageController;
 use App\Http\Controllers\ProjektController;
 use Illuminate\Support\Facades\Route;
 
@@ -43,6 +44,16 @@ Route::middleware('auth')->group(function () {
         ->name('projekte.konfiguration');
     Route::post('/projekte/{projekt:nr}/angebot', [ProjektController::class, 'erstelleAngebot'])
         ->name('projekte.angebot');
+
+    Route::get('/projekte/{projekt:nr}/montage', [MontageController::class, 'zeige'])->name('projekte.montage');
+    Route::post('/projekte/{projekt:nr}/montage/aufmass', [MontageController::class, 'speichereAufmass'])->name('projekte.montage.aufmass');
+    Route::post('/projekte/{projekt:nr}/montage/led', [MontageController::class, 'toggleLed'])->name('projekte.montage.led');
+    Route::post('/projekte/{projekt:nr}/montage/notizen', [MontageController::class, 'speichereNotiz'])->name('projekte.montage.notizen');
+    Route::post('/projekte/{projekt:nr}/montage/notizen/{notiz}/loeschen', [MontageController::class, 'loescheNotiz'])->name('projekte.montage.notizen.loeschen');
+    Route::post('/projekte/{projekt:nr}/montage/material', [MontageController::class, 'speichereMaterial'])->name('projekte.montage.material');
+    Route::post('/projekte/{projekt:nr}/montage/material/{zeile}/loeschen', [MontageController::class, 'loescheMaterial'])->name('projekte.montage.material.loeschen');
+    Route::post('/projekte/{projekt:nr}/montage/aufgaben', [MontageController::class, 'speichereAufgabe'])->name('projekte.montage.aufgaben');
+    Route::post('/projekte/{projekt:nr}/montage/aufgaben/{aufgabe}/erledigt', [MontageController::class, 'toggleAufgabe'])->name('projekte.montage.aufgaben.erledigt');
 
     Route::get('/bestellungen', [BestellungController::class, 'index'])->name('bestellungen');
     Route::get('/bestellungen/{bestellung:nr}', [BestellungController::class, 'show'])->name('bestellungen.show');
