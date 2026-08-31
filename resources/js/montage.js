@@ -165,3 +165,30 @@ if (aprForm) {
         });
     });
 }
+
+// ---------- Übergabe-Checkboxen + CTA-Label (Abnahmeprotokoll) ----------
+document.querySelectorAll('[data-apr-check]').forEach((opt) => {
+    opt.addEventListener('click', (e) => {
+        e.preventDefault();
+        const box = opt.querySelector('input');
+        box.checked = !box.checked;
+        opt.classList.toggle('on', box.checked);
+    });
+});
+
+const aprCta = document.querySelector('[data-apr-cta]');
+if (aprCta) {
+    document.querySelectorAll('[data-apr-opt] input').forEach((input) => {
+        input.addEventListener('change', () => {
+            aprCta.textContent = input.value === 'verweigert' && input.checked
+                ? 'Verweigerung protokollieren'
+                : 'Abnahme bestätigen';
+        });
+    });
+    document.querySelectorAll('[data-apr-opt]').forEach((opt) => {
+        opt.addEventListener('click', () => {
+            const art = opt.querySelector('input').value;
+            aprCta.textContent = art === 'verweigert' ? 'Verweigerung protokollieren' : 'Abnahme bestätigen';
+        });
+    });
+}

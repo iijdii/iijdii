@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\AbnahmeController;
 use App\Http\Controllers\AnfrageController;
 use App\Http\Controllers\AngebotController;
 use App\Http\Controllers\BestellungController;
+use App\Http\Controllers\DokumentController;
 use App\Http\Controllers\KundeController;
 use App\Http\Controllers\LagerController;
 use App\Http\Controllers\MaterialKatalogController;
@@ -54,6 +56,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/projekte/{projekt:nr}/montage/material/{zeile}/loeschen', [MontageController::class, 'loescheMaterial'])->name('projekte.montage.material.loeschen');
     Route::post('/projekte/{projekt:nr}/montage/aufgaben', [MontageController::class, 'speichereAufgabe'])->name('projekte.montage.aufgaben');
     Route::post('/projekte/{projekt:nr}/montage/aufgaben/{aufgabe}/erledigt', [MontageController::class, 'toggleAufgabe'])->name('projekte.montage.aufgaben.erledigt');
+
+    Route::get('/projekte/{projekt:nr}/abnahme', [AbnahmeController::class, 'formular'])->name('projekte.abnahme');
+    Route::post('/projekte/{projekt:nr}/abnahme', [AbnahmeController::class, 'speichere'])->name('projekte.abnahme.speichern');
+    Route::get('/dokumente/{dokument}', [DokumentController::class, 'download'])->name('dokumente.download');
 
     Route::get('/bestellungen', [BestellungController::class, 'index'])->name('bestellungen');
     Route::get('/bestellungen/{bestellung:nr}', [BestellungController::class, 'show'])->name('bestellungen.show');

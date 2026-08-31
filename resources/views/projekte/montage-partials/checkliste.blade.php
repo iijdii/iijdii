@@ -38,7 +38,7 @@
     @endforeach
 
     <div class="jb">
-        <a class="btn btnp" href="{{ route('projekte.show', [$projekt, 'tab' => 'dokumente']) }}">
+        <a class="btn btnp" href="{{ route('projekte.abnahme', $projekt) }}">
             <svg class="i"><use href="#ic-doc"/></svg>Protokoll erstellen</a>
         <span class="mm-sub">Das Protokoll enthält genau die erledigten Positionen.</span>
     </div>

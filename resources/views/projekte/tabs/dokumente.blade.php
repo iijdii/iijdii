@@ -21,8 +21,13 @@
                         @endif
                         <div class="dm">{{ number_format($dokument->groesse / 1024, 0, ',', '.') }} KB · {{ Format::datumKurz($dokument->datum) }}</div>
                     </span>
-                    <button class="dlb btn btns" type="button" data-toast="PDF wird erstellt …">
-                        <svg class="i"><use href="#ic-download"/></svg></button>
+                    @if ($dokument->pfad)
+                        <a class="dlb btn btns" href="{{ route('dokumente.download', $dokument) }}">
+                            <svg class="i"><use href="#ic-download"/></svg></a>
+                    @else
+                        <button class="dlb btn btns" type="button" data-toast="PDF wird erstellt …">
+                            <svg class="i"><use href="#ic-download"/></svg></button>
+                    @endif
                 </div>
             @endforeach
         </div>
@@ -32,8 +37,8 @@
         <div class="mc-h"><svg class="i"><use href="#ic-pen"/></svg>Übergabeprotokoll</div>
         <p class="note">Das Übergabeprotokoll wird bei Abschluss der Montage vom Kunden digital unterschrieben.</p>
         <div class="colstack" style="gap:10px;margin-top:12px">
-            <button class="btn btnp" type="button" data-toast="Abnahmeprotokoll folgt im Montage-Milestone">
-                <svg class="i"><use href="#ic-pen"/></svg>Protokoll erstellen &amp; unterschreiben</button>
+            <a class="btn btnp" href="{{ route('projekte.abnahme', $projekt) }}">
+                <svg class="i"><use href="#ic-pen"/></svg>Protokoll erstellen &amp; unterschreiben</a>
             <span class="fx"><span class="badge b-gray">Status</span>
                 <span class="hint">Offen — Montage ausstehend</span></span>
         </div>
