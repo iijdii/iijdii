@@ -65,6 +65,16 @@ class Projekt extends Model
         return $this->hasMany(MontageAufgabe::class, 'projekt_id');
     }
 
+    public function montageNotizen(): HasMany
+    {
+        return $this->hasMany(MontageNotiz::class, 'projekt_id');
+    }
+
+    public function montageZusatzmaterial(): HasMany
+    {
+        return $this->hasMany(MontageZusatzmaterial::class, 'projekt_id');
+    }
+
     public function aktivitaeten(): HasMany
     {
         return $this->hasMany(ProjektAktivitaet::class, 'projekt_id');

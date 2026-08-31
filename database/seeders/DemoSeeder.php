@@ -54,6 +54,7 @@ class DemoSeeder extends Seeder
         $this->seedBewegungen();
         $this->seedDokumente($projekte);
         $this->seedProjektAktivitaeten($projekte);
+        $this->seedMontageAufgaben($projekte);
     }
 
     private function data(string $name): array
@@ -421,6 +422,44 @@ class DemoSeeder extends Seeder
             $projekt->aktivitaeten()->create([
                 'titel' => $titel, 'wer' => $wer, 'datum' => $datum, 'status' => $status,
             ]);
+        }
+    }
+
+    /** Montage-Checkliste des Demo-Projekts: 7 Aufgaben über 2 Termine (Prototyp). */
+    private function seedMontageAufgaben(array $projekte): void
+    {
+        $projekt = $projekte['PRJ-2026-011'] ?? null;
+        if (! $projekt || $projekt->montageAufgaben()->exists()) {
+            return;
+        }
+
+        $projektleitung = User::query()->where('email', 'projekt@lea.test')->first();
+        $vertrieb = User::query()->where('email', 'verkauf@lea.test')->first();
+
+        $tage = [
+            ['2026-07-18', $projektleitung, [
+                ['Fundamente prüfen & Pfosten stellen', 'lot- und fluchtrecht · Anker M12 · 60 Nm'],
+                ['Wandanschlussprofil montieren', 'Vorbohren 10/50 cm · Silikon + Compriband'],
+                ['Unterzug & Dachsparren montieren', 'Gefälle Richtung Rinne einhalten'],
+            ]],
+            ['2026-07-19', $vertrieb, [
+                ['Verglasung einsetzen', 'zu zweit mit Saugheber · Kantenschutz'],
+                ['Rinne & Fallrohr anschließen', 'Dichtheit prüfen'],
+                ['LED-Spots einbauen & testen', '24 V · Trafo vorn links'],
+                ['Endreinigung & Übergabe', 'Protokoll + Unterschrift Kunde'],
+            ]],
+        ];
+
+        foreach ($tage as [$datum, $ersteller, $aufgaben]) {
+            foreach ($aufgaben as $i => [$titel, $beschreibung]) {
+                $projekt->montageAufgaben()->create([
+                    'datum' => $datum,
+                    'titel' => $titel,
+                    'beschreibung' => $beschreibung,
+                    'sortierung' => $i,
+                    'erstellt_von' => $ersteller?->id,
+                ]);
+            }
         }
     }
 
