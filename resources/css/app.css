@@ -587,3 +587,28 @@ a.chip{text-decoration:none}
 .mm-bar{flex:1;height:12px;border-radius:6px;background:var(--bg3);overflow:hidden}
 .mm-bar>i{display:block;height:100%;width:0;background:var(--green);border-radius:6px;transition:width .3s ease}
 .mm-pct{font-size:15.5px;font-weight:700;font-variant-numeric:tabular-nums;min-width:110px;text-align:right;color:var(--ink)}
+/* ——— Dach-Zeichnungen (Port aus design/RoofDrawing.dc.html; unter .rd gescoped,
+       da die Klassennamen des Prototyps zu generisch für globalen Scope sind) ——— */
+.rd{position:relative;width:100%;height:100%;min-height:120px;background-color:#fbfcfe;background-image:linear-gradient(#eef2f7 1px,transparent 1px),linear-gradient(90deg,#eef2f7 1px,transparent 1px);background-size:14px 14px}
+.rd svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;font-family:'DM Sans',system-ui,sans-serif}
+.rd .ln{fill:none;stroke:#22375a;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
+.rd .ln2{fill:none;stroke:#22375a;stroke-width:1.15;stroke-linejoin:round;stroke-linecap:round}
+.rd .mem{fill:rgba(34,55,90,.07);stroke:#22375a;stroke-width:1.35;stroke-linejoin:round}
+.rd .glass{fill:rgba(74,111,165,.11);stroke:#4A6FA5;stroke-width:1.05}
+.rd .glass2{fill:none;stroke:#4A6FA5;stroke-width:.55;opacity:.7}
+.rd .raf{fill:none;stroke:#5c74a0;stroke-width:.9}
+.rd .ctr{fill:none;stroke:#c0694b;stroke-width:.7;stroke-dasharray:9 2.5 2 2.5;opacity:.8}
+.rd .dim{fill:none;stroke:#6f8098;stroke-width:.62}
+.rd .dimt{fill:#33507d;font-size:9px;font-weight:600;font-family:'DM Mono',monospace;paint-order:stroke;stroke:#fbfcfe;stroke-width:3px;stroke-linejoin:round}
+.rd .lbl{fill:#41506b;font-size:8.3px;font-weight:600;paint-order:stroke;stroke:#fbfcfe;stroke-width:2.8px;stroke-linejoin:round}
+.rd .lblu{fill:#748097;font-size:7.6px;font-weight:500;paint-order:stroke;stroke:#fbfcfe;stroke-width:2.4px;stroke-linejoin:round}
+.rd .lead{fill:none;stroke:#93a0b2;stroke-width:.55}
+.rd .grndln{fill:none;stroke:#22375a;stroke-width:1.4}
+.rd .tbln{fill:#fff;stroke:#c3ccd9;stroke-width:.8}
+.rd .tbk{fill:#93a0b2;font-size:6.2px;font-weight:600;letter-spacing:.03em}
+.rd .tbv{fill:#1B1F23;font-size:7.8px;font-weight:600}
+.rd .tbt{fill:#1B1F23;font-size:8.4px;font-weight:700}
+.rd .vlabel{fill:#22375a;font-size:11px;font-weight:700;letter-spacing:.09em}
+.rd .nsym{fill:none;stroke:#556680;stroke-width:1}
+.rd .nt{fill:#556680;font-size:8px;font-weight:700}
+.rd.nodim .dim,.rd.nodim .dimt,.rd.nodim .lbl,.rd.nodim .lblu,.rd.nodim .lead,.rd.nodim .tbln,.rd.nodim .tbk,.rd.nodim .tbv,.rd.nodim .tbt,.rd.nodim .vlabel,.rd.nodim .anno{display:none}
