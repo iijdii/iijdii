@@ -50,6 +50,17 @@ class MontagePageTest extends TestCase
             ->assertSee('Glas nur zu zweit mit Saugheber einsetzen');
     }
 
+    public function test_section_three_renders_roof_drawings_with_lightbox(): void
+    {
+        $this->actingAs($this->monteur)->get('/projekte/PRJ-2026-011/montage')
+            ->assertOk()
+            ->assertSee('Tippen zum Vergrößern')
+            ->assertSee('B = 8630')
+            ->assertSee('DRAUFSICHT')
+            ->assertSee('roofLightbox')
+            ->assertDontSee('Zeichnungen folgen');
+    }
+
     public function test_aufmass_post_persists_and_shows_tolerance_classes(): void
     {
         $antwort = $this->actingAs($this->monteur)->post('/projekte/PRJ-2026-011/montage/aufmass', [

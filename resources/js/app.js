@@ -1,3 +1,5 @@
+import './roof-lightbox.js';
+
 // LEA CRM — Navigations-Shell.
 // >1200px klappt der Burger die Sidebar ein/aus; ≤1200px (Sidebar
 // ausgeblendet) öffnet er das Dropdown-Panel. Schließt bei Auswahl

@@ -11,6 +11,7 @@ use App\Support\AufmassRechner;
 use App\Support\KonfiguratorRechner;
 use App\Support\LedPlan;
 use App\Support\MontageZeichnung;
+use App\Support\RoofZeichnung;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -66,6 +67,9 @@ class MontageController extends Controller
             'aktiveGruppe' => $aktiveGruppe,
             'zeichnung' => $aktiveGruppe ? MontageZeichnung::extra($this->zeichnungsDaten($aktiveGruppe)) : null,
             'glasZeichnung' => $glas,
+            'roof' => RoofZeichnung::alle($kalk, [
+                'projekt' => $projekt->nr.' · '.$projekt->kunde->anzeigename,
+            ]),
             'ledZeichnung' => LedPlan::zeichnung($kalk, $gesetzt),
             'ledKandidaten' => LedPlan::kandidaten($kalk),
             'ledGesetzt' => $gesetzt,

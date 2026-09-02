@@ -61,5 +61,7 @@
 
     @include('projekte.tabs.'.$tab)
 
+    @include('partials.roof-lightbox')
+
 </div>
 @endsection

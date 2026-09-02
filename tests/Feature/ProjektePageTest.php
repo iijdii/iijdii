@@ -40,6 +40,24 @@ class ProjektePageTest extends TestCase
         }
     }
 
+    public function test_uebersicht_und_technik_render_the_five_roof_drawings(): void
+    {
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=uebersicht')
+            ->assertOk()
+            ->assertSee('Montageübersicht')
+            ->assertSee('Detailschnitt A–A')
+            ->assertSee('B = 8630')
+            ->assertSee('roofLightbox')
+            ->assertDontSee('Zeichnungen folgen');
+
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=technik')
+            ->assertOk()
+            ->assertSee('8 Felder à 1079')
+            ->assertSee('Gefälle 8° ≈ 141 mm/m → Rinne')
+            ->assertSee('PRJ-2026-011 · DEMO Demo') // Titelblock der Zeichnung
+            ->assertDontSee('Zeichnungen folgen');
+    }
+
     public function test_konfigurator_shows_prototype_positions_and_kalkulation(): void
     {
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=konfig')

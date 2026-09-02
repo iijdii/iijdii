@@ -612,3 +612,18 @@ a.chip{text-decoration:none}
 .rd .nsym{fill:none;stroke:#556680;stroke-width:1}
 .rd .nt{fill:#556680;font-size:8px;font-weight:700}
 .rd.nodim .dim,.rd.nodim .dimt,.rd.nodim .lbl,.rd.nodim .lblu,.rd.nodim .lead,.rd.nodim .tbln,.rd.nodim .tbk,.rd.nodim .tbv,.rd.nodim .tbt,.rd.nodim .vlabel,.rd.nodim .anno{display:none}
+
+/* ——— Zeichnungs-Lightbox (Prototyp Z. 195–206; .lbxh/.lnav existieren oben) ——— */
+.lbxc{background:var(--bg);border-radius:14px;box-shadow:var(--shl);width:min(900px,93vw);display:flex;flex-direction:column;overflow:hidden;animation:pop .2s ease}
+.lbxstage{position:relative;padding:18px;background:var(--bg2)}
+.lbx-l,.lbx-r{position:absolute;top:50%;transform:translateY(-50%);z-index:2;background:var(--bg);box-shadow:var(--sh)}
+.lbx-l{left:28px}.lbx-r{right:28px}
+.lbxthumbs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;padding:13px 18px 16px;border-top:1px solid var(--bd2)}
+.lbxt{position:relative;height:74px;border:1px solid var(--bd);border-radius:9px;background:#fff;overflow:hidden;cursor:pointer;padding:0;display:block}
+.lbxt:hover{border-color:var(--acc)}
+.lbxt.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--accbg)}
+.lbxt>span{position:absolute;left:0;right:0;bottom:0;background:rgba(255,255,255,.92);font-size:10px;font-weight:700;letter-spacing:.03em;color:var(--ink2);padding:3px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbxstage>.rdwrap{height:430px;border:1px solid var(--bd);border-radius:10px;overflow:hidden;background:#fff}
+.rdwrap>[data-roof-view]{height:100%}
+.lbxt .rd{min-height:0;height:100%}
+@media(max-width:1024px){.lbxthumbs{grid-template-columns:repeat(3,minmax(0,1fr))}.lbxstage>.rdwrap{height:340px}.lbx-l{left:20px}.lbx-r{right:20px}}

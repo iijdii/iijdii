@@ -1,6 +1,7 @@
 // Montage-Modus + Abnahmeprotokoll — eigener Bundle-Eintrag (das
 // Montage-Layout lädt app.js nicht). Progressive enhancement: alle
 // Aktionen funktionieren auch ohne JS über POST/Redirect.
+import './roof-lightbox.js';
 
 // ---------- Toasts ----------
 function showToast(text) {

@@ -8,13 +8,16 @@
         <div class="card p0">
             <div class="card-h">
                 <span class="card-t">Technische Zeichnungen</span>
-                <button class="btn btns btng" type="button" data-toast="Zeichnungen folgen im nächsten Milestone">Vollbild</button>
+                <button class="btn btns btng" type="button" data-roof-open="0">
+                    <svg class="i"><use href="#ic-expand"/></svg>Vollbild</button>
             </div>
             <div class="card-b">
                 <div class="draw-grid">
-                    @foreach (['Montageübersicht', 'Draufsicht', 'Vorderansicht', 'Seitenansicht', 'Detailschnitt A–A'] as $zeichnung)
-                        <button class="dtile" type="button" data-toast="Zeichnungen folgen im nächsten Milestone">
-                            <span class="dtl">{{ $zeichnung }}</span>
+                    @foreach (\App\Support\RoofZeichnung::ANSICHTEN as $i => $ansicht)
+                        <button class="dtile" type="button" data-roof-open="{{ $i }}">
+                            <span class="dtl">{{ \App\Support\RoofZeichnung::TITEL[$ansicht] }}</span>
+                            <span class="dtz"><svg class="i" style="width:14px;height:14px"><use href="#ic-zoom"/></svg></span>
+                            @include('partials.roof-zeichnung', ['z' => $roof[$ansicht], 'nodim' => true])
                         </button>
                     @endforeach
                 </div>

@@ -69,9 +69,10 @@
         <section class="mm-card c12" id="s3">
             <div class="mm-h"><span class="n">3</span>Technische Zeichnungen<span class="mm-sub" style="margin-left:auto">Tippen zum Vergrößern</span></div>
             <div class="mm-drawgrid">
-                @foreach (['Montageübersicht', 'Draufsicht', 'Vorderansicht', 'Seitenansicht', 'Detailschnitt A–A'] as $zeichnungTitel)
-                    <button class="mm-draw" type="button" data-toast="Zeichnungen folgen im nächsten Milestone">
-                        <span class="dtl">{{ $zeichnungTitel }}</span>
+                @foreach (\App\Support\RoofZeichnung::ANSICHTEN as $i => $ansicht)
+                    <button class="mm-draw" type="button" data-roof-open="{{ $i }}">
+                        <span class="dtl">{{ \App\Support\RoofZeichnung::TITEL[$ansicht] }}</span>
+                        @include('partials.roof-zeichnung', ['z' => $roof[$ansicht], 'nodim' => false])
                     </button>
                 @endforeach
             </div>
@@ -181,5 +182,7 @@
         @include('projekte.montage-partials.checkliste')
 
     </div>
+
+    @include('partials.roof-lightbox')
 </div>
 @endsection

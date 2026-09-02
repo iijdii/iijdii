@@ -8,6 +8,7 @@ use App\Models\Projekt;
 use App\Services\LagerService;
 use App\Support\KonfiguratorRechner;
 use App\Support\Nummern;
+use App\Support\RoofZeichnung;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -58,6 +59,9 @@ class ProjektController extends Controller
             'projekt' => $projekt,
             'tab' => $tab,
             'kalk' => $kalk,
+            'roof' => RoofZeichnung::alle($kalk, [
+                'projekt' => $projekt->nr.' · '.$projekt->kunde->anzeigename,
+            ]),
             'vorschau' => $request->session()->has('pcfg_preview.'.$projekt->nr),
         ];
 
