@@ -4,6 +4,7 @@ use App\Http\Controllers\AbnahmeController;
 use App\Http\Controllers\AnfrageController;
 use App\Http\Controllers\AngebotController;
 use App\Http\Controllers\BestellungController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DokumentController;
 use App\Http\Controllers\KundeController;
 use App\Http\Controllers\LagerController;
@@ -15,9 +16,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', fn () => redirect()->route('dashboard'));
 
 Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
     $module = [
         // route-Name => Seitentitel
-        'dashboard' => 'Dashboard',
         'logistik' => 'Logistik',
         'kalender' => 'Kalender',
         'lieferanten' => 'Lieferanten',

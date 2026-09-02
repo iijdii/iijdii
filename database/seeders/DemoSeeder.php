@@ -156,6 +156,8 @@ class DemoSeeder extends Seeder
                 'objekt_plz' => $g['plz'] ?? null,
                 'objekt_stadt' => $g['ort2'] ?? $ort,
                 'besuchstermin_datum' => $this->datum($g['terminDate'] ?? null),
+                // Startzeit aus "09:00–11:00" (Prototyp terminTime) für Dashboard/Kalender
+                'besuchstermin_uhrzeit' => preg_match('/^(\d{2}:\d{2})/', $g['terminTime'] ?? '', $tm) ? $tm[1] : null,
                 'besuchstermin_status' => isset($g['terminDate']) && $g['terminDate'] !== '–' ? 'geplant' : null,
                 'status' => self::ANFRAGE_STATUS[$statusKey] ?? 'neu',
                 'interessierte_produkte' => $g['produkte'] ?? [$produkt],
