@@ -22,6 +22,11 @@ Route::middleware('auth')->group(function () {
     // Logistik: /logistik/touren/* VOR dem {bestellung:nr}-Wildcard registrieren.
     Route::get('/logistik', [LogistikController::class, 'index'])->name('logistik');
     Route::post('/logistik/touren', [LogistikController::class, 'erstelleTour'])->name('logistik.touren.erstellen');
+    Route::get('/logistik/touren/{tour:nr}', [LogistikController::class, 'tour'])->name('logistik.tour');
+    Route::post('/logistik/touren/{tour:nr}/alle', [LogistikController::class, 'setzeTourAlle'])->name('logistik.tour.alle');
+    Route::post('/logistik/touren/{tour:nr}/abschliessen', [LogistikController::class, 'schliesseTourAb'])->name('logistik.tour.abschliessen');
+    Route::get('/logistik/touren/{tour:nr}/lade', [LogistikController::class, 'lade'])->name('logistik.lade');
+    Route::post('/logistik/touren/{tour:nr}/abfahrt', [LogistikController::class, 'bestaetigeAbfahrt'])->name('logistik.abfahrt');
     Route::get('/logistik/{bestellung:nr}', [LogistikController::class, 'bestellung'])->name('logistik.bestellung');
     Route::post('/logistik/{bestellung:nr}/positionen/{position}/toggle', [LogistikController::class, 'togglePosition'])->name('logistik.position.toggle');
     Route::post('/logistik/{bestellung:nr}/positionen/{position}/notiz', [LogistikController::class, 'speichereNotiz'])->name('logistik.notiz');

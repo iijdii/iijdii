@@ -142,6 +142,56 @@ class LogistikTest extends TestCase
         $this->assertSame(['BST-2026-109'], $tour->bestellungen->pluck('nr')->all());
     }
 
+    public function test_tour_ansicht_zeigt_auftraege_und_ladefortschritt(): void
+    {
+        $this->actingAs($this->lagerist)->get('/logistik/touren/TOUR-2026-042')
+            ->assertOk()
+            ->assertSee('TOUR-2026-042')
+            ->assertSee('Mercedes Sprinter · B-LEA 1234')
+            ->assertSee('2 Aufträge')
+            ->assertSee('Ladedatum 15.07. · Team Berlin K1')
+            ->assertSee('BST-2026-112 — Dachverglasung', false)
+            ->assertSee('Positionen geladen')
+            ->assertSee('0/7')
+            ->assertSee('Lade-Modus öffnen')
+            ->assertSee('Ladung abschließen');
+    }
+
+    public function test_lade_modus_tabs_und_lieferstopps(): void
+    {
+        $this->actingAs($this->lagerist)->get('/logistik/touren/TOUR-2026-042/lade')
+            ->assertOk()
+            ->assertSee('LADE-MODUS')
+            ->assertSee('Beladung fertig · Abfahrt bestätigen');
+
+        $this->actingAs($this->lagerist)->get('/logistik/touren/TOUR-2026-042/lade?tab=tour')
+            ->assertOk()
+            ->assertSee('Lieferstopps · 2 Adressen')
+            ->assertSee('Musterstraße')
+            ->assertSee('10115 Berlin')
+            ->assertSee('tel:+491702345678')
+            ->assertSee('Fahrzeug');
+    }
+
+    public function test_abfahrt_und_ladung_verlangen_vollstaendigkeit(): void
+    {
+        $this->actingAs($this->lagerist)->post('/logistik/touren/TOUR-2026-042/abfahrt')
+            ->assertRedirect(route('logistik.lade', 'TOUR-2026-042'))
+            ->assertSessionHas('toast', 'Noch 7 Position(en) nicht geladen');
+
+        $this->actingAs($this->lagerist)->post('/logistik/touren/TOUR-2026-042/abschliessen')
+            ->assertSessionHas('toast', 'Noch 7 Position(en) offen');
+
+        $this->actingAs($this->lagerist)->post('/logistik/touren/TOUR-2026-042/alle', ['markieren' => 1]);
+
+        $this->actingAs($this->lagerist)->post('/logistik/touren/TOUR-2026-042/abfahrt')
+            ->assertRedirect(route('logistik'))
+            ->assertSessionHas('toast', 'Abfahrt bestätigt · TOUR-2026-042 unterwegs');
+
+        $this->actingAs($this->lagerist)->post('/logistik/touren/TOUR-2026-042/abschliessen')
+            ->assertSessionHas('toast', 'Ladung TOUR-2026-042 abgeschlossen — Fahrzeug beladen');
+    }
+
     /** Status-Badge der Tabellenzeile (Anker: onclick-URL der Zeile). */
     private function auftragStatus(string $nr): string
     {

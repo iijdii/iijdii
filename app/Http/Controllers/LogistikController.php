@@ -125,8 +125,90 @@ class LogistikController extends Controller
         ]);
         $tour->bestellungen()->sync($ids);
 
-        return redirect()->route('logistik')
+        return redirect()->route('logistik.tour', $tour)
             ->with('toast', 'Tour mit '.$ids->count().' Aufträgen erstellt');
+    }
+
+    // ---------- Touren + Lade-Modus ----------
+
+    public function tour(Tour $tour): View
+    {
+        return view('logistik.tour', $this->tourDaten($tour));
+    }
+
+    public function setzeTourAlle(Request $request, Tour $tour): RedirectResponse
+    {
+        BestellungPosition::query()
+            ->whereIn('bestellung_id', $tour->bestellungen()->pluck('bestellungen.id'))
+            ->update(['kommissioniert_am' => $request->boolean('markieren') ? now() : null]);
+
+        return back();
+    }
+
+    public function schliesseTourAb(Tour $tour): RedirectResponse
+    {
+        $daten = $this->tourDaten($tour);
+        if ($daten['offen'] > 0) {
+            return redirect()->route('logistik.tour', $tour)
+                ->with('toast', 'Noch '.$daten['offen'].' Position(en) offen');
+        }
+
+        return redirect()->route('logistik')
+            ->with('toast', 'Ladung '.$tour->nr.' abgeschlossen — Fahrzeug beladen');
+    }
+
+    public function lade(Request $request, Tour $tour): View
+    {
+        $tab = $request->query('tab') === 'tour' ? 'tour' : 'laden';
+
+        return view('logistik.lade', $this->tourDaten($tour) + ['tab' => $tab]);
+    }
+
+    public function bestaetigeAbfahrt(Tour $tour): RedirectResponse
+    {
+        $daten = $this->tourDaten($tour);
+        if ($daten['offen'] > 0) {
+            return redirect()->route('logistik.lade', $tour)
+                ->with('toast', 'Noch '.$daten['offen'].' Position(en) nicht geladen');
+        }
+
+        return redirect()->route('logistik')
+            ->with('toast', 'Abfahrt bestätigt · '.$tour->nr.' unterwegs');
+    }
+
+    /** @return array Tour + Aufträge (View-Modelle) + Gesamtfortschritt + Stopps */
+    private function tourDaten(Tour $tour): array
+    {
+        $tour->load(['bestellungen.positionen', 'bestellungen.lieferant', 'bestellungen.projekt', 'bestellungen.kunde']);
+        $auftraege = $tour->bestellungen->map(fn (Bestellung $b) => $this->auftragsDaten($b))->values();
+
+        $done = $auftraege->sum('done');
+        $tot = $auftraege->sum('tot');
+
+        $stopps = $auftraege->map(function (array $a, int $i) {
+            $kunde = $a['bestellung']->kunde;
+
+            return [
+                'n' => $i + 1,
+                'auftrag' => $a,
+                'kunde' => $kunde?->anzeigename ?? '—',
+                'strasse' => $kunde?->strasse ?? '—',
+                'ort' => trim(($kunde?->plz ?? '').' '.($kunde?->stadt ?? '')),
+                'telefon' => $kunde?->telefon,
+                'tel' => $kunde?->telefon ? 'tel:'.preg_replace('/[^+\d]/', '', $kunde->telefon) : null,
+                'fertig' => $a['tot'] > 0 && $a['done'] === $a['tot'],
+            ];
+        });
+
+        return [
+            'tour' => $tour,
+            'auftraege' => $auftraege,
+            'done' => $done,
+            'tot' => $tot,
+            'offen' => $tot - $done,
+            'pct' => $tot > 0 ? (int) round($done / $tot * 100) : 0,
+            'stopps' => $stopps,
+        ];
     }
 
     // ---------- Aufbereitung (Port von _logiItems/_logiVals) ----------
