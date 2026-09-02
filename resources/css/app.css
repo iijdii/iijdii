@@ -747,3 +747,37 @@ form:has(.lgpick input:checked) .lgbulk{display:flex}
 .ld-call .i{width:17px;height:17px}
 .ld-big{width:100%;min-height:62px;justify-content:center;font-size:17px;border-radius:14px}
 .ld-big .i{width:21px;height:21px}
+
+/* ——— Kalender (Prototyp Z. 381–409; Responsive-Collapse ergänzt — der
+       Prototyp hat keinen und die 7-Spalten-Woche bricht sonst auf Tablets) ——— */
+.cal-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.cal-wk{display:flex;align-items:baseline;gap:10px}
+.cal-wk b{font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:20px}
+.cal-wk span{font-size:12.5px;font-weight:500;color:var(--ink3);font-family:'DM Mono',monospace}
+.cal-nav{display:flex;gap:6px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:start}
+.cal-day{background:var(--bg);border:1px solid var(--bd);border-radius:11px;overflow:hidden;min-height:150px;display:flex;flex-direction:column}
+.cal-day.today{border-color:var(--acc);box-shadow:0 0 0 2px var(--accbg)}
+.cal-dh{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;border-bottom:1px solid var(--bd2);background:var(--bg2)}
+.cal-dh .dn{font-size:12px;font-weight:700;color:var(--ink)}
+.cal-dh .dd{font-size:11px;font-weight:600;color:var(--ink3);font-family:'DM Mono',monospace}
+.cal-day.today .cal-dh{background:var(--accbg)}
+.cal-day.today .cal-dh .dn{color:var(--accd)}
+.cal-db{padding:8px;display:flex;flex-direction:column;gap:7px;flex:1}
+.cal-empty{font-size:11px;font-weight:500;color:var(--ink3);text-align:center;padding:14px 4px;opacity:.7}
+.cal-ev{border-radius:8px;padding:8px 9px;border-left:3px solid;background:var(--bg2);cursor:pointer;transition:.14s}
+.cal-ev:hover{transform:translateY(-1px);box-shadow:var(--sh)}
+.cal-ev.calm{border-left-color:var(--blue);background:var(--bluebg)}
+.cal-ev.cala{border-left-color:var(--green);background:var(--greenbg)}
+.cal-ev.cals{border-left-color:var(--ink3);background:var(--bg3)}
+.cal-ev.calp{border-left-color:var(--gold);background:var(--goldbg)}
+.cal-et{font-size:10.5px;font-weight:700;font-family:'DM Mono',monospace;color:var(--ink2)}
+.cal-ett{font-size:12px;font-weight:700;color:var(--ink);line-height:1.25;margin-top:2px}
+.cal-em{font-size:10.5px;font-weight:500;color:var(--ink3);margin-top:2px;line-height:1.3}
+.cal-etag{display:inline-block;margin-top:5px;font-size:10px;font-weight:600;color:var(--ink2);background:var(--bg);border:1px solid var(--bd);border-radius:5px;padding:1px 6px}
+.cal-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--bd2)}
+.cal-lg{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--ink2)}
+.cal-lg .d{width:11px;height:11px;border-radius:3px}
+.cal-lg .d.b-blue{background:var(--blue)}.cal-lg .d.b-green{background:var(--green)}.cal-lg .d.b-gray{background:var(--ink3)}.cal-lg .d.b-yellow{background:var(--gold)}
+@media(max-width:1024px){.cal-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.cal-grid{grid-template-columns:1fr}}

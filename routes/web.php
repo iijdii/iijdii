@@ -6,6 +6,7 @@ use App\Http\Controllers\AngebotController;
 use App\Http\Controllers\BestellungController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DokumentController;
+use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\KundeController;
 use App\Http\Controllers\LagerController;
 use App\Http\Controllers\LogistikController;
@@ -33,9 +34,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/logistik/{bestellung:nr}/alle', [LogistikController::class, 'setzeAlle'])->name('logistik.alle');
     Route::post('/logistik/{bestellung:nr}/abschliessen', [LogistikController::class, 'schliesseAb'])->name('logistik.abschliessen');
 
+    Route::get('/kalender', [KalenderController::class, 'index'])->name('kalender');
+
     $module = [
         // route-Name => Seitentitel
-        'kalender' => 'Kalender',
         'lieferanten' => 'Lieferanten',
     ];
 
