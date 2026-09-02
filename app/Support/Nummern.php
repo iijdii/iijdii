@@ -28,6 +28,12 @@ final class Nummern
         return self::naechste('ANG', Angebot::query()->pluck('nr'));
     }
 
+    /** TOUR-2026-NNN — Seed endet bei 042, erste neue Tour = TOUR-2026-043. */
+    public static function tour(): string
+    {
+        return self::naechste('TOUR', \App\Models\Tour::query()->pluck('nr'), 3, 42);
+    }
+
     /** AP-2026-NNNN — Start 113, damit das erste Protokoll AP-2026-0114 ist (Prototyp-Nummer). */
     public static function abnahme(): string
     {

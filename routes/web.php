@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DokumentController;
 use App\Http\Controllers\KundeController;
 use App\Http\Controllers\LagerController;
+use App\Http\Controllers\LogistikController;
 use App\Http\Controllers\MaterialKatalogController;
 use App\Http\Controllers\MontageController;
 use App\Http\Controllers\ProjektController;
@@ -18,9 +19,17 @@ Route::get('/', fn () => redirect()->route('dashboard'));
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Logistik: /logistik/touren/* VOR dem {bestellung:nr}-Wildcard registrieren.
+    Route::get('/logistik', [LogistikController::class, 'index'])->name('logistik');
+    Route::post('/logistik/touren', [LogistikController::class, 'erstelleTour'])->name('logistik.touren.erstellen');
+    Route::get('/logistik/{bestellung:nr}', [LogistikController::class, 'bestellung'])->name('logistik.bestellung');
+    Route::post('/logistik/{bestellung:nr}/positionen/{position}/toggle', [LogistikController::class, 'togglePosition'])->name('logistik.position.toggle');
+    Route::post('/logistik/{bestellung:nr}/positionen/{position}/notiz', [LogistikController::class, 'speichereNotiz'])->name('logistik.notiz');
+    Route::post('/logistik/{bestellung:nr}/alle', [LogistikController::class, 'setzeAlle'])->name('logistik.alle');
+    Route::post('/logistik/{bestellung:nr}/abschliessen', [LogistikController::class, 'schliesseAb'])->name('logistik.abschliessen');
+
     $module = [
         // route-Name => Seitentitel
-        'logistik' => 'Logistik',
         'kalender' => 'Kalender',
         'lieferanten' => 'Lieferanten',
     ];

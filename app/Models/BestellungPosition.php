@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'bestellung_id', 'typ', 'pos', 'bezeichnung', 'artikel_id',
     'menge', 'einheit', 'breite_mm', 'hoehe_mm', 'details', 'eingelagert',
+    'kommissioniert_am', 'kommissionier_notiz',
 ])]
 class BestellungPosition extends Model
 {

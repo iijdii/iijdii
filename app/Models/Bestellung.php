@@ -46,6 +46,11 @@ class Bestellung extends Model
         };
     }
 
+    public function touren(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Tour::class, 'tour_bestellung', 'bestellung_id', 'tour_id');
+    }
+
     public function lieferant(): BelongsTo
     {
         return $this->belongsTo(Lieferant::class, 'lieferant_id');

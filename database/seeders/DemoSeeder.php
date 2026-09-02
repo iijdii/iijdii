@@ -11,6 +11,7 @@ use App\Models\Lagerbewegung;
 use App\Models\Lieferant;
 use App\Models\Projekt;
 use App\Models\Reservierung;
+use App\Models\Tour;
 use App\Models\User;
 use App\Models\Wareneingang;
 use Illuminate\Database\Seeder;
@@ -50,6 +51,7 @@ class DemoSeeder extends Seeder
         $this->seedAngebote($kunden, $anfragen);
         $projekte = $this->seedProjekte($kunden);
         $this->seedBestellungen($kunden, $projekte);
+        $this->seedTouren();
         $this->seedReservierungen($projekte);
         $this->seedBewegungen();
         $this->seedDokumente($projekte);
@@ -179,6 +181,20 @@ class DemoSeeder extends Seeder
         }
 
         return $out;
+    }
+
+    /** Eine Tour laut Prototyp (logiTours): TOUR-2026-042 mit BST-112 + BST-111. */
+    private function seedTouren(): void
+    {
+        $tour = Tour::query()->updateOrCreate(['nr' => 'TOUR-2026-042'], [
+            'fahrzeug' => 'Mercedes Sprinter',
+            'kennzeichen' => 'B-LEA 1234',
+            'datum' => '2026-07-15',
+            'fahrer' => 'Team Berlin K1',
+        ]);
+        $tour->bestellungen()->sync(
+            Bestellung::query()->whereIn('nr', ['BST-2026-112', 'BST-2026-111'])->pluck('id'),
+        );
     }
 
     private function seedAngebote(array $kunden, array $anfragen): void
