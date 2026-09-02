@@ -25,7 +25,7 @@
 @foreach ($gruppen as $gruppe => $links)
     <div class="ngl">{{ $gruppe }}</div>
     @foreach ($links as [$route, $label])
-        <a class="navlink {{ request()->routeIs($route) ? 'active' : '' }}" href="{{ route($route) }}">
+        <a class="navlink {{ request()->routeIs($route, $route.'.*') ? 'active' : '' }}" href="{{ route($route) }}">
             <span class="nvt">{{ $label }}</span>
         </a>
     @endforeach

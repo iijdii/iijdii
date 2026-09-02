@@ -15,6 +15,11 @@ class Setting extends Model
         return ['value' => 'array'];
     }
 
+    public static function setzeWert(string $key, mixed $wert): void
+    {
+        static::query()->updateOrCreate(['key' => $key], ['value' => $wert]);
+    }
+
     public static function wert(string $key, mixed $default = null): mixed
     {
         return static::query()->where('key', $key)->first()?->value ?? $default;

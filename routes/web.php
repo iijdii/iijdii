@@ -6,9 +6,11 @@ use App\Http\Controllers\AngebotController;
 use App\Http\Controllers\BestellungController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DokumentController;
+use App\Http\Controllers\EinstellungenController;
 use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\KundeController;
 use App\Http\Controllers\LagerController;
+use App\Http\Controllers\LieferantController;
 use App\Http\Controllers\LogistikController;
 use App\Http\Controllers\MaterialKatalogController;
 use App\Http\Controllers\MontageController;
@@ -35,15 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/logistik/{bestellung:nr}/abschliessen', [LogistikController::class, 'schliesseAb'])->name('logistik.abschliessen');
 
     Route::get('/kalender', [KalenderController::class, 'index'])->name('kalender');
-
-    $module = [
-        // route-Name => Seitentitel
-        'lieferanten' => 'Lieferanten',
-    ];
-
-    foreach ($module as $route => $titel) {
-        Route::view('/'.$route, 'pages.placeholder', ['titel' => $titel])->name($route);
-    }
+    Route::get('/lieferanten', [LieferantController::class, 'index'])->name('lieferanten');
 
     Route::get('/kunden', [KundeController::class, 'index'])->name('kunden');
     Route::get('/kunden/{kunde:kunden_nr}', [KundeController::class, 'show'])->name('kunden.show');
@@ -92,7 +86,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/material-katalog', [MaterialKatalogController::class, 'index'])->name('material-katalog');
 
     // Einstellungen: Admin und Projektleitung.
-    Route::view('/einstellungen', 'pages.placeholder', ['titel' => 'Einstellungen'])
+    Route::get('/einstellungen', [EinstellungenController::class, 'zeige'])
         ->middleware('role:projektleiter')
         ->name('einstellungen');
+    Route::post('/einstellungen', [EinstellungenController::class, 'speichere'])
+        ->middleware('role:projektleiter')
+        ->name('einstellungen.speichern');
 });
