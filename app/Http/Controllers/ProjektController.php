@@ -90,6 +90,30 @@ class ProjektController extends Controller
         ], 'Projektmappe_'.$projekt->nr.'.pdf', $projekt, 'projektmappe');
     }
 
+    public function ladeDokumentHoch(Request $request, Projekt $projekt): RedirectResponse
+    {
+        $request->validate(
+            ['datei' => ['required', 'file', 'max:10240', 'mimes:pdf,png,jpg,jpeg,dwg,xlsx']],
+            ['datei.mimes' => 'Nur PDF, Bilder, DWG oder XLSX bis 10 MB.', 'datei.max' => 'Nur PDF, Bilder, DWG oder XLSX bis 10 MB.'],
+        );
+
+        $datei = $request->file('datei');
+        // Zeitstempel-Präfix gegen Namenskollisionen; privater Disk wie beim Protokoll.
+        $name = $projekt->nr.'_'.now()->format('YmdHis').'_'.$datei->getClientOriginalName();
+        $pfad = \Illuminate\Support\Facades\Storage::putFileAs('dokumente', $datei, $name);
+
+        $projekt->dokumente()->create([
+            'typ' => 'upload',
+            'dateiname' => $datei->getClientOriginalName(),
+            'pfad' => $pfad,
+            'groesse' => $datei->getSize(),
+            'datum' => now()->toDateString(),
+        ]);
+
+        return redirect()->route('projekte.show', [$projekt, 'tab' => 'dokumente'])
+            ->with('toast', 'Dokument hochgeladen');
+    }
+
     public function speichereKonfiguration(Request $request, Projekt $projekt): RedirectResponse
     {
         $pcfg = $this->pcfgAusRequest($request);

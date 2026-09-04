@@ -200,6 +200,10 @@ class LagerController extends Controller
                 'projekt' => $reservierungen->first()->projekt,
                 'reservierungen' => $reservierungen,
                 'stueck' => (int) $reservierungen->sum('menge'),
+                // Deep-Link: erste Bestellung des Projekts in der Rüstliste
+                'kommissionierung' => $reservierungen->first()->projekt?->bestellungen()
+                    ->whereIn('status', [BestellungStatus::Bestellt, BestellungStatus::Bereit, BestellungStatus::Geliefert])
+                    ->orderByDesc('nr')->first(),
             ])
             ->values();
 

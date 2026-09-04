@@ -59,6 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/projekte', [ProjektController::class, 'index'])->name('projekte');
     Route::get('/projekte/{projekt:nr}', [ProjektController::class, 'show'])->name('projekte.show');
     Route::get('/projekte/{projekt:nr}/pdf', [ProjektController::class, 'pdf'])->name('projekte.pdf');
+    Route::post('/projekte/{projekt:nr}/dokumente', [ProjektController::class, 'ladeDokumentHoch'])->name('projekte.dokumente.upload');
     Route::post('/projekte/{projekt:nr}/konfiguration', [ProjektController::class, 'speichereKonfiguration'])
         ->name('projekte.konfiguration');
     Route::post('/projekte/{projekt:nr}/angebot', [ProjektController::class, 'erstelleAngebot'])

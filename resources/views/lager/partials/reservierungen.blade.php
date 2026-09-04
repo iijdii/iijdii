@@ -34,7 +34,7 @@
             </table>
         </div>
         <div class="card-b" style="border-top:1px solid var(--bd2);text-align:right">
-            <a class="btn btns" href="{{ route('logistik') }}">
+            <a class="btn btns" href="{{ $gruppe['kommissionierung'] ? route('logistik.bestellung', $gruppe['kommissionierung']) : route('logistik') }}">
                 <svg class="i"><use href="#ic-logistik"/></svg>Kommissionierung öffnen</a>
         </div>
     </div>

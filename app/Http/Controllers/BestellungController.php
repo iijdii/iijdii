@@ -25,8 +25,11 @@ class BestellungController extends Controller
         $ansicht = $request->query('ansicht') === 'tabelle' ? 'tabelle' : 'karten';
         $filter = $request->query('status', 'alle');
 
+        // Optionaler Lieferanten-Filter (Deep-Link aus der Lieferanten-Übersicht);
+        // die Status-Chips zählen innerhalb des gefilterten Satzes.
         $alle = Bestellung::query()
             ->with(['lieferant', 'projekt', 'kunde', 'positionen'])
+            ->when($request->integer('lieferant'), fn ($q, $id) => $q->where('lieferant_id', $id))
             ->orderByDesc('nr')
             ->get();
 

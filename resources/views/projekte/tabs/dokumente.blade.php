@@ -7,6 +7,13 @@
             <span class="pill">{{ $projekt->dokumente->count() }} Dateien</span>
         </div>
         <div class="card-b">
+            <form method="POST" action="{{ route('projekte.dokumente.upload', $projekt) }}"
+                  enctype="multipart/form-data" class="fx ac gap8" style="margin-bottom:12px;flex-wrap:wrap">
+                @csrf
+                <input class="inp" type="file" name="datei" style="flex:1;min-width:200px">
+                <button class="btn btns" type="submit"><svg class="i"><use href="#ic-download"/></svg>Hochladen</button>
+            </form>
+            @error('datei')<p class="hint" style="color:var(--red);margin-bottom:10px">{{ $message }}</p>@enderror
             @if ($projekt->dokumente->isEmpty())
                 <p class="hint">Keine Dokumente vorhanden.</p>
             @endif

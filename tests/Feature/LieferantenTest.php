@@ -32,7 +32,21 @@ class LieferantenTest extends TestCase
             ->assertSee((string) Artikel::query()->count())
             ->assertSee('Offene Bestellungen')
             ->assertSee('>'.$sunshineArtikel.'<', false)
-            ->assertSee('Lagerwert');
+            ->assertSee('Lagerwert')
+            // Deep-Link: Zeile filtert die Bestellungen nach Lieferant
+            ->assertSee('bestellungen?lieferant=', false);
+    }
+
+    public function test_bestellungen_lassen_sich_nach_lieferant_filtern(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $benutzer = User::query()->where('email', 'verkauf@lea.test')->firstOrFail();
+        $sunshine = Lieferant::query()->where('name', 'Sunshine')->firstOrFail();
+
+        $this->actingAs($benutzer)->get('/bestellungen?lieferant='.$sunshine->id.'&ansicht=tabelle')
+            ->assertOk()
+            ->assertSee('BST-2026-111')  // Sunshine
+            ->assertDontSee('BST-2026-112'); // Solarlux
     }
 
     public function test_rendert_ohne_seed_daten(): void

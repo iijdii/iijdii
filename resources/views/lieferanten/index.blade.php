@@ -26,7 +26,7 @@
                 <tbody>
                 @foreach ($lieferanten as $zeile)
                     @php $lieferant = $zeile['lieferant']; @endphp
-                    <tr class="lrow" onclick="window.location='{{ route('bestellungen') }}'">
+                    <tr class="lrow" onclick="window.location='{{ route('bestellungen', ['lieferant' => $lieferant->id]) }}'">
                         <td class="b">{{ $lieferant->name }}</td>
                         <td>{{ $lieferant->ansprechpartner ?? '–' }}</td>
                         <td>
