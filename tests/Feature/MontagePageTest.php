@@ -158,4 +158,40 @@ class MontagePageTest extends TestCase
             ->post('/projekte/PRJ-2026-011/montage/notizen/'.$notiz->id.'/loeschen')
             ->assertNotFound();
     }
+    public function test_neuer_termin_und_aufgabe_loeschen(): void
+    {
+        // Neuer Tag auf PRJ-2026-011 (bisher 18./19.07.) → «Tag 3»
+        $this->actingAs($this->monteur)->post('/projekte/PRJ-2026-011/montage/aufgaben', [
+            'datum' => '2026-07-20', 'titel' => 'Restarbeiten & Feinreinigung',
+        ])->assertSessionHas('toast', 'Aufgabe zum Termin hinzugefügt');
+        $this->actingAs($this->monteur)->get('/projekte/PRJ-2026-011/montage')
+            ->assertSee('Tag 3')
+            ->assertSee('Restarbeiten &amp; Feinreinigung', false)
+            ->assertSee('Neuen Termin anlegen');
+
+        // Ohne Datum → Guard-Toast, nichts angelegt
+        $anzahl = $this->projekt()->montageAufgaben()->count();
+        $this->actingAs($this->monteur)->post('/projekte/PRJ-2026-011/montage/aufgaben', [
+            'titel' => 'Ohne Datum',
+        ])->assertSessionHas('toast', 'Bitte Datum und Aufgabe angeben');
+        $this->assertSame($anzahl, $this->projekt()->montageAufgaben()->count());
+
+        // Erster Tag auf einem Projekt GANZ ohne Aufgaben (PRJ-2026-038)
+        $this->actingAs($this->monteur)->post('/projekte/PRJ-2026-038/montage/aufgaben', [
+            'datum' => '2026-08-03', 'titel' => 'Fundamente prüfen',
+        ]);
+        $this->actingAs($this->monteur)->get('/projekte/PRJ-2026-038/montage')
+            ->assertSee('Tag 1')
+            ->assertSee('Fundamente prüfen');
+
+        // Löschen + Ownership
+        $aufgabe = $this->projekt()->montageAufgaben()->where('titel', 'Restarbeiten & Feinreinigung')->firstOrFail();
+        $this->actingAs($this->monteur)
+            ->post('/projekte/PRJ-2026-038/montage/aufgaben/'.$aufgabe->id.'/loeschen')
+            ->assertNotFound();
+        $this->actingAs($this->monteur)
+            ->post('/projekte/PRJ-2026-011/montage/aufgaben/'.$aufgabe->id.'/loeschen')
+            ->assertSessionHas('toast', 'Aufgabe entfernt');
+        $this->assertSame($anzahl - 1, $this->projekt()->montageAufgaben()->count());
+    }
 }

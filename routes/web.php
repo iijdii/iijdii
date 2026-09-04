@@ -84,6 +84,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/projekte/{projekt:nr}/montage/material/{zeile}/loeschen', [MontageController::class, 'loescheMaterial'])->name('projekte.montage.material.loeschen');
     Route::post('/projekte/{projekt:nr}/montage/aufgaben', [MontageController::class, 'speichereAufgabe'])->name('projekte.montage.aufgaben');
     Route::post('/projekte/{projekt:nr}/montage/aufgaben/{aufgabe}/erledigt', [MontageController::class, 'toggleAufgabe'])->name('projekte.montage.aufgaben.erledigt');
+    Route::post('/projekte/{projekt:nr}/montage/aufgaben/{aufgabe}/loeschen', [MontageController::class, 'loescheAufgabe'])->name('projekte.montage.aufgaben.loeschen');
 
     Route::get('/projekte/{projekt:nr}/abnahme', [AbnahmeController::class, 'formular'])->name('projekte.abnahme');
     Route::post('/projekte/{projekt:nr}/abnahme', [AbnahmeController::class, 'speichere'])->name('projekte.abnahme.speichern');

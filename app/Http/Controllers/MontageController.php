@@ -221,12 +221,11 @@ class MontageController extends Controller
     public function speichereAufgabe(Request $request, Projekt $projekt): RedirectResponse
     {
         $titel = trim((string) $request->input('titel'));
-        if ($titel === '') {
-            return redirect()->to(route('projekte.montage', $projekt).'#s11')
-                ->with('toast', 'Bitte Aufgabe eingeben');
-        }
-
         $datum = $request->input('datum');
+        if ($titel === '' || ! $datum || strtotime((string) $datum) === false) {
+            return redirect()->to(route('projekte.montage', $projekt).'#s11')
+                ->with('toast', 'Bitte Datum und Aufgabe angeben');
+        }
         $projekt->montageAufgaben()->create([
             'datum' => $datum,
             'titel' => $titel,
@@ -237,6 +236,15 @@ class MontageController extends Controller
 
         return redirect()->to(route('projekte.montage', $projekt).'#s11')
             ->with('toast', 'Aufgabe zum Termin hinzugefügt');
+    }
+
+    public function loescheAufgabe(Projekt $projekt, MontageAufgabe $aufgabe): RedirectResponse
+    {
+        abort_unless($aufgabe->projekt_id === $projekt->id, 404);
+        $aufgabe->delete();
+
+        return redirect()->to(route('projekte.montage', $projekt).'#s11')
+            ->with('toast', 'Aufgabe entfernt');
     }
 
     public function toggleAufgabe(Request $request, Projekt $projekt, MontageAufgabe $aufgabe): RedirectResponse
