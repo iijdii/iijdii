@@ -32,7 +32,7 @@
                         $tourTot = $tourPositionen->count();
                         $tourPct = $tourTot > 0 ? (int) round($tourDone / $tourTot * 100) : 0;
                     @endphp
-                    <a class="lgtour" href="{{ Route::has('logistik.tour') ? route('logistik.tour', $tour) : route('logistik') }}">
+                    <a class="lgtour" href="{{ route('logistik.tour', $tour) }}">
                         <span class="lgtour-ic"><svg class="i"><use href="#ic-truck"/></svg></span>
                         <span style="flex:1;min-width:0">
                             <span style="display:block;font-size:13.5px;font-weight:700">{{ $tour->fahrzeug }} · {{ $tour->kennzeichen }}</span>

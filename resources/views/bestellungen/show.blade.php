@@ -176,7 +176,7 @@
         <div class="card">
             <div class="mc-h"><svg class="i"><use href="#ic-doc"/></svg>PDF-Vorschau</div>
             <div class="jb">
-                <span class="hint">Glasbestellung<br>{{ $bestellung->nr }}.pdf</span>
+                <span class="hint">{{ $bestellung->kategorieLabel() }}<br>{{ $bestellung->nr }}.pdf</span>
                 <button class="btn btns" type="button" data-toast="PDF {{ $bestellung->nr }} wird erstellt …">Öffnen</button>
             </div>
         </div>
