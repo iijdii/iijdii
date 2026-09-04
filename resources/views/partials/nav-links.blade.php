@@ -23,6 +23,8 @@
     ];
 @endphp
 @foreach ($gruppen as $gruppe => $links)
+    {{-- Einstellungen sind role:projektleiter-gegated — Link nur zeigen, wer ihn öffnen darf --}}
+    @continue($gruppe === 'System' && ! in_array(auth()->user()?->role, [\App\Enums\Rolle::Admin, \App\Enums\Rolle::Projektleiter], true))
     <div class="ngl">{{ $gruppe }}</div>
     @foreach ($links as [$route, $label])
         <a class="navlink {{ request()->routeIs($route, $route.'.*') ? 'active' : '' }}" href="{{ route($route) }}">

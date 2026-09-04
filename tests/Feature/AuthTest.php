@@ -65,4 +65,33 @@ class AuthTest extends TestCase
         $this->actingAs($user)->post('/logout')->assertRedirect(route('login'));
         $this->assertGuest();
     }
+    public function test_rollen_matrix_beschraenkt_schreibrouten(): void
+    {
+        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $monteur = User::query()->where('email', 'monteur@lea.test')->firstOrFail();
+        $lager = User::query()->where('email', 'lager@lea.test')->firstOrFail();
+        $verkauf = User::query()->where('email', 'verkauf@lea.test')->firstOrFail();
+
+        // Monteur: keine Kundenpflege, aber Montage-Notizen
+        $this->actingAs($monteur)->post('/kunden', [])->assertForbidden();
+        $this->actingAs($monteur)->post('/projekte/PRJ-2026-011/montage/notizen', [
+            'typ' => 'hinweis', 'text' => 'Rollen-Test',
+        ])->assertRedirect();
+
+        // Lager: keine Anfragen, aber Korrekturbuchung
+        $this->actingAs($lager)->post('/anfragen', [])->assertForbidden();
+
+        // Verkäufer: keine Lager-Korrektur, aber Angebots-Summe
+        $artikel = \App\Models\Artikel::query()->firstOrFail();
+        $this->actingAs($verkauf)
+            ->post('/lager/artikel/'.$artikel->id.'/korrektur', ['menge' => 1, 'grund' => 'x'])
+            ->assertForbidden();
+        $this->actingAs($verkauf)
+            ->post('/angebote/ANG-2026-069/summe', ['summe' => 1000])->assertRedirect();
+
+        // Navigation: Monteur sieht Einstellungen nicht, Projektleitung schon
+        $this->actingAs($monteur)->get('/dashboard')->assertDontSee('Einstellungen');
+        $this->actingAs(User::query()->where('email', 'projekt@lea.test')->firstOrFail())
+            ->get('/dashboard')->assertSee('Einstellungen');
+    }
 }

@@ -17,7 +17,7 @@ class MaterialKatalogTest extends TestCase
     {
         parent::setUp();
         $this->seed(DatabaseSeeder::class);
-        $this->benutzer = User::query()->where('email', 'verkauf@lea.test')->firstOrFail();
+        $this->benutzer = User::query()->where('email', 'lager@lea.test')->firstOrFail();
     }
 
     public function test_kpis_and_card_view_render(): void
