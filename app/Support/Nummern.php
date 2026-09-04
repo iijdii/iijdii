@@ -28,6 +28,19 @@ final class Nummern
         return self::naechste('ANG', Angebot::query()->pluck('nr'));
     }
 
+    /** K-NNNN — Kundennummern ohne Jahresteil (Seed: K-1031 … K-1071). */
+    public static function kunde(): string
+    {
+        $max = 1000;
+        foreach (\App\Models\Kunde::query()->pluck('kunden_nr') as $nummer) {
+            if (preg_match('/^K-(\d+)$/', (string) $nummer, $m)) {
+                $max = max($max, (int) $m[1]);
+            }
+        }
+
+        return 'K-'.str_pad((string) ($max + 1), 4, '0', STR_PAD_LEFT);
+    }
+
     /** TOUR-2026-NNN — Seed endet bei 042, erste neue Tour = TOUR-2026-043. */
     public static function tour(): string
     {

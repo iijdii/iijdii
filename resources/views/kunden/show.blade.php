@@ -12,8 +12,8 @@
             <a class="btn btns" href="{{ route('kunden') }}">
                 <svg class="i"><use href="#ic-aleft"/></svg>Zurück zur Liste</a>
             <span class="ctas">
-                <button class="btn btns" type="button" data-toast="Aktion ausgeführt">
-                    <svg class="i"><use href="#ic-edit"/></svg>Bearbeiten</button>
+                <a class="btn btns" href="{{ route('kunden.edit', $kunde) }}">
+                    <svg class="i"><use href="#ic-edit"/></svg>Bearbeiten</a>
                 <a class="btn btns btnp" href="{{ route('anfragen.create', ['kunde' => $kunde->kunden_nr]) }}">
                     <svg class="i"><use href="#ic-anfragen"/></svg>Neue Anfrage</a>
             </span>

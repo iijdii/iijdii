@@ -51,4 +51,36 @@ class KundenTest extends TestCase
             ->assertOk()
             ->assertSee('Keine Projekte vorhanden.');
     }
+    public function test_kunde_anlegen_mit_laufender_nummer(): void
+    {
+        $erwartet = \App\Support\Nummern::kunde();
+
+        $this->actingAs($this->benutzer)->post('/kunden', [
+            'anzeigename' => 'Gartenwelt Nord GmbH', 'typ' => 'gewerbe', 'status' => 'Lead',
+            'telefon' => '+49 30 1234567', 'stadt' => 'Berlin',
+            'tags' => 'Neukunde, Carport',
+        ])->assertRedirect(route('kunden.show', $erwartet))
+            ->assertSessionHas('toast', 'Kunde '.$erwartet.' angelegt');
+
+        $kunde = \App\Models\Kunde::query()->where('kunden_nr', $erwartet)->firstOrFail();
+        $this->assertSame(['Neukunde', 'Carport'], $kunde->tags);
+
+        // Validierung: ohne Anzeigename
+        $this->actingAs($this->benutzer)->post('/kunden', ['typ' => 'privat', 'status' => 'Lead'])
+            ->assertSessionHasErrors('anzeigename');
+    }
+
+    public function test_kunde_bearbeiten(): void
+    {
+        $kunde = \App\Models\Kunde::query()->where('kunden_nr', 'K-1071')->firstOrFail();
+
+        $this->actingAs($this->benutzer)->put('/kunden/K-1071', [
+            'anzeigename' => $kunde->anzeigename, 'typ' => $kunde->typ, 'status' => 'Aktiv',
+            'telefon' => '+49 170 999000',
+        ])->assertRedirect(route('kunden.show', 'K-1071'))
+            ->assertSessionHas('toast', 'Kunde aktualisiert');
+
+        $this->assertSame('+49 170 999000', $kunde->fresh()->telefon);
+        $this->actingAs($this->benutzer)->get('/kunden/K-1071')->assertSee('+49 170 999000');
+    }
 }

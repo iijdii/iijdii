@@ -40,7 +40,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/lieferanten', [LieferantController::class, 'index'])->name('lieferanten');
 
     Route::get('/kunden', [KundeController::class, 'index'])->name('kunden');
+    Route::get('/kunden/neu', [KundeController::class, 'create'])->name('kunden.create');
+    Route::post('/kunden', [KundeController::class, 'store'])->name('kunden.store');
     Route::get('/kunden/{kunde:kunden_nr}', [KundeController::class, 'show'])->name('kunden.show');
+    Route::get('/kunden/{kunde:kunden_nr}/bearbeiten', [KundeController::class, 'edit'])->name('kunden.edit');
+    Route::put('/kunden/{kunde:kunden_nr}', [KundeController::class, 'update'])->name('kunden.update');
     Route::get('/angebote', [AngebotController::class, 'index'])->name('angebote');
     Route::get('/angebote/{angebot:nr}', [AngebotController::class, 'show'])->name('angebote.show');
     Route::post('/angebote/{angebot:nr}/status', [AngebotController::class, 'setzeStatus'])->name('angebote.status');

@@ -35,6 +35,8 @@
             <div class="fsec">Kunde &amp; Termin</div>
             <div class="fgrid2">
                 <div class="fld"><label>Kunde auswählen</label>
+                    {{-- Kein Round-Trip zurück ins Formular — dokumentierte Vereinfachung --}}
+                    <a href="{{ route('kunden.create') }}" style="font-size:11.5px;color:var(--blued);float:right">+ Neuen Kunden anlegen</a>
                     <select class="inp" name="kunde_id" required>
                         <option value="">– Bitte Kunden wählen –</option>
                         @foreach ($kunden as $kunde)

@@ -6,7 +6,9 @@
 <div class="card p0">
     <div class="card-h">
         <span class="card-t">Kunden</span>
-        <span class="pill">{{ $kunden->count() }} Einträge</span>
+        <span class="fx ac gap8"><span class="pill">{{ $kunden->count() }} Einträge</span>
+            <a class="btn btns btnp" href="{{ route('kunden.create') }}">
+                <svg class="i"><use href="#ic-plus"/></svg>Neuer Kunde</a></span>
     </div>
     <div class="card-b" style="overflow-x:auto">
         <table class="tbl">
