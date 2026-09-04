@@ -9,6 +9,8 @@ use App\Models\Bestellung;
 use App\Models\Lagerbewegung;
 use App\Models\Reservierung;
 use App\Models\WareneingangPosition;
+use App\Enums\LagerbewegungTyp;
+use Illuminate\Support\Facades\DB;
 use App\Services\LagerService;
 use App\Support\PdfArchiv;
 use Illuminate\Http\RedirectResponse;
@@ -82,6 +84,36 @@ class LagerController extends Controller
                 ->orderByDesc('datum')->orderByDesc('id')
                 ->get(),
         ]);
+    }
+
+    /** Manuelle Korrekturbuchung: Bestand ± Menge + eine Journal-Zeile. */
+    public function bucheKorrektur(Request $request, Artikel $artikel): \Illuminate\Http\RedirectResponse
+    {
+        $daten = $request->validate([
+            'menge' => ['required', 'integer', 'not_in:0', 'min:-9999', 'max:9999'],
+            'grund' => ['required', 'string', 'max:120'],
+        ], ['menge.not_in' => 'Menge darf nicht 0 sein.']);
+
+        if ($artikel->bestand + $daten['menge'] < 0) {
+            return redirect()->route('lager')
+                ->with('toast', 'Korrektur würde den Bestand negativ machen');
+        }
+
+        DB::transaction(function () use ($artikel, $daten, $request) {
+            $artikel->increment('bestand', $daten['menge']);
+            Lagerbewegung::query()->create([
+                'datum' => now(),
+                'typ' => LagerbewegungTyp::Korrektur,
+                'artikel_id' => $artikel->id,
+                'menge' => $daten['menge'],
+                'referenz' => $daten['grund'],
+                'benutzer_id' => $request->user()->id,
+                'benutzer_name' => $request->user()->name.' · Lager',
+            ]);
+        });
+
+        return redirect()->route('lager')
+            ->with('toast', 'Korrektur gebucht · '.\App\Support\Format::mengeSigniert((int) $daten['menge']));
     }
 
     /** Lieferschein-PDF zum gebuchten Wareneingang einer Bestellung. */

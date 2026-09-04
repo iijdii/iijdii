@@ -91,6 +91,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/lager', [LagerController::class, 'index'])->name('lager');
     Route::get('/lager/artikel/{artikel}', [LagerController::class, 'artikel'])->name('lager.artikel');
+    Route::post('/lager/artikel/{artikel}/korrektur', [LagerController::class, 'bucheKorrektur'])->name('lager.korrektur');
     Route::get('/lager/wareneingang/{bestellung:nr}/lieferschein', [LagerController::class, 'lieferschein'])->name('lager.lieferschein');
     Route::post('/lager/wareneingang/{bestellung:nr}', [LagerController::class, 'bucheWareneingang'])
         ->name('lager.wareneingang.buchen');

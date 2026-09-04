@@ -78,8 +78,15 @@
     <span class="ctas">
         <a class="btn btns" href="{{ route('material-katalog.edit', $artikel) }}">
             <svg class="i"><use href="#ic-edit"/></svg>Bearbeiten</a>
-        <button class="btn btns" type="button" data-toast="Korrekturbuchung – Formular geöffnet">
-            <svg class="i"><use href="#ic-pen"/></svg>Korrektur buchen</button>
+        <form method="POST" action="{{ route('lager.korrektur', $artikel) }}" class="fx ac gap8">
+            @csrf
+            <input class="inp mono" type="number" name="menge" placeholder="±"
+                   style="width:76px;height:34px" required>
+            <input class="inp" name="grund" placeholder="Grund (z. B. Inventur)"
+                   style="width:170px;height:34px" required>
+            <button class="btn btns" type="submit">
+                <svg class="i"><use href="#ic-pen"/></svg>Korrektur buchen</button>
+        </form>
     </span>
     <span class="ctas">
         <button class="btn btns" type="button" data-modal-close>Schließen</button>
