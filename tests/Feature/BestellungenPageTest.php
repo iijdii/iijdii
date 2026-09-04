@@ -114,4 +114,28 @@ class BestellungenPageTest extends TestCase
             ->post('/bestellungen/BST-2026-111/status', ['status' => 'quatsch'])
             ->assertSessionHasErrors('status');
     }
+    public function test_bestellung_anlegen_und_kopf_guard(): void
+    {
+        $lieferant = \App\Models\Lieferant::query()->where('name', 'Sunshine')->firstOrFail();
+
+        $this->actingAs($this->benutzer)->post('/bestellungen', [
+            'titel' => 'Ersatzteile Carport', 'lieferant_id' => $lieferant->id,
+            'kategorie' => 'gemischt', 'liefertermin' => '2026-08-01',
+        ])->assertRedirect(route('bestellungen.show', 'BST-2026-113'))
+            ->assertSessionHas('toast', 'Bestellung BST-2026-113 angelegt (Entwurf)');
+
+        $bestellung = \App\Models\Bestellung::query()->where('nr', 'BST-2026-113')->firstOrFail();
+        $this->assertSame('entwurf', $bestellung->status->value);
+
+        // Kopf editierbar im Entwurf
+        $this->actingAs($this->benutzer)->put('/bestellungen/BST-2026-113', [
+            'titel' => 'Ersatzteile Carport II', 'lieferant_id' => $lieferant->id,
+        ])->assertSessionHas('toast', 'Bestellung aktualisiert');
+
+        // Bestellte Bestellung nicht mehr editierbar
+        $this->actingAs($this->benutzer)->put('/bestellungen/BST-2026-111', [
+            'titel' => 'Hack', 'lieferant_id' => $lieferant->id,
+        ])->assertSessionHas('toast', 'Nur im Entwurf/Geprüft bearbeitbar');
+        $this->assertNotSame('Hack', \App\Models\Bestellung::query()->where('nr', 'BST-2026-111')->value('titel'));
+    }
 }

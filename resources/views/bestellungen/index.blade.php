@@ -14,6 +14,9 @@
                 </a>
             @endforeach
         </div>
+        <span class="fx ac gap8">
+        <a class="btn btns btnp" href="{{ route('bestellungen.create') }}">
+            <svg class="i"><use href="#ic-plus"/></svg>Neue Bestellung</a>
         <div class="seg">
             <a class="{{ $ansicht === 'karten' ? 'on' : '' }}"
                href="{{ route('bestellungen', ['status' => $filter, 'ansicht' => 'karten']) }}">
@@ -22,6 +25,7 @@
                href="{{ route('bestellungen', ['status' => $filter, 'ansicht' => 'tabelle']) }}">
                 <svg class="i"><use href="#ic-anfragen"/></svg>Tabelle</a>
         </div>
+        </span>
     </div>
 
     @if ($ansicht === 'karten')

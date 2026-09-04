@@ -84,7 +84,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/dokumente/{dokument}', [DokumentController::class, 'download'])->name('dokumente.download');
 
     Route::get('/bestellungen', [BestellungController::class, 'index'])->name('bestellungen');
+    Route::get('/bestellungen/neu', [BestellungController::class, 'create'])->name('bestellungen.create');
+    Route::post('/bestellungen', [BestellungController::class, 'store'])->name('bestellungen.store');
     Route::get('/bestellungen/{bestellung:nr}', [BestellungController::class, 'show'])->name('bestellungen.show');
+    Route::get('/bestellungen/{bestellung:nr}/bearbeiten', [BestellungController::class, 'edit'])->name('bestellungen.edit');
+    Route::put('/bestellungen/{bestellung:nr}', [BestellungController::class, 'update'])->name('bestellungen.update');
     Route::get('/bestellungen/{bestellung:nr}/pdf', [BestellungController::class, 'pdf'])->name('bestellungen.pdf');
     Route::post('/bestellungen/{bestellung:nr}/status', [BestellungController::class, 'setzeStatus'])
         ->name('bestellungen.status');

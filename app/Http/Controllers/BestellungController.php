@@ -6,6 +6,7 @@ use App\Enums\BestellungPositionTyp;
 use App\Enums\BestellungStatus;
 use App\Models\Bestellung;
 use App\Services\LagerService;
+use App\Support\Nummern;
 use App\Support\PdfArchiv;
 use App\Support\GlasSkizze;
 use Illuminate\Http\RedirectResponse;
@@ -57,6 +58,83 @@ class BestellungController extends Controller
             'chips' => $chips,
             'karten' => $bestellungen->map(fn (Bestellung $b) => $this->karte($b)),
         ]);
+    }
+
+    public function create(): View
+    {
+        return $this->formular(null);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $bestellung = Bestellung::query()->create($this->kopfDaten($request) + [
+            'nr' => Nummern::bestellung(),
+            'status' => BestellungStatus::Entwurf,
+            'ersteller_id' => $request->user()->id,
+        ]);
+
+        return redirect()->route('bestellungen.show', $bestellung)
+            ->with('toast', 'Bestellung '.$bestellung->nr.' angelegt (Entwurf)');
+    }
+
+    public function edit(Bestellung $bestellung): View
+    {
+        if (! $this->bearbeitbar($bestellung)) {
+            return $this->nurEntwurf($bestellung);
+        }
+
+        return $this->formular($bestellung);
+    }
+
+    public function update(Request $request, Bestellung $bestellung): RedirectResponse
+    {
+        if (! $this->bearbeitbar($bestellung)) {
+            return $this->nurEntwurf($bestellung);
+        }
+        $bestellung->update($this->kopfDaten($request));
+
+        return redirect()->route('bestellungen.show', $bestellung)->with('toast', 'Bestellung aktualisiert');
+    }
+
+    /** Kopf editierbar nur solange nichts beim Lieferanten ausgelöst ist. */
+    private function bearbeitbar(Bestellung $bestellung): bool
+    {
+        return in_array($bestellung->status, [BestellungStatus::Entwurf, BestellungStatus::Geprueft], true);
+    }
+
+    private function nurEntwurf(Bestellung $bestellung): RedirectResponse
+    {
+        return redirect()->route('bestellungen.show', $bestellung)
+            ->with('toast', 'Nur im Entwurf/Geprüft bearbeitbar');
+    }
+
+    private function formular(?Bestellung $bestellung): View|RedirectResponse
+    {
+        return view('bestellungen.form', [
+            'bestellung' => $bestellung,
+            'lieferanten' => \App\Models\Lieferant::query()->orderBy('name')->get(),
+            'projekte' => \App\Models\Projekt::query()->with('kunde')->orderByDesc('nr')->get(),
+        ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function kopfDaten(Request $request): array
+    {
+        $daten = $request->validate([
+            'lieferant_id' => ['required', 'exists:lieferanten,id'],
+            'titel' => ['required', 'string', 'max:150'],
+            'kategorie' => ['nullable', Rule::in(['glas', 'aluminium', 'gemischt'])],
+            'projekt_id' => ['nullable', 'exists:projekte,id'],
+            'liefertermin' => ['nullable', 'date'],
+            'notizen' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        // Kunde folgt dem Projekt (eine Quelle der Wahrheit).
+        $daten['kunde_id'] = isset($daten['projekt_id'])
+            ? \App\Models\Projekt::query()->find($daten['projekt_id'])?->kunde_id
+            : null;
+
+        return $daten;
     }
 
     public function show(Bestellung $bestellung): View

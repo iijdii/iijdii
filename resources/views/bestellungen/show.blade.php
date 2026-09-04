@@ -12,8 +12,10 @@
             <a class="btn btns" href="{{ route('bestellungen') }}">
                 <svg class="i"><use href="#ic-aleft"/></svg>Zurück zur Liste</a>
             <span class="ctas">
-                <button class="btn btns" type="button" data-toast="Bearbeiten – Formular geöffnet">
-                    <svg class="i"><use href="#ic-edit"/></svg>Bearbeiten</button>
+                @if (in_array($bestellung->status->value, ['entwurf', 'geprueft'], true))
+                    <a class="btn btns" href="{{ route('bestellungen.edit', $bestellung) }}">
+                        <svg class="i"><use href="#ic-edit"/></svg>Bearbeiten</a>
+                @endif
                 <a class="btn btns btnp" href="{{ route('bestellungen.pdf', $bestellung) }}">
                     <svg class="i"><use href="#ic-doc"/></svg>PDF drucken</a>
             </span>

@@ -28,6 +28,12 @@ final class Nummern
         return self::naechste('ANG', Angebot::query()->pluck('nr'));
     }
 
+    /** BST-2026-NNN — Seed-Maximum 112 → erste neue Bestellung BST-2026-113. */
+    public static function bestellung(): string
+    {
+        return self::naechste('BST', \App\Models\Bestellung::query()->pluck('nr'));
+    }
+
     /** K-NNNN — Kundennummern ohne Jahresteil (Seed: K-1031 … K-1071). */
     public static function kunde(): string
     {
