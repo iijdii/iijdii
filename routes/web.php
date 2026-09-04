@@ -37,6 +37,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/logistik/{bestellung:nr}/abschliessen', [LogistikController::class, 'schliesseAb'])->name('logistik.abschliessen');
 
     Route::get('/kalender', [KalenderController::class, 'index'])->name('kalender');
+    Route::get('/kalender/termin', [KalenderController::class, 'terminFormular'])->name('kalender.termin');
+    Route::post('/kalender/termin', [KalenderController::class, 'speichereTermin'])->name('kalender.termin.speichern');
     Route::get('/lieferanten', [LieferantController::class, 'index'])->name('lieferanten');
 
     Route::get('/kunden', [KundeController::class, 'index'])->name('kunden');

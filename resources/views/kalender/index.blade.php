@@ -12,8 +12,8 @@
                 <a class="btn btns" href="{{ route('kalender') }}">Heute</a>
                 <a class="btn btns" href="{{ route('kalender', ['woche' => $nachher]) }}" aria-label="Nächste Woche">
                     <svg class="i" style="width:15px;height:15px;transform:scaleX(-1)"><use href="#ic-aleft"/></svg></a>
-                <button class="btn btns btnp" type="button" data-toast="Neuer Termin – Formular geöffnet">
-                    <svg class="i" style="width:15px;height:15px"><use href="#ic-plus"/></svg>Termin</button>
+                <a class="btn btns btnp" href="{{ route('kalender.termin') }}">
+                    <svg class="i" style="width:15px;height:15px"><use href="#ic-plus"/></svg>Termin</a>
             </div>
         </div>
     </div>

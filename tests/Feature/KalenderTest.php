@@ -62,4 +62,30 @@ class KalenderTest extends TestCase
             ->assertOk()
             ->assertSee('KW 29');
     }
+    public function test_neuer_termin_setzt_projekt_spanne(): void
+    {
+        $this->actingAs($this->benutzer)->get('/kalender/termin')
+            ->assertOk()
+            ->assertSee('Neuer Montage-Termin')
+            ->assertSee('PRJ-2026-035');
+
+        $projekt = \App\Models\Projekt::query()->where('nr', 'PRJ-2026-035')->firstOrFail();
+        $this->actingAs($this->benutzer)->post('/kalender/termin', [
+            'projekt_id' => $projekt->id, 'termin_von' => '2026-08-12', 'termin_bis' => '2026-08-13',
+        ])->assertRedirect(route('kalender', ['woche' => '2026-W33']))
+            ->assertSessionHas('toast', 'Montage-Termin für PRJ-2026-035 eingetragen');
+
+        $this->assertSame('2026-08-12', $projekt->fresh()->termin_von->toDateString());
+        $this->actingAs($this->benutzer)->get('/kalender?woche=2026-W33')
+            ->assertSee('PRJ-2026-035');
+
+        // Ohne Bis-Datum: bis = von; Ende vor Beginn → Fehler
+        $this->actingAs($this->benutzer)->post('/kalender/termin', [
+            'projekt_id' => $projekt->id, 'termin_von' => '2026-08-20',
+        ]);
+        $this->assertSame('2026-08-20', $projekt->fresh()->termin_bis->toDateString());
+        $this->actingAs($this->benutzer)->post('/kalender/termin', [
+            'projekt_id' => $projekt->id, 'termin_von' => '2026-08-20', 'termin_bis' => '2026-08-01',
+        ])->assertSessionHasErrors('termin_bis');
+    }
 }

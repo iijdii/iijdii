@@ -59,6 +59,41 @@ class KalenderController extends Controller
         ]);
     }
 
+    public function terminFormular(Request $request): View
+    {
+        return view('kalender.termin', [
+            'projekte' => Projekt::query()->with('kunde')
+                ->where('status', '!=', \App\Enums\ProjektStatus::Abgeschlossen)
+                ->orderByDesc('nr')->get(),
+            'datum' => $request->query('datum'),
+        ]);
+    }
+
+    public function speichereTermin(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $daten = $request->validate([
+            'projekt_id' => ['required', 'exists:projekte,id'],
+            'termin_von' => ['required', 'date'],
+            'termin_bis' => ['nullable', 'date', 'after_or_equal:termin_von'],
+        ], ['termin_bis.after_or_equal' => 'Das Ende darf nicht vor dem Beginn liegen.']);
+
+        $projekt = Projekt::query()->findOrFail($daten['projekt_id']);
+        $projekt->update([
+            'termin_von' => $daten['termin_von'],
+            'termin_bis' => $daten['termin_bis'] ?? $daten['termin_von'],
+        ]);
+        $projekt->aktivitaeten()->create([
+            'titel' => 'Montage-Termin '.\App\Support\Format::datumKurz($projekt->termin_von)
+                .'–'.\App\Support\Format::datumKurz($projekt->termin_bis).' gesetzt',
+            'wer' => $request->user()->name,
+            'datum' => now()->format('d.m.'),
+            'status' => 'done',
+        ]);
+
+        return redirect()->route('kalender', ['woche' => $projekt->termin_von->format('o-\WW')])
+            ->with('toast', 'Montage-Termin für '.$projekt->nr.' eingetragen');
+    }
+
     private function wochenstart(?string $woche): Carbon
     {
         if ($woche && preg_match('/^(\d{4})-W(\d{1,2})$/', $woche, $m) && (int) $m[2] >= 1 && (int) $m[2] <= 53) {
