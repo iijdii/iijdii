@@ -12,8 +12,8 @@
             <a class="btn btns" href="{{ route('projekte') }}">
                 <svg class="i"><use href="#ic-aleft"/></svg>Zurück zur Projektliste</a>
             <span class="ctas">
-                <button class="btn btns" type="button" data-toast="PDF wird erstellt …">
-                    <svg class="i"><use href="#ic-download"/></svg>PDF exportieren</button>
+                <a class="btn btns" href="{{ route('projekte.pdf', $projekt) }}">
+                    <svg class="i"><use href="#ic-download"/></svg>PDF exportieren</a>
                 <a class="btn btns" href="{{ route('projekte.show', [$projekt, 'tab' => 'konfig']) }}">
                     <svg class="i"><use href="#ic-edit"/></svg>Bearbeiten</a>
                 <a class="btn btns btnp" href="{{ route('projekte.montage', $projekt) }}">

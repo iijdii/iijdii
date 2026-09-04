@@ -8,6 +8,7 @@ use App\Models\Projekt;
 use App\Services\LagerService;
 use App\Support\KonfiguratorRechner;
 use App\Support\Nummern;
+use App\Support\PdfArchiv;
 use App\Support\RoofZeichnung;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -75,6 +76,18 @@ class ProjektController extends Controller
         };
 
         return view('projekte.show', $daten);
+    }
+
+    /** Projektmappe: Kopf, Kunde, Technische Daten, Positionen, Materialliste. */
+    public function pdf(Projekt $projekt): \Illuminate\Http\Response
+    {
+        $projekt->load(['kunde', 'angebot']);
+
+        return PdfArchiv::liefere('projekte.pdf', [
+            'projekt' => $projekt,
+            'kalk' => KonfiguratorRechner::berechne($projekt->konfiguration ?? []),
+            'materialListe' => $this->lager->materialListe($projekt),
+        ], 'Projektmappe_'.$projekt->nr.'.pdf', $projekt, 'projektmappe');
     }
 
     public function speichereKonfiguration(Request $request, Projekt $projekt): RedirectResponse

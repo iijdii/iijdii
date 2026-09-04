@@ -11,6 +11,8 @@
         <a class="btn btns" href="{{ route('angebote') }}">
             <svg class="i"><use href="#ic-aleft"/></svg>Zurück zu den Angeboten</a>
         <span class="ctas">
+            <a class="btn btns" href="{{ route('angebote.pdf', $angebot) }}">
+                <svg class="i"><use href="#ic-doc"/></svg>PDF</a>
             @if ($angebot->projekt)
                 <a class="btn btns" href="{{ route('projekte.show', $angebot->projekt) }}">
                     <svg class="i"><use href="#ic-projekte"/></svg>Zum Projekt</a>

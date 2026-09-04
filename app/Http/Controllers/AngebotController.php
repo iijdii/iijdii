@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\AngebotStatus;
 use App\Models\Angebot;
 use App\Support\KonfiguratorRechner;
+use App\Support\PdfArchiv;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -45,6 +46,19 @@ class AngebotController extends Controller
                 : [],
             'naechsteStatus' => self::UEBERGAENGE[$angebot->status->value] ?? [],
         ]);
+    }
+
+    public function pdf(Angebot $angebot): \Illuminate\Http\Response
+    {
+        $angebot->load(['kunde', 'projekt']);
+        $konfiguration = $angebot->konfiguration ?? $angebot->projekt?->konfiguration;
+
+        return PdfArchiv::liefere('angebote.pdf', [
+            'angebot' => $angebot,
+            'positionen' => $konfiguration !== null
+                ? KonfiguratorRechner::berechne($konfiguration)['positionen']
+                : [],
+        ], 'Angebot_'.$angebot->nr.'.pdf', $angebot->projekt, 'angebot', $angebot->status->label());
     }
 
     public function setzeStatus(Request $request, Angebot $angebot): RedirectResponse

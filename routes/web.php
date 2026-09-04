@@ -45,6 +45,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/angebote/{angebot:nr}', [AngebotController::class, 'show'])->name('angebote.show');
     Route::post('/angebote/{angebot:nr}/status', [AngebotController::class, 'setzeStatus'])->name('angebote.status');
     Route::post('/angebote/{angebot:nr}/summe', [AngebotController::class, 'speichereSumme'])->name('angebote.summe');
+    Route::get('/angebote/{angebot:nr}/pdf', [AngebotController::class, 'pdf'])->name('angebote.pdf');
 
     Route::get('/anfragen', [AnfrageController::class, 'index'])->name('anfragen');
     Route::get('/anfragen/neu', [AnfrageController::class, 'create'])->name('anfragen.create');
@@ -57,6 +58,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/projekte', [ProjektController::class, 'index'])->name('projekte');
     Route::get('/projekte/{projekt:nr}', [ProjektController::class, 'show'])->name('projekte.show');
+    Route::get('/projekte/{projekt:nr}/pdf', [ProjektController::class, 'pdf'])->name('projekte.pdf');
     Route::post('/projekte/{projekt:nr}/konfiguration', [ProjektController::class, 'speichereKonfiguration'])
         ->name('projekte.konfiguration');
     Route::post('/projekte/{projekt:nr}/angebot', [ProjektController::class, 'erstelleAngebot'])
@@ -78,11 +80,13 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/bestellungen', [BestellungController::class, 'index'])->name('bestellungen');
     Route::get('/bestellungen/{bestellung:nr}', [BestellungController::class, 'show'])->name('bestellungen.show');
+    Route::get('/bestellungen/{bestellung:nr}/pdf', [BestellungController::class, 'pdf'])->name('bestellungen.pdf');
     Route::post('/bestellungen/{bestellung:nr}/status', [BestellungController::class, 'setzeStatus'])
         ->name('bestellungen.status');
 
     Route::get('/lager', [LagerController::class, 'index'])->name('lager');
     Route::get('/lager/artikel/{artikel}', [LagerController::class, 'artikel'])->name('lager.artikel');
+    Route::get('/lager/wareneingang/{bestellung:nr}/lieferschein', [LagerController::class, 'lieferschein'])->name('lager.lieferschein');
     Route::post('/lager/wareneingang/{bestellung:nr}', [LagerController::class, 'bucheWareneingang'])
         ->name('lager.wareneingang.buchen');
 

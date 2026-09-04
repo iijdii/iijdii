@@ -10,6 +10,7 @@ use App\Models\Lagerbewegung;
 use App\Models\Reservierung;
 use App\Models\WareneingangPosition;
 use App\Services\LagerService;
+use App\Support\PdfArchiv;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -81,6 +82,19 @@ class LagerController extends Controller
                 ->orderByDesc('datum')->orderByDesc('id')
                 ->get(),
         ]);
+    }
+
+    /** Lieferschein-PDF zum gebuchten Wareneingang einer Bestellung. */
+    public function lieferschein(Bestellung $bestellung): \Illuminate\Http\Response
+    {
+        $wareneingang = $bestellung->wareneingaenge()->with('benutzer')->latest('datum')->first();
+        abort_unless($wareneingang !== null, 404);
+
+        return PdfArchiv::liefere('lager.lieferschein-pdf', [
+            'bestellung' => $bestellung->load(['lieferant', 'projekt']),
+            'wareneingang' => $wareneingang,
+            'positionen' => $this->lager->aggregierePositionen($bestellung),
+        ], 'Lieferschein_'.$wareneingang->lieferschein_nr.'.pdf', $bestellung->projekt, 'lieferschein');
     }
 
     public function bucheWareneingang(Request $request, Bestellung $bestellung): RedirectResponse

@@ -6,9 +6,11 @@ use App\Enums\BestellungPositionTyp;
 use App\Enums\BestellungStatus;
 use App\Models\Bestellung;
 use App\Services\LagerService;
+use App\Support\PdfArchiv;
 use App\Support\GlasSkizze;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -61,8 +63,30 @@ class BestellungController extends Controller
             'positionen.artikel', 'wareneingaenge.benutzer', 'wareneingaenge.positionen',
         ]);
 
-        $wareneingang = $bestellung->wareneingaenge->first();
+        return view('bestellungen.show', $this->positionsDaten($bestellung) + [
+            'bestellung' => $bestellung,
+            'wareneingang' => $bestellung->wareneingaenge->first(),
+        ]);
+    }
 
+    /** PDF im Abnahme-Muster (PdfArchiv): Download + Dokument bei Projektbezug. */
+    public function pdf(Bestellung $bestellung): Response
+    {
+        $bestellung->load(['lieferant', 'projekt', 'kunde', 'positionen.artikel']);
+
+        return PdfArchiv::liefere(
+            'bestellungen.pdf',
+            $this->positionsDaten($bestellung) + ['bestellung' => $bestellung],
+            'Bestellung_'.$bestellung->nr.'.pdf',
+            $bestellung->projekt,
+            'bestellung',
+            $bestellung->status->label(),
+        );
+    }
+
+    /** Glas-/Schiebe-/Material-Positionen als View-Modelle (show + PDF). */
+    private function positionsDaten(Bestellung $bestellung): array
+    {
         $glasPositionen = $bestellung->positionen
             ->where('typ', BestellungPositionTyp::Glas)
             ->values()
@@ -106,13 +130,11 @@ class BestellungController extends Controller
                 ];
             });
 
-        return view('bestellungen.show', [
-            'bestellung' => $bestellung,
-            'wareneingang' => $wareneingang,
+        return [
             'materialPositionen' => $bestellung->positionen->where('typ', BestellungPositionTyp::Material)->values(),
             'glasPositionen' => $glasPositionen,
             'schiebePositionen' => $schiebePositionen,
-        ]);
+        ];
     }
 
     public function setzeStatus(Request $request, Bestellung $bestellung): RedirectResponse

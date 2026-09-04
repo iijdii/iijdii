@@ -25,7 +25,7 @@
                         <a class="dlb btn btns" href="{{ route('dokumente.download', $dokument) }}">
                             <svg class="i"><use href="#ic-download"/></svg></a>
                     @else
-                        <button class="dlb btn btns" type="button" data-toast="PDF wird erstellt …">
+                        <button class="dlb btn btns" type="button" data-toast="Demo-Dokument ohne Datei">
                             <svg class="i"><use href="#ic-download"/></svg></button>
                     @endif
                 </div>

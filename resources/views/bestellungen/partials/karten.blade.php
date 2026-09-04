@@ -51,7 +51,7 @@
                     <span><b>{{ $karte['posCount'] }}</b> Positionen</span>
                     <span>Liefertermin <b class="mono">{{ Format::datumKurz($b->liefertermin) }}</b></span>
                 </span>
-                <button class="btn btns" type="button" data-toast="PDF {{ $b->nr }} wird erstellt …">PDF</button>
+                <a class="btn btns" href="{{ route('bestellungen.pdf', $b) }}" onclick="event.stopPropagation()">PDF</a>
             </div>
         </a>
     @endforeach

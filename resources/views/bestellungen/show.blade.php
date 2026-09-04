@@ -14,8 +14,8 @@
             <span class="ctas">
                 <button class="btn btns" type="button" data-toast="Bearbeiten – Formular geöffnet">
                     <svg class="i"><use href="#ic-edit"/></svg>Bearbeiten</button>
-                <button class="btn btns btnp" type="button" data-toast="PDF {{ $bestellung->nr }} wird erstellt …">
-                    <svg class="i"><use href="#ic-doc"/></svg>PDF drucken</button>
+                <a class="btn btns btnp" href="{{ route('bestellungen.pdf', $bestellung) }}">
+                    <svg class="i"><use href="#ic-doc"/></svg>PDF drucken</a>
             </span>
         </div>
         <div class="fx" style="margin-top:14px">
@@ -177,7 +177,7 @@
             <div class="mc-h"><svg class="i"><use href="#ic-doc"/></svg>PDF-Vorschau</div>
             <div class="jb">
                 <span class="hint">{{ $bestellung->kategorieLabel() }}<br>{{ $bestellung->nr }}.pdf</span>
-                <button class="btn btns" type="button" data-toast="PDF {{ $bestellung->nr }} wird erstellt …">Öffnen</button>
+                <a class="btn btns" href="{{ route('bestellungen.pdf', $bestellung) }}">Öffnen</a>
             </div>
         </div>
     </div>

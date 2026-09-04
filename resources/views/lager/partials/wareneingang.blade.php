@@ -57,17 +57,17 @@
                         {{ Format::menge($we->positionen->sum('menge')) }} Stück auf {{ $we->positionen->count() }} Artikeln</b>
                 </span>
                 <span class="ctas">
-                    <button class="btn btns" type="button" data-toast="Lieferschein {{ $we->lieferschein_nr }} geöffnet">
-                        <svg class="i"><use href="#ic-doc"/></svg>Lieferschein {{ $we->lieferschein_nr }}</button>
-                    <a class="btn btns" href="{{ route('bestellungen') }}">Zur Bestellung</a>
+                    <a class="btn btns" href="{{ route('lager.lieferschein', $b) }}">
+                        <svg class="i"><use href="#ic-doc"/></svg>Lieferschein {{ $we->lieferschein_nr }}</a>
+                    <a class="btn btns" href="{{ route('bestellungen.show', $b) }}">Zur Bestellung</a>
                 </span>
             @elseif ($karte['entwurf'])
                 <span class="hint">Entwurf — beim Lieferanten noch nicht bestellt</span>
-                <a class="btn btns" href="{{ route('bestellungen') }}">Zur Bestellung</a>
+                <a class="btn btns" href="{{ route('bestellungen.show', $b) }}">Zur Bestellung</a>
             @else
                 <span class="hint"><b>{{ count($karte['zeilen']) }} Artikel · {{ Format::menge($karte['stueck']) }} Stück erwartet</b></span>
                 <span class="ctas">
-                    <a class="btn btns" href="{{ route('bestellungen') }}">Zur Bestellung</a>
+                    <a class="btn btns" href="{{ route('bestellungen.show', $b) }}">Zur Bestellung</a>
                     <form method="POST" action="{{ route('lager.wareneingang.buchen', $b) }}">
                         @csrf
                         <button class="btn btns btnp" type="submit">
