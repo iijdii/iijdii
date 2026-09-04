@@ -12,6 +12,7 @@ use App\Models\WareneingangPosition;
 use App\Enums\LagerbewegungTyp;
 use Illuminate\Support\Facades\DB;
 use App\Services\LagerService;
+use App\Support\Nummern;
 use App\Support\PdfArchiv;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -84,6 +85,94 @@ class LagerController extends Controller
                 ->orderByDesc('datum')->orderByDesc('id')
                 ->get(),
         ]);
+    }
+
+    /**
+     * Bestellvorschlag: Artikel unter Mindestbestand, gruppiert nach
+     * Lieferant (eine Bestellung hat genau einen Lieferanten), je Gruppe
+     * ein Entwurf. Menge = max(min·2 − bestand, min) — die Formel, die
+     * das Artikel-Modal seit M2 anzeigt. Bewusst nicht idempotent:
+     * jeder Klick erzeugt neue Entwürfe, der Toast nennt die Nummern.
+     */
+    public function erstelleBestellvorschlag(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $niedrig = Artikel::query()->with('lieferant')->withSum('reservierungen', 'menge')->get()
+            ->filter(fn (Artikel $a) => $a->bestandsstatus() !== 'ok');
+
+        if ($niedrig->isEmpty()) {
+            return redirect()->route('lager')->with('toast', 'Keine Artikel unter Mindestbestand');
+        }
+
+        $nummern = [];
+        foreach ($niedrig->groupBy('lieferant_id') as $gruppe) {
+            $bestellung = Bestellung::query()->create([
+                'nr' => Nummern::bestellung(),
+                'lieferant_id' => $gruppe->first()->lieferant_id,
+                'titel' => 'Bestellvorschlag '.now()->format('d.m.Y'),
+                'kategorie' => 'gemischt',
+                'status' => BestellungStatus::Entwurf,
+                'ersteller_id' => $request->user()->id,
+            ]);
+            $pos = 0;
+            foreach ($gruppe as $artikel) {
+                $bestellung->positionen()->create([
+                    'typ' => 'material',
+                    'pos' => ++$pos,
+                    'bezeichnung' => $artikel->name,
+                    'artikel_id' => $artikel->id,
+                    'menge' => $this->nachbestellmenge($artikel),
+                    'einheit' => $artikel->einheit->value,
+                ]);
+            }
+            $nummern[] = $bestellung->nr;
+        }
+
+        return redirect()->route('bestellungen', ['status' => 'entwurf'])
+            ->with('toast', count($nummern).' Bestellvorschläge angelegt: '.implode(' · ', $nummern));
+    }
+
+    /** Nachbestellen aus dem Artikel-Modal: Position im neuesten Entwurf des Lieferanten. */
+    public function nachbestellen(Request $request, Artikel $artikel): \Illuminate\Http\RedirectResponse
+    {
+        $bestellung = Bestellung::query()
+            ->where('lieferant_id', $artikel->lieferant_id)
+            ->where('status', BestellungStatus::Entwurf)
+            ->orderByDesc('nr')
+            ->first();
+
+        if ($bestellung === null) {
+            $bestellung = Bestellung::query()->create([
+                'nr' => Nummern::bestellung(),
+                'lieferant_id' => $artikel->lieferant_id,
+                'titel' => 'Nachbestellung '.now()->format('d.m.Y'),
+                'kategorie' => 'gemischt',
+                'status' => BestellungStatus::Entwurf,
+                'ersteller_id' => $request->user()->id,
+            ]);
+        }
+
+        $menge = $this->nachbestellmenge($artikel);
+        $position = $bestellung->positionen()->where('artikel_id', $artikel->id)->first();
+        if ($position !== null) {
+            $position->update(['menge' => (float) $position->menge + $menge]);
+        } else {
+            $bestellung->positionen()->create([
+                'typ' => 'material',
+                'pos' => (int) $bestellung->positionen()->max('pos') + 1,
+                'bezeichnung' => $artikel->name,
+                'artikel_id' => $artikel->id,
+                'menge' => $menge,
+                'einheit' => $artikel->einheit->value,
+            ]);
+        }
+
+        return redirect()->route('lager')
+            ->with('toast', 'Nachbestellung '.$artikel->art_nr.' · '.$menge.' '.$artikel->einheit->value.' in '.$bestellung->nr);
+    }
+
+    private function nachbestellmenge(Artikel $artikel): int
+    {
+        return max($artikel->min_bestand * 2 - $artikel->bestand, $artikel->min_bestand);
     }
 
     /** Manuelle Korrekturbuchung: Bestand ± Menge + eine Journal-Zeile. */

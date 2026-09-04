@@ -90,8 +90,10 @@
     </span>
     <span class="ctas">
         <button class="btn btns" type="button" data-modal-close>Schließen</button>
-        <button class="btn btns btnp" type="button"
-                data-toast="Nachbestellung {{ $artikel->art_nr }} vorgemerkt · {{ max($artikel->min_bestand * 2 - $artikel->bestand, $artikel->min_bestand) }} {{ $artikel->einheit->value }}">
-            <svg class="i"><use href="#ic-bestellungen"/></svg>Nachbestellen</button>
+        <form method="POST" action="{{ route('lager.nachbestellen', $artikel) }}" style="display:inline">
+            @csrf
+            <button class="btn btns btnp" type="submit">
+                <svg class="i"><use href="#ic-bestellungen"/></svg>Nachbestellen · {{ max($artikel->min_bestand * 2 - $artikel->bestand, $artikel->min_bestand) }} {{ $artikel->einheit->value }}</button>
+        </form>
     </span>
 </div>

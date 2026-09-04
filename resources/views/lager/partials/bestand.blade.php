@@ -10,8 +10,10 @@
                     {{ $low->take(5)->map(fn ($a) => $a->name.' ('.$a->verfuegbar().' / min '.$a->min_bestand.')')->join('  ·  ') }}
                 </div>
             </div>
-            <button class="btn btns" type="button" data-toast="Bestellvorschlag für {{ $low->count() }} Artikel erzeugt">
-                <svg class="i"><use href="#ic-bestellungen"/></svg>Bestellvorschlag</button>
+            <form method="POST" action="{{ route('lager.bestellvorschlag') }}" style="display:inline">
+            @csrf
+            <button class="btn btns" type="submit">
+                <svg class="i"><use href="#ic-bestellungen"/></svg>Bestellvorschlag</button></form>
         </div>
     </div>
 @endif
