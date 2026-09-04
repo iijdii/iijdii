@@ -226,6 +226,7 @@ class DemoSeeder extends Seeder
     private function seedProjekte(array $kunden): array
     {
         $out = [];
+        $projektleiter = User::query()->where('email', 'verkauf@lea.test')->first();
 
         foreach ($this->data('projekte') as [$nr, $kundeName, $titel, $status, , $zeit]) {
             // Prototyp mischt "P-2026-038" und "PRJ-2026-038" — kanonisch PRJ-.
@@ -265,6 +266,7 @@ class DemoSeeder extends Seeder
                 'status' => self::PROJEKT_STATUS[$status] ?? 'in_planung',
                 'termin_von' => $termine[0],
                 'termin_bis' => $termine[1],
+                'projektleiter_id' => $projektleiter?->id,
                 'konfiguration' => $konfiguration,
             ]);
         }

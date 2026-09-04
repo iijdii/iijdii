@@ -55,4 +55,12 @@ class MigrationsAndSeedsTest extends TestCase
     {
         $this->assertSame(20, Reservierung::count());
     }
+    public function test_projektleiter_wird_geseedet(): void
+    {
+        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+
+        $projekt = \App\Models\Projekt::query()->where('nr', 'PRJ-2026-011')->firstOrFail();
+        $this->assertSame('verkauf@lea.test', $projekt->projektleiter?->email);
+        $this->assertSame('Max Schneider', $projekt->projektleiter?->name);
+    }
 }

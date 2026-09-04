@@ -26,7 +26,7 @@
         </div>
         <h2 class="serif" style="margin:8px 0 14px;font-size:23px">{{ $projekt->titel }}</h2>
         <div class="metarow">
-            <span><span class="meta-k">Projektleiter</span><span class="meta-v">Max Schneider</span></span>
+            <span><span class="meta-k">Projektleiter</span><span class="meta-v">{{ $projekt->projektleiter?->name ?? '–' }}</span></span>
             <span><span class="meta-k">Erstellt am</span><span class="meta-v mono">{{ Format::datum($projekt->created_at) }}</span></span>
             <span><span class="meta-k">Kundennummer</span><span class="meta-v mono">{{ $projekt->kunde->kunden_nr }}</span></span>
             <span><span class="meta-k">Angebotsnummer</span><span class="meta-v mono">{{ $projekt->angebot?->nr ?? '—' }}</span></span>

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'nr', 'titel', 'kunde_id', 'angebot_id', 'objekt_strasse',
+    'nr', 'titel', 'kunde_id', 'angebot_id', 'projektleiter_id', 'objekt_strasse',
     'objekt_hausnummer', 'objekt_plz', 'objekt_stadt', 'status',
     'termin_von', 'termin_bis', 'konfiguration', 'aufmass',
 ])]
@@ -28,6 +28,11 @@ class Projekt extends Model
             'konfiguration' => 'array',
             'aufmass' => 'array',
         ];
+    }
+
+    public function projektleiter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'projektleiter_id');
     }
 
     public function kunde(): BelongsTo

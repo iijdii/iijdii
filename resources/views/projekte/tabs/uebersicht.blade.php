@@ -61,8 +61,8 @@
         <div class="card">
             <div class="mc-h"><svg class="i"><use href="#ic-user"/></svg>Verantwortlich</div>
             <div class="fx">
-                <span class="uava">MS</span>
-                <span><b>Max Schneider</b><div class="hint">Vertriebsleiter</div></span>
+                <span class="uava">{{ collect(explode(' ', $projekt->projektleiter?->name ?? '–'))->map(fn ($teil) => mb_substr($teil, 0, 1))->take(2)->implode('') }}</span>
+                <span><b>{{ $projekt->projektleiter?->name ?? '–' }}</b><div class="hint">Projektleitung</div></span>
             </div>
         </div>
         <div class="card">
