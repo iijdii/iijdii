@@ -55,7 +55,7 @@
                     <thead><tr><th>Nr.</th><th>Kunde</th><th class="num">Betrag</th><th class="num">Status</th></tr></thead>
                     <tbody>
                     @foreach ($letzteAngebote as $angebot)
-                        <tr class="lrow" onclick="window.location='{{ route('angebote') }}'">
+                        <tr class="lrow" onclick="window.location='{{ route('angebote.show', $angebot) }}'">
                             <td class="b mono">{{ $angebot->nr }}</td>
                             <td>{{ $angebot->kunde->anzeigename }}</td>
                             <td class="num mono">{{ Format::eur($angebot->summe) }}</td>

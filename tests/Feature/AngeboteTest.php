@@ -31,11 +31,29 @@ class AngeboteTest extends TestCase
             ->assertSee('Abgelehnt');
     }
 
-    public function test_linked_quote_row_points_to_the_project(): void
+    public function test_rows_link_to_quote_detail(): void
     {
-        // ANG-2026-010 ist mit PRJ-2026-011 verknüpft; unverknüpfte Zeilen toasten.
         $this->actingAs($this->benutzer)->get('/angebote')
-            ->assertSee('/projekte/PRJ-2026-011', false)
-            ->assertSee('data-toast="Öffne ANG-2026-071"', false);
+            ->assertSee('/angebote/ANG-2026-010', false)
+            ->assertSee('/angebote/ANG-2026-071', false)
+            ->assertDontSee('data-toast="Öffne', false);
+    }
+
+    public function test_detail_renders_positions_and_meta(): void
+    {
+        // ANG-2026-010 hängt am Projekt PRJ-2026-011 → Positionen aus dessen Konfiguration
+        $this->actingAs($this->benutzer)->get('/angebote/ANG-2026-010')
+            ->assertOk()
+            ->assertSee('ANG-2026-010')
+            ->assertSee('17.671,50 €')
+            ->assertSee('PRJ-2026-011')
+            ->assertSee('Überdachung Trapez 8630×3500 mm')
+            ->assertSee('Angenommen');
+
+        // Unverknüpft und ohne Konfiguration: Hinweis statt Positionen
+        $this->actingAs($this->benutzer)->get('/angebote/ANG-2026-071')
+            ->assertOk()
+            ->assertSee('Keine Konfiguration hinterlegt')
+            ->assertSee('28.400,00 €');
     }
 }

@@ -17,11 +17,7 @@
             </thead>
             <tbody>
             @foreach ($angebote as $angebot)
-                @if ($angebot->projekt)
-                    <tr class="lrow" onclick="window.location='{{ route('projekte.show', $angebot->projekt) }}'">
-                @else
-                    <tr class="lrow" data-toast="Öffne {{ $angebot->nr }}">
-                @endif
+                <tr class="lrow" onclick="window.location='{{ route('angebote.show', $angebot) }}'">
                     <td class="b mono">{{ $angebot->nr }}</td>
                     <td class="b">{{ $angebot->kunde->anzeigename }}</td>
                     <td class="num mono">{{ $angebot->summe !== null ? Format::eur($angebot->summe) : 'in Konfiguration' }}</td>

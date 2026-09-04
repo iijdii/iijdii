@@ -42,6 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/kunden', [KundeController::class, 'index'])->name('kunden');
     Route::get('/kunden/{kunde:kunden_nr}', [KundeController::class, 'show'])->name('kunden.show');
     Route::get('/angebote', [AngebotController::class, 'index'])->name('angebote');
+    Route::get('/angebote/{angebot:nr}', [AngebotController::class, 'show'])->name('angebote.show');
 
     Route::get('/anfragen', [AnfrageController::class, 'index'])->name('anfragen');
     Route::get('/anfragen/neu', [AnfrageController::class, 'create'])->name('anfragen.create');
