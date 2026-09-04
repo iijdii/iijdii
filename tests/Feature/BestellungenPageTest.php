@@ -138,4 +138,51 @@ class BestellungenPageTest extends TestCase
         ])->assertSessionHas('toast', 'Nur im Entwurf/Geprüft bearbeitbar');
         $this->assertNotSame('Hack', \App\Models\Bestellung::query()->where('nr', 'BST-2026-111')->value('titel'));
     }
+    public function test_positions_editor_mit_alias_aufloesung_und_einlagerung(): void
+    {
+        $lieferant = \App\Models\Lieferant::query()->where('name', 'Solarlux')->firstOrFail();
+        $this->actingAs($this->benutzer)->post('/bestellungen', [
+            'titel' => 'Nachbestellung Glas', 'lieferant_id' => $lieferant->id,
+        ]);
+        $bestellung = \App\Models\Bestellung::query()->where('nr', 'BST-2026-113')->firstOrFail();
+
+        // Material mit Alias-Auflösung
+        $this->actingAs($this->benutzer)->post('/bestellungen/BST-2026-113/positionen', [
+            'typ' => 'material', 'bezeichnung' => 'VSG 8 mm klar', 'menge' => 4,
+        ])->assertSessionHas('toast', 'Position hinzugefügt');
+        $material = $bestellung->positionen()->where('typ', 'material')->firstOrFail();
+        $this->assertNotNull($material->artikel_id);
+        $artikel = $material->artikel;
+        $bestandVorher = $artikel->bestand;
+
+        // Glas Trapez → Details persistiert, Skizze rendert
+        $this->actingAs($this->benutzer)->post('/bestellungen/BST-2026-113/positionen', [
+            'typ' => 'glas', 'bezeichnung' => 'Keilfeld links', 'form' => 'Trapez',
+            'breite_mm' => 2000, 'hL' => 2200, 'hR' => 1800, 'menge' => 1, 'glas' => 'VSG 8 mm klar',
+        ]);
+        $glas = $bestellung->positionen()->where('typ', 'glas')->firstOrFail();
+        $this->assertSame(['form' => 'Trapez', 'hL' => 2200, 'hR' => 1800, 'glas' => 'VSG 8 mm klar', 'quelle' => 'manuell'], $glas->details);
+        $this->actingAs($this->benutzer)->get('/bestellungen/BST-2026-113')
+            ->assertSee('Keilfeld links')
+            ->assertSee('polygon', false); // GlasSkizze
+
+        // Löschen + Ownership-Guard
+        $fremd = \App\Models\Bestellung::query()->where('nr', 'BST-2026-111')->firstOrFail()->positionen()->firstOrFail();
+        $this->actingAs($this->benutzer)
+            ->post('/bestellungen/BST-2026-113/positionen/'.$fremd->id.'/loeschen')->assertNotFound();
+        $this->actingAs($this->benutzer)
+            ->post('/bestellungen/BST-2026-113/positionen/'.$glas->id.'/loeschen')
+            ->assertSessionHas('toast', 'Position entfernt');
+
+        // E2E: geliefert → automatische Einlagerung des Materials
+        $this->actingAs($this->benutzer)->post('/bestellungen/BST-2026-113/status', ['status' => 'geliefert']);
+        $this->assertSame($bestandVorher + 4, $artikel->fresh()->bestand);
+        $this->assertTrue(\App\Models\Lagerbewegung::query()
+            ->where('referenz', 'BST-2026-113')->where('typ', 'Eingang')->exists());
+
+        // Nach «geliefert» keine Positionsänderungen mehr
+        $this->actingAs($this->benutzer)->post('/bestellungen/BST-2026-113/positionen', [
+            'typ' => 'material', 'bezeichnung' => 'Silikon', 'menge' => 1,
+        ])->assertSessionHas('toast', 'Nur im Entwurf/Geprüft bearbeitbar');
+    }
 }

@@ -184,5 +184,76 @@
         </div>
     </div>
 
+    @if (in_array($bestellung->status->value, ['entwurf', 'geprueft'], true))
+        <div class="card p0">
+            <div class="card-h">
+                <span class="card-t">Positionen erfassen</span>
+                <span class="pill">nur im Entwurf/Geprüft</span>
+            </div>
+            <div class="card-b colstack" style="gap:14px">
+
+                <form method="POST" action="{{ route('bestellungen.positionen.store', $bestellung) }}" class="fx ac gap8" style="flex-wrap:wrap">
+                    @csrf<input type="hidden" name="typ" value="material">
+                    <span class="pill" style="width:74px;justify-content:center">Material</span>
+                    <input class="inp" name="bezeichnung" placeholder="Bezeichnung (Alias-Auflösung: z. B. Pfosten 110×110)" style="flex:2;min-width:220px" required>
+                    <input class="inp mono" type="number" step="0.5" min="0.5" name="menge" placeholder="Menge" style="width:90px" required>
+                    <button class="btn btns" type="submit"><svg class="i"><use href="#ic-plus"/></svg>Hinzufügen</button>
+                </form>
+
+                <form method="POST" action="{{ route('bestellungen.positionen.store', $bestellung) }}" class="fx ac gap8" style="flex-wrap:wrap">
+                    @csrf<input type="hidden" name="typ" value="glas">
+                    <span class="pill" style="width:74px;justify-content:center">Glas</span>
+                    <input class="inp" name="bezeichnung" placeholder="Bezeichnung" style="flex:2;min-width:160px" required>
+                    <select class="inp" name="form" style="width:110px">
+                        <option>Rechteck</option><option>Trapez</option>
+                    </select>
+                    <input class="inp mono" type="number" name="breite_mm" placeholder="Breite mm" style="width:100px" required>
+                    <input class="inp mono" type="number" name="hL" placeholder="Höhe L" style="width:90px" required>
+                    <input class="inp mono" type="number" name="hR" placeholder="Höhe R" style="width:90px">
+                    <input class="inp mono" type="number" step="0.5" min="0.5" name="menge" placeholder="Menge" style="width:80px" required>
+                    <input class="inp" name="glas" placeholder="Glas (z. B. VSG 8 mm klar)" style="width:170px">
+                    <button class="btn btns" type="submit"><svg class="i"><use href="#ic-plus"/></svg>Hinzufügen</button>
+                </form>
+
+                <form method="POST" action="{{ route('bestellungen.positionen.store', $bestellung) }}" class="fx ac gap8" style="flex-wrap:wrap">
+                    @csrf<input type="hidden" name="typ" value="schiebe">
+                    <span class="pill" style="width:74px;justify-content:center">Schiebe</span>
+                    <input class="inp" name="bezeichnung" placeholder="Bezeichnung" style="flex:2;min-width:160px" required>
+                    <input class="inp mono" type="number" name="breite_mm" placeholder="Breite mm" style="width:100px" required>
+                    <input class="inp mono" type="number" name="hoehe_mm" placeholder="Höhe mm" style="width:100px" required>
+                    <input class="inp mono" type="number" name="count" placeholder="Elemente" style="width:90px" required>
+                    <input class="inp" name="glas" placeholder="Glas" style="width:130px">
+                    <button class="btn btns" type="submit"><svg class="i"><use href="#ic-plus"/></svg>Hinzufügen</button>
+                </form>
+
+                @if ($errors->any())
+                    <div class="kwarn">{{ $errors->first() }}</div>
+                @endif
+
+                @if ($bestellung->positionen->isNotEmpty())
+                    <table class="tbl">
+                        <thead><tr><th>Pos</th><th>Typ</th><th>Bezeichnung</th><th class="num">Menge</th><th></th></tr></thead>
+                        <tbody>
+                        @foreach ($bestellung->positionen->sortBy('pos') as $position)
+                            <tr>
+                                <td class="mono">{{ $position->pos }}</td>
+                                <td>{{ ucfirst($position->typ->value) }}</td>
+                                <td class="b">{{ $position->bezeichnung }}</td>
+                                <td class="num mono">{{ \App\Support\Format::menge($position->menge) }} {{ $position->einheit }}</td>
+                                <td class="num">
+                                    <form method="POST" action="{{ route('bestellungen.positionen.loeschen', [$bestellung, $position]) }}">
+                                        @csrf
+                                        <button class="btn btns" type="submit" style="color:var(--red)">Entfernen</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                @endif
+            </div>
+        </div>
+    @endif
+
 </div>
 @endsection

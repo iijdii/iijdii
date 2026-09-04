@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Enums\BestellungPositionTyp;
 use App\Enums\BestellungStatus;
+use App\Models\Artikel;
 use App\Models\Bestellung;
+use App\Models\BestellungPosition;
 use App\Services\LagerService;
 use App\Support\Nummern;
 use App\Support\PdfArchiv;
@@ -94,6 +96,99 @@ class BestellungController extends Controller
         $bestellung->update($this->kopfDaten($request));
 
         return redirect()->route('bestellungen.show', $bestellung)->with('toast', 'Bestellung aktualisiert');
+    }
+
+    public function speicherePosition(Request $request, Bestellung $bestellung): RedirectResponse
+    {
+        if (! $this->bearbeitbar($bestellung)) {
+            return $this->nurEntwurf($bestellung);
+        }
+
+        $typ = $request->validate(['typ' => ['required', Rule::in(['glas', 'schiebe', 'material'])]])['typ'];
+        $pos = (int) $bestellung->positionen()->max('pos') + 1;
+
+        $bestellung->positionen()->create(match ($typ) {
+            'glas' => $this->glasPosition($request, $pos),
+            'schiebe' => $this->schiebePosition($request, $pos),
+            'material' => $this->materialPosition($request, $pos),
+        });
+
+        return redirect()->route('bestellungen.show', $bestellung)->with('toast', 'Position hinzugefügt');
+    }
+
+    public function loeschePosition(Bestellung $bestellung, BestellungPosition $position): RedirectResponse
+    {
+        abort_unless($position->bestellung_id === $bestellung->id, 404);
+        if (! $this->bearbeitbar($bestellung)) {
+            return $this->nurEntwurf($bestellung);
+        }
+        $position->delete();
+
+        return redirect()->route('bestellungen.show', $bestellung)->with('toast', 'Position entfernt');
+    }
+
+    /** @return array<string, mixed> */
+    private function glasPosition(Request $request, int $pos): array
+    {
+        $d = $request->validate([
+            'bezeichnung' => ['required', 'string', 'max:150'],
+            'form' => ['required', Rule::in(['Rechteck', 'Trapez'])],
+            'breite_mm' => ['required', 'integer', 'min:100', 'max:20000'],
+            'hL' => ['required', 'integer', 'min:100', 'max:20000'],
+            'hR' => ['nullable', 'integer', 'min:100', 'max:20000'],
+            'menge' => ['required', 'numeric', 'min:0.5'],
+            'glas' => ['nullable', 'string', 'max:80'],
+        ]);
+        $hR = $d['form'] === 'Trapez' ? (int) ($d['hR'] ?? $d['hL']) : (int) $d['hL'];
+
+        return [
+            'typ' => 'glas', 'pos' => $pos, 'bezeichnung' => $d['bezeichnung'],
+            'artikel_id' => Artikel::findeNachName($d['glas'] ?? $d['bezeichnung'])?->id,
+            'menge' => $d['menge'], 'einheit' => 'Feld',
+            'breite_mm' => (int) $d['breite_mm'], 'hoehe_mm' => max((int) $d['hL'], $hR),
+            'details' => [
+                'form' => $d['form'], 'hL' => (int) $d['hL'], 'hR' => $hR,
+                'glas' => $d['glas'] ?? '', 'quelle' => 'manuell',
+            ],
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function schiebePosition(Request $request, int $pos): array
+    {
+        $d = $request->validate([
+            'bezeichnung' => ['required', 'string', 'max:150'],
+            'breite_mm' => ['required', 'integer', 'min:100', 'max:20000'],
+            'hoehe_mm' => ['required', 'integer', 'min:100', 'max:20000'],
+            'count' => ['required', 'integer', 'min:1', 'max:12'],
+            'glas' => ['nullable', 'string', 'max:80'],
+        ]);
+
+        return [
+            'typ' => 'schiebe', 'pos' => $pos, 'bezeichnung' => $d['bezeichnung'],
+            'artikel_id' => Artikel::findeNachName('Schiebe-Element')?->id,
+            'menge' => $d['count'], 'einheit' => 'Stück',
+            'breite_mm' => (int) $d['breite_mm'], 'hoehe_mm' => (int) $d['hoehe_mm'],
+            'details' => [
+                'count' => (int) $d['count'], 'glas' => $d['glas'] ?? '', 'quelle' => 'manuell',
+            ],
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function materialPosition(Request $request, int $pos): array
+    {
+        $d = $request->validate([
+            'bezeichnung' => ['required', 'string', 'max:150'],
+            'menge' => ['required', 'numeric', 'min:0.5'],
+        ]);
+        $artikel = Artikel::findeNachName($d['bezeichnung']);
+
+        return [
+            'typ' => 'material', 'pos' => $pos, 'bezeichnung' => $d['bezeichnung'],
+            'artikel_id' => $artikel?->id, 'menge' => $d['menge'],
+            'einheit' => $artikel?->einheit->value ?? 'Stück',
+        ];
     }
 
     /** Kopf editierbar nur solange nichts beim Lieferanten ausgelöst ist. */

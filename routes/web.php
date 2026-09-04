@@ -89,6 +89,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/bestellungen/{bestellung:nr}', [BestellungController::class, 'show'])->name('bestellungen.show');
     Route::get('/bestellungen/{bestellung:nr}/bearbeiten', [BestellungController::class, 'edit'])->name('bestellungen.edit');
     Route::put('/bestellungen/{bestellung:nr}', [BestellungController::class, 'update'])->name('bestellungen.update');
+    Route::post('/bestellungen/{bestellung:nr}/positionen', [BestellungController::class, 'speicherePosition'])->name('bestellungen.positionen.store');
+    Route::post('/bestellungen/{bestellung:nr}/positionen/{position}/loeschen', [BestellungController::class, 'loeschePosition'])->name('bestellungen.positionen.loeschen');
     Route::get('/bestellungen/{bestellung:nr}/pdf', [BestellungController::class, 'pdf'])->name('bestellungen.pdf');
     Route::post('/bestellungen/{bestellung:nr}/status', [BestellungController::class, 'setzeStatus'])
         ->name('bestellungen.status');
