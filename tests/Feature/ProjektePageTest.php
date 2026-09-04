@@ -178,4 +178,35 @@ class ProjektePageTest extends TestCase
             ->post('/projekte/PRJ-2026-033/reservierungen/'.$fremd->id.'/loeschen')
             ->assertNotFound();
     }
+    public function test_stammdaten_und_status_setzen(): void
+    {
+        // Termine + Projektleitung setzen → Kalender zeigt das Projekt
+        $projektleitung = User::query()->where('email', 'projekt@lea.test')->firstOrFail();
+        $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-035/stammdaten', [
+            'termin_von' => '2026-08-10', 'termin_bis' => '2026-08-11',
+            'projektleiter_id' => $projektleitung->id,
+        ])->assertRedirect(route('projekte.show', 'PRJ-2026-035'))
+            ->assertSessionHas('toast', 'Projektdaten gespeichert');
+
+        $projekt = Projekt::query()->where('nr', 'PRJ-2026-035')->firstOrFail();
+        $this->assertSame('2026-08-10', $projekt->termin_von->toDateString());
+        $this->assertSame($projektleitung->id, $projekt->projektleiter_id);
+        $this->assertTrue($projekt->aktivitaeten()->where('titel', 'like', 'Montage-Termin%')->exists());
+
+        $this->actingAs($this->benutzer)->get('/kalender?woche=2026-W33')
+            ->assertSee('PRJ-2026-035');
+
+        // Ende vor Beginn → Validierungsfehler
+        $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-035/stammdaten', [
+            'termin_von' => '2026-08-10', 'termin_bis' => '2026-08-01',
+        ])->assertSessionHasErrors('termin_bis');
+
+        // Statuswechsel: in_montage wird erreichbar, Stufe 5, Aktivität
+        $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-035/status', ['status' => 'in_montage'])
+            ->assertSessionHas('toast', 'Status: In Montage');
+        $this->assertSame('in_montage', $projekt->fresh()->status->value);
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-035')
+            ->assertSee('Status setzen:')
+            ->assertSee('In Montage');
+    }
 }

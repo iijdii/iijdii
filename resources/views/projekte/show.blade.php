@@ -45,6 +45,18 @@
                 </span>
             @endforeach
         </div>
+
+        <div class="fx ac gap8" style="margin-top:10px;flex-wrap:wrap">
+            <span class="hint">Status setzen:</span>
+            @foreach (\App\Enums\ProjektStatus::cases() as $status)
+                <form method="POST" action="{{ route('projekte.status', $projekt) }}">
+                    @csrf
+                    <input type="hidden" name="status" value="{{ $status->value }}">
+                    <button class="btn btns {{ $status === $projekt->status ? 'btnp' : '' }}"
+                            type="submit" @disabled($status === $projekt->status)>{{ $status->label() }}</button>
+                </form>
+            @endforeach
+        </div>
     </div>
 
     <div class="anf-tools">

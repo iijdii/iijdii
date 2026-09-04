@@ -66,6 +66,28 @@
             </div>
         </div>
         <div class="card">
+            <div class="mc-h"><svg class="i"><use href="#ic-kalender"/></svg>Termine &amp; Verantwortung</div>
+            <form method="POST" action="{{ route('projekte.stammdaten', $projekt) }}" class="colstack" style="gap:8px">
+                @csrf
+                <div class="fld"><label>Montage von</label>
+                    <input class="inp mono" type="date" name="termin_von"
+                           value="{{ old('termin_von', $projekt->termin_von?->toDateString()) }}"></div>
+                <div class="fld"><label>Montage bis</label>
+                    <input class="inp mono" type="date" name="termin_bis"
+                           value="{{ old('termin_bis', $projekt->termin_bis?->toDateString()) }}"></div>
+                <div class="fld"><label>Projektleitung</label>
+                    <select class="inp" name="projektleiter_id">
+                        <option value="">—</option>
+                        @foreach (\App\Models\User::query()->orderBy('name')->get() as $benutzer)
+                            <option value="{{ $benutzer->id }}"
+                                    @selected((int) old('projektleiter_id', $projekt->projektleiter_id) === $benutzer->id)>{{ $benutzer->name }}</option>
+                        @endforeach
+                    </select></div>
+                @error('termin_bis')<p class="hint" style="color:var(--red)">{{ $message }}</p>@enderror
+                <button class="btn btns" type="submit" style="align-self:flex-end">Speichern</button>
+            </form>
+        </div>
+        <div class="card">
             <div class="mc-h"><svg class="i"><use href="#ic-anfragen"/></svg>Projekt-Notizen</div>
             <p class="note">{{ $projekt->kunde->notizen ?? '–' }}</p>
         </div>

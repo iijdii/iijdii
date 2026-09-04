@@ -93,6 +93,45 @@ class ProjektController extends Controller
         ], 'Projektmappe_'.$projekt->nr.'.pdf', $projekt, 'projektmappe');
     }
 
+    public function speichereStammdaten(Request $request, Projekt $projekt): RedirectResponse
+    {
+        $daten = $request->validate([
+            'termin_von' => ['nullable', 'date'],
+            'termin_bis' => ['nullable', 'date', 'after_or_equal:termin_von'],
+            'projektleiter_id' => ['nullable', 'exists:users,id'],
+        ], ['termin_bis.after_or_equal' => 'Das Ende darf nicht vor dem Beginn liegen.']);
+
+        $projekt->update($daten);
+        if ($daten['termin_von'] ?? null) {
+            $projekt->aktivitaeten()->create([
+                'titel' => 'Montage-Termin '.\App\Support\Format::datumKurz($projekt->termin_von)
+                    .'–'.\App\Support\Format::datumKurz($projekt->termin_bis ?? $projekt->termin_von).' gesetzt',
+                'wer' => $request->user()->name,
+                'datum' => now()->format('d.m.'),
+                'status' => 'done',
+            ]);
+        }
+
+        return redirect()->route('projekte.show', $projekt)->with('toast', 'Projektdaten gespeichert');
+    }
+
+    public function setzeStatus(Request $request, Projekt $projekt): RedirectResponse
+    {
+        $daten = $request->validate([
+            'status' => ['required', \Illuminate\Validation\Rule::enum(ProjektStatus::class)],
+        ]);
+        $status = ProjektStatus::from($daten['status']);
+        $projekt->update(['status' => $status]);
+        $projekt->aktivitaeten()->create([
+            'titel' => 'Status: '.$status->label(),
+            'wer' => $request->user()->name,
+            'datum' => now()->format('d.m.'),
+            'status' => 'done',
+        ]);
+
+        return redirect()->route('projekte.show', $projekt)->with('toast', 'Status: '.$status->label());
+    }
+
     public function speichereReservierung(Request $request, Projekt $projekt): RedirectResponse
     {
         $daten = $request->validate([

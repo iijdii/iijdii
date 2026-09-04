@@ -16,8 +16,8 @@
                 </a>
             @endforeach
         </div>
-        <button class="btn btns btnp" type="button" data-toast="Aktion ausgeführt">
-            <svg class="i"><use href="#ic-plus"/></svg>Neues Projekt</button>
+        <a class="btn btns btnp" href="{{ route('anfragen') }}">
+            <svg class="i"><use href="#ic-plus"/></svg>Aus Anfrage erstellen</a>
     </div>
 
     <div class="anf-grid">
