@@ -81,4 +81,65 @@ class MaterialKatalogTest extends TestCase
             ->assertSee('data-modal-url', false)
             ->assertSee('/lager/artikel/', false);
     }
+    public function test_artikel_anlegen_und_bearbeiten(): void
+    {
+        $lieferant = \App\Models\Lieferant::query()->where('name', 'Würth')->firstOrFail();
+
+        $this->actingAs($this->benutzer)->post('/material-katalog', [
+            'art_nr' => 'TEST-01', 'name' => 'Testartikel Schraube M8',
+            'kategorie' => 'verbind', 'einheit' => 'Stück',
+            'min_bestand' => 5, 'ek_preis' => 1.25, 'lieferant_id' => $lieferant->id,
+            'bestand' => 40,
+        ])->assertSessionHas('toast', 'Artikel TEST-01 angelegt');
+
+        $artikel = \App\Models\Artikel::query()->where('art_nr', 'TEST-01')->firstOrFail();
+        $this->assertSame(40, $artikel->bestand);
+
+        // Doppelte Art.-Nr. wird abgelehnt
+        $this->actingAs($this->benutzer)->post('/material-katalog', [
+            'art_nr' => 'TEST-01', 'name' => 'Dublette', 'kategorie' => 'verbind',
+            'einheit' => 'Stück', 'min_bestand' => 0, 'ek_preis' => 0, 'lieferant_id' => $lieferant->id,
+        ])->assertSessionHasErrors('art_nr');
+
+        // Update: ek_preis ändert sich, mitgesendeter bestand wird ignoriert
+        $this->actingAs($this->benutzer)->put('/material-katalog/'.$artikel->id, [
+            'art_nr' => 'TEST-01', 'name' => $artikel->name, 'kategorie' => 'verbind',
+            'einheit' => 'Stück', 'min_bestand' => 5, 'ek_preis' => 1.5,
+            'lieferant_id' => $lieferant->id, 'bestand' => 999,
+        ])->assertSessionHas('toast', 'Artikel aktualisiert');
+
+        $artikel->refresh();
+        $this->assertSame('1.50', $artikel->ek_preis);
+        $this->assertSame(40, $artikel->bestand); // unangetastet
+    }
+
+    public function test_aliase_verwalten_und_aufloesung(): void
+    {
+        $artikel = \App\Models\Artikel::query()->where('art_nr', 'PF-110110')->firstOrFail();
+
+        $this->actingAs($this->benutzer)
+            ->post('/material-katalog/'.$artikel->id.'/aliase', ['alias' => 'Pfosten  110×110 SUPER'])
+            ->assertSessionHas('toast', 'Alias gespeichert');
+
+        // Auflösung über Normalisierung (Groß/klein, Mehrfach-Leerzeichen, × → x)
+        $this->assertTrue(\App\Models\Artikel::findeNachName('pfosten 110x110 super')?->is($artikel));
+
+        // Duplikat (normalisiert) wird abgewiesen
+        $this->actingAs($this->benutzer)
+            ->post('/material-katalog/'.$artikel->id.'/aliase', ['alias' => 'PFOSTEN 110x110 super'])
+            ->assertSessionHas('toast', 'Alias existiert bereits');
+
+        $alias = $artikel->aliase()->where('alias', 'Pfosten  110×110 SUPER')->firstOrFail();
+        $this->actingAs($this->benutzer)
+            ->post('/material-katalog/'.$artikel->id.'/aliase/'.$alias->id.'/loeschen')
+            ->assertSessionHas('toast', 'Alias entfernt');
+        $this->assertNull(\App\Models\Artikel::findeNachName('pfosten 110x110 super'));
+
+        // Fremder Artikel → 404
+        $anderer = \App\Models\Artikel::query()->where('art_nr', '!=', 'PF-110110')->firstOrFail();
+        $fremd = $anderer->aliase()->create(['alias' => 'Fremdalias XYZ']);
+        $this->actingAs($this->benutzer)
+            ->post('/material-katalog/'.$artikel->id.'/aliase/'.$fremd->id.'/loeschen')
+            ->assertNotFound();
+    }
 }

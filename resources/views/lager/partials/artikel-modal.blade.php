@@ -75,8 +75,12 @@
 </div>
 
 <div class="mfoot">
-    <button class="btn btns" type="button" data-toast="Korrekturbuchung – Formular geöffnet">
-        <svg class="i"><use href="#ic-pen"/></svg>Korrektur buchen</button>
+    <span class="ctas">
+        <a class="btn btns" href="{{ route('material-katalog.edit', $artikel) }}">
+            <svg class="i"><use href="#ic-edit"/></svg>Bearbeiten</a>
+        <button class="btn btns" type="button" data-toast="Korrekturbuchung – Formular geöffnet">
+            <svg class="i"><use href="#ic-pen"/></svg>Korrektur buchen</button>
+    </span>
     <span class="ctas">
         <button class="btn btns" type="button" data-modal-close>Schließen</button>
         <button class="btn btns btnp" type="button"

@@ -50,8 +50,8 @@
             </div>
             <button class="btn btns" type="button" data-toast="Katalog als XLSX exportiert · {{ $gefiltert->count() }} Artikel">
                 <svg class="i"><use href="#ic-download"/></svg>Export</button>
-            <button class="btn btns btnp" type="button" data-toast="Neuer Artikel – Formular geöffnet">
-                <svg class="i"><use href="#ic-plus"/></svg>Artikel anlegen</button>
+            <a class="btn btns btnp" href="{{ route('material-katalog.create') }}">
+                <svg class="i"><use href="#ic-plus"/></svg>Artikel anlegen</a>
         </div>
     </div>
 

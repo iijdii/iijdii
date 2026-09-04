@@ -96,6 +96,12 @@ Route::middleware('auth')->group(function () {
         ->name('lager.wareneingang.buchen');
 
     Route::get('/material-katalog', [MaterialKatalogController::class, 'index'])->name('material-katalog');
+    Route::get('/material-katalog/neu', [MaterialKatalogController::class, 'create'])->name('material-katalog.create');
+    Route::post('/material-katalog', [MaterialKatalogController::class, 'store'])->name('material-katalog.store');
+    Route::get('/material-katalog/{artikel}/bearbeiten', [MaterialKatalogController::class, 'edit'])->name('material-katalog.edit');
+    Route::put('/material-katalog/{artikel}', [MaterialKatalogController::class, 'update'])->name('material-katalog.update');
+    Route::post('/material-katalog/{artikel}/aliase', [MaterialKatalogController::class, 'speichereAlias'])->name('material-katalog.aliase.store');
+    Route::post('/material-katalog/{artikel}/aliase/{alias}/loeschen', [MaterialKatalogController::class, 'loescheAlias'])->name('material-katalog.aliase.loeschen');
 
     // Einstellungen: Admin und Projektleitung.
     Route::get('/einstellungen', [EinstellungenController::class, 'zeige'])
