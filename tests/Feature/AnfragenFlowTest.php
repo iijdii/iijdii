@@ -50,6 +50,28 @@ class AnfragenFlowTest extends TestCase
             ->assertSee('Projekt erstellen');
     }
 
+    public function test_detail_shows_draufsicht_schema_comment_and_priority(): void
+    {
+        $anfrage = Anfrage::query()->where('nummer', 'ANF-2026-012')->firstOrFail();
+        $anfrage->update(['kommentar_intern' => 'Rückruf erst ab 17 Uhr', 'prioritaet' => 'hoch']);
+
+        $this->actingAs($this->benutzer)->get('/anfragen/ANF-2026-012')
+            ->assertOk()
+            ->assertSee('Draufsicht')
+            ->assertSee('DRAUFSICHT')        // Zeichnungs-SVG (RoofZeichnung top)
+            ->assertSee('Rinne (Traufe)')
+            ->assertSee('Interner Kommentar')
+            ->assertSee('Rückruf erst ab 17 Uhr')
+            ->assertSee('Priorität Hoch');
+
+        // Ohne Kommentar, Priorität Normal: Karten/Badge fehlen, Seite bleibt 200
+        $anfrage->update(['kommentar_intern' => null, 'prioritaet' => 'normal']);
+        $this->actingAs($this->benutzer)->get('/anfragen/ANF-2026-012')
+            ->assertOk()
+            ->assertDontSee('Interner Kommentar')
+            ->assertDontSee('Priorität Hoch');
+    }
+
     public function test_stepper_changes_status_and_logs_activity(): void
     {
         $this->actingAs($this->benutzer)

@@ -7,7 +7,9 @@ use App\Enums\ProjektStatus;
 use App\Models\Anfrage;
 use App\Models\Kunde;
 use App\Support\AnfrageKonfigMapper;
+use App\Support\KonfiguratorRechner;
 use App\Support\Nummern;
+use App\Support\RoofZeichnung;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -53,9 +55,15 @@ class AnfrageController extends Controller
 
     public function show(Anfrage $anfrage): View
     {
+        // Statische Draufsicht aus den Anfrage-Maßen (Prototyp: Anfrage-Detail).
+        $draufsicht = RoofZeichnung::ansicht('top', KonfiguratorRechner::berechne(
+            AnfrageKonfigMapper::pcfg($anfrage),
+        ), ['projekt' => $anfrage->nummer.' · '.$anfrage->kunde->anzeigename]);
+
         return view('anfragen.show', [
             'anfrage' => $anfrage->load(['kunde', 'aktivitaeten']),
             'stufen' => self::STUFEN,
+            'draufsicht' => $draufsicht,
         ]);
     }
 

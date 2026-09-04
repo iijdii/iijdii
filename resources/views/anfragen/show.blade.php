@@ -33,6 +33,9 @@
         <div class="fx" style="margin-top:14px">
             <span class="anf-nr mono">{{ $anfrage->nummer }}</span>
             <span class="badge {{ $anfrage->status->badgeClass() }}">{{ $anfrage->status->label() }}</span>
+            @if ($anfrage->prioritaet && $anfrage->prioritaet !== \App\Enums\Prioritaet::Normal)
+                <span class="badge {{ $anfrage->prioritaet->badgeClass() }}">Priorität {{ $anfrage->prioritaet->label() }}</span>
+            @endif
         </div>
         <h2 class="serif" style="margin:8px 0 14px;font-size:23px">{{ $anfrage->produkt_notiz ?? 'Anfrage' }}</h2>
         <div class="metarow">
@@ -193,6 +196,24 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    @endif
+
+    {{-- Draufsicht (Prototyp: statische Schema-Karte im Anfrage-Detail) --}}
+    <div class="card p0">
+        <div class="card-h"><span class="card-t">Draufsicht</span><span class="pill mono">Schema</span></div>
+        <div class="card-b" style="padding:13px">
+            <div class="dtile" style="height:230px;width:100%;cursor:default">
+                <span class="dtl">Draufsicht</span>
+                @include('partials.roof-zeichnung', ['z' => $draufsicht, 'nodim' => false])
+            </div>
+        </div>
+    </div>
+
+    @if ($anfrage->kommentar_intern)
+        <div class="card">
+            <div class="mc-h"><svg class="i"><use href="#ic-pen"/></svg>Interner Kommentar</div>
+            <p class="note">{{ $anfrage->kommentar_intern }}</p>
         </div>
     @endif
 
