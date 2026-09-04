@@ -70,7 +70,10 @@ class ProjektController extends Controller
             'uebersicht' => [
                 'materialVorschau' => array_slice($this->lager->materialListe($projekt), 0, 5),
             ],
-            'material' => ['materialListe' => $this->lager->materialListe($projekt)],
+            'material' => [
+                'materialListe' => $this->lager->materialListe($projekt),
+                'alleArtikel' => \App\Models\Artikel::query()->orderBy('name')->get(['id', 'name', 'art_nr']),
+            ],
             'zahlungen' => ['zahlung' => $this->zahlungsplan($projekt)],
             default => [],
         };
@@ -88,6 +91,62 @@ class ProjektController extends Controller
             'kalk' => KonfiguratorRechner::berechne($projekt->konfiguration ?? []),
             'materialListe' => $this->lager->materialListe($projekt),
         ], 'Projektmappe_'.$projekt->nr.'.pdf', $projekt, 'projektmappe');
+    }
+
+    public function speichereReservierung(Request $request, Projekt $projekt): RedirectResponse
+    {
+        $daten = $request->validate([
+            'artikel_id' => ['required', 'exists:artikel,id'],
+            'menge' => ['required', 'numeric', 'min:0.5'],
+        ]);
+        $artikel = \App\Models\Artikel::query()->findOrFail($daten['artikel_id']);
+
+        if ($daten['menge'] > $artikel->verfuegbar()) {
+            return redirect()->route('projekte.show', [$projekt, 'tab' => 'material'])
+                ->with('toast', 'Nur '.$artikel->verfuegbar().' verfügbar');
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($projekt, $artikel, $daten, $request) {
+            $reservierung = \App\Models\Reservierung::query()->firstOrNew([
+                'projekt_id' => $projekt->id, 'artikel_id' => $artikel->id,
+            ]);
+            $reservierung->menge = (float) ($reservierung->menge ?? 0) + (float) $daten['menge'];
+            $reservierung->save();
+
+            \App\Models\Lagerbewegung::query()->create([
+                'datum' => now(),
+                'typ' => \App\Enums\LagerbewegungTyp::Reservierung,
+                'artikel_id' => $artikel->id,
+                'menge' => $daten['menge'],
+                'referenz' => $projekt->nr,
+                'benutzer_id' => $request->user()->id,
+                'benutzer_name' => $request->user()->name,
+            ]);
+        });
+
+        return redirect()->route('projekte.show', [$projekt, 'tab' => 'material'])
+            ->with('toast', 'Material reserviert');
+    }
+
+    public function loescheReservierung(Request $request, Projekt $projekt, \App\Models\Reservierung $reservierung): RedirectResponse
+    {
+        abort_unless($reservierung->projekt_id === $projekt->id, 404);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($projekt, $reservierung, $request) {
+            \App\Models\Lagerbewegung::query()->create([
+                'datum' => now(),
+                'typ' => \App\Enums\LagerbewegungTyp::Reservierung,
+                'artikel_id' => $reservierung->artikel_id,
+                'menge' => -$reservierung->menge,
+                'referenz' => $projekt->nr.' aufgehoben',
+                'benutzer_id' => $request->user()->id,
+                'benutzer_name' => $request->user()->name,
+            ]);
+            $reservierung->delete();
+        });
+
+        return redirect()->route('projekte.show', [$projekt, 'tab' => 'material'])
+            ->with('toast', 'Reservierung aufgehoben');
     }
 
     public function ladeDokumentHoch(Request $request, Projekt $projekt): RedirectResponse

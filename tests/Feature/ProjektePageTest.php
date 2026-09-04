@@ -130,4 +130,52 @@ class ProjektePageTest extends TestCase
         $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-038/angebot');
         $this->assertSame(1, Angebot::query()->where('nr', 'like', 'ANG-2026-072')->count());
     }
+    public function test_reservierungen_anlegen_und_aufheben(): void
+    {
+        // PRJ-2026-033 hat keine Seed-Reservierungen → Materialliste leer
+        $artikel = \App\Models\Artikel::query()->where('art_nr', 'GU-2')->firstOrFail();
+        $verfuegbarVorher = $artikel->verfuegbar();
+
+        $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-033/reservierungen', [
+            'artikel_id' => $artikel->id, 'menge' => 2,
+        ])->assertRedirect(route('projekte.show', ['PRJ-2026-033', 'tab' => 'material']))
+            ->assertSessionHas('toast', 'Material reserviert');
+
+        $this->assertSame($verfuegbarVorher - 2, $artikel->fresh()->verfuegbar());
+        $bewegung = \App\Models\Lagerbewegung::query()
+            ->where('typ', 'Reservierung')->where('referenz', 'PRJ-2026-033')->firstOrFail();
+        $this->assertSame(2, (int) $bewegung->menge);
+
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-033?tab=material')
+            ->assertSee($artikel->name)
+            ->assertSee('Material reservieren');
+
+        // Doppelte Reservierung inkrementiert dieselbe Zeile (unique projekt+artikel)
+        $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-033/reservierungen', [
+            'artikel_id' => $artikel->id, 'menge' => 1,
+        ]);
+        $reservierung = \App\Models\Reservierung::query()
+            ->where('artikel_id', $artikel->id)
+            ->whereRelation('projekt', 'nr', 'PRJ-2026-033')->firstOrFail();
+        $this->assertSame(3.0, (float) $reservierung->menge);
+
+        // Überreservierung → Guard-Toast
+        $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-033/reservierungen', [
+            'artikel_id' => $artikel->id, 'menge' => 99999,
+        ])->assertSessionHas('toast', 'Nur '.$artikel->fresh()->verfuegbar().' verfügbar');
+
+        // Aufheben: Gegenbewegung + Zeile weg
+        $this->actingAs($this->benutzer)
+            ->post('/projekte/PRJ-2026-033/reservierungen/'.$reservierung->id.'/loeschen')
+            ->assertSessionHas('toast', 'Reservierung aufgehoben');
+        $this->assertSame($verfuegbarVorher, $artikel->fresh()->verfuegbar());
+        $this->assertTrue(\App\Models\Lagerbewegung::query()
+            ->where('referenz', 'PRJ-2026-033 aufgehoben')->where('menge', -3)->exists());
+
+        // Fremde Reservierung → 404
+        $fremd = \App\Models\Reservierung::query()->whereRelation('projekt', 'nr', 'PRJ-2026-011')->firstOrFail();
+        $this->actingAs($this->benutzer)
+            ->post('/projekte/PRJ-2026-033/reservierungen/'.$fremd->id.'/loeschen')
+            ->assertNotFound();
+    }
 }

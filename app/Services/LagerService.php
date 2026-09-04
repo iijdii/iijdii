@@ -132,6 +132,7 @@ final class LagerService
 
             $zeilen[] = [
                 'pos' => ++$pos,
+                'reservierung_id' => $reservierung->id,
                 'artikel' => $artikel,
                 'menge' => (float) $reservierung->menge,
                 'status' => $status,
