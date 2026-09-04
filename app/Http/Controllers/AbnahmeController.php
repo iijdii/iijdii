@@ -139,8 +139,27 @@ class AbnahmeController extends Controller
     }
 
     /** Ausgeführte Positionen aus der Konfiguration (Sektion 2). */
+    /**
+     * «Das Protokoll enthält genau die erledigten Positionen»: sobald
+     * mindestens eine Checklisten-Aufgabe erledigt ist, bilden die
+     * erledigten Aufgaben die Positionsliste; sonst (z. B. Abnahme ohne
+     * gepflegte Checkliste) fällt sie auf den Konfigurator zurück.
+     */
     private function positionen(Projekt $projekt): array
     {
+        $erledigt = $projekt->montageAufgaben()
+            ->whereNotNull('erledigt_am')
+            ->orderBy('datum')->orderBy('sortierung')
+            ->get();
+
+        if ($erledigt->isNotEmpty()) {
+            return $erledigt->values()->map(fn ($aufgabe, $i) => [
+                'pos' => $i + 1,
+                'name' => $aufgabe->titel,
+                'menge' => '1 Stk',
+            ])->all();
+        }
+
         $kalk = KonfiguratorRechner::berechne($projekt->konfiguration ?? []);
 
         return array_map(fn ($pos) => [

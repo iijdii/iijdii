@@ -137,4 +137,26 @@ class AbnahmeTest extends TestCase
         $this->assertSame('verweigert', Projekt::query()->where('nr', 'PRJ-2026-011')->firstOrFail()
             ->dokumente()->where('typ', 'abnahmeprotokoll')->value('badge'));
     }
+    public function test_positionen_kommen_aus_erledigten_aufgaben(): void
+    {
+        // Zwei Checklisten-Aufgaben erledigen → sie ersetzen die Konfigurator-Positionen
+        foreach (['Fundamente prüfen & Pfosten stellen', 'Verglasung einsetzen'] as $titel) {
+            $aufgabe = \App\Models\MontageAufgabe::query()->where('titel', $titel)->firstOrFail();
+            $this->actingAs($this->monteur)
+                ->post('/projekte/PRJ-2026-011/montage/aufgaben/'.$aufgabe->id.'/erledigt');
+        }
+
+        $this->actingAs($this->monteur)->get('/projekte/PRJ-2026-011/abnahme')
+            ->assertOk()
+            ->assertSee('Fundamente prüfen &amp; Pfosten stellen', false)
+            ->assertSee('Verglasung einsetzen')
+            ->assertDontSee('Überdachung Trapez 8630×3500 mm');
+
+        // Vollständige Abnahme erzeugt PDF mit den Aufgaben-Positionen
+        $this->actingAs($this->monteur)->post('/projekte/PRJ-2026-011/abnahme', [
+            'art' => 'ohne', 'ort' => 'Berlin',
+            'sig_auftraggeber' => self::SIG, 'sig_monteur' => self::SIG,
+        ])->assertSessionHas('toast', 'Abnahmeprotokoll unterschrieben und archiviert');
+        Storage::assertExists('dokumente/Abnahmeprotokoll_AP-2026-0114.pdf');
+    }
 }
