@@ -209,4 +209,13 @@ class ProjektePageTest extends TestCase
             ->assertSee('Status setzen:')
             ->assertSee('In Montage');
     }
+    public function test_standardkonfigurations_hinweis(): void
+    {
+        // PRJ-2026-038 hat keine gespeicherte Konfiguration → Hinweis-Badge
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-038')
+            ->assertSee('Standardkonfiguration — noch nicht erfasst');
+        // PRJ-2026-011 hat eine → kein Hinweis
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011')
+            ->assertDontSee('Standardkonfiguration — noch nicht erfasst');
+    }
 }

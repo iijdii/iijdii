@@ -46,8 +46,16 @@
         <div class="colstack" style="gap:10px;margin-top:12px">
             <a class="btn btnp" href="{{ route('projekte.abnahme', $projekt) }}">
                 <svg class="i"><use href="#ic-pen"/></svg>Protokoll erstellen &amp; unterschreiben</a>
-            <span class="fx"><span class="badge b-gray">Status</span>
-                <span class="hint">Offen — Montage ausstehend</span></span>
+            @php $protokoll = $projekt->abnahmeprotokolle()->latest('id')->first(); @endphp
+            @if ($protokoll)
+                <span class="fx"><span class="badge {{ match ($protokoll->art->value) {
+                        'ohne' => 'b-green', 'vorbehalt' => 'b-yellow', default => 'b-red',
+                    } }}">{{ $protokoll->art->label() }}</span>
+                    <span class="hint">{{ $protokoll->nr }} · unterschrieben am {{ \App\Support\Format::datum($protokoll->datum) }}</span></span>
+            @else
+                <span class="fx"><span class="badge b-gray">Status</span>
+                    <span class="hint">Offen — Montage ausstehend</span></span>
+            @endif
         </div>
     </div>
 </div>

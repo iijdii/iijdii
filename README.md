@@ -1,58 +1,66 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# LEA CRM
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Internes CRM/ERP für einen Terrassenüberdachungs-Betrieb: Anfrage → Angebot →
+Projekt → Bestellungen → Lager → Logistik → Montage → unterschriebenes
+Abnahmeprotokoll. Umsetzung des Design-Handoffs unter `design/`
+(HTML-Prototyp = verbindliche Referenz für Layout, Texte und Rechenkern;
+`design/README.md` = fachliche Regeln).
 
-## About Laravel
+**Stack:** Laravel 13 · Blade (server-rendered, PRG) · Vite (plain CSS, keine
+Frameworks) · SQLite (Dev/CI) / MySQL (Prod, `.env.example`) · dompdf.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Loslegen
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```sh
+composer install
+cp .env.example .env && php artisan key:generate
+touch database/database.sqlite
+php artisan migrate:fresh --seed
+npm ci && npm run build
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Demo-Logins (Passwort jeweils `password`): `admin@` · `verkauf@` (Verkäufer)
+· `projekt@` (Projektleitung) · `lager@` · `monteur@` — alle `@lea.test`.
 
-## Contributing
+Tests: `php artisan test` (PHPUnit, SQLite in-memory, CI in
+`.github/workflows/ci.yml`).
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Umsetzungsstand
 
-## Code of Conduct
+Alle 11 Module des Handoffs sind umgesetzt (Meilensteine 1–5), dazu die
+Vervollständigung (Meilensteine 6–8):
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- **M1–M5:** Fundament, Lager mit automatischer Einlagerung (zentrale Regel),
+  Bestellungen, Material-Katalog, Kunden, Anfragen, Angebote, Projekte mit
+  exakt portiertem Konfigurator-Rechenkern, Montage-Modus (Tablet,
+  Soll/Ist/Δ mit konfigurierbaren Toleranzen, LED-Plan), Abnahmeprotokoll
+  (Canvas-Unterschriften, echtes PDF, unveränderlich), fünf technische
+  Dachzeichnungen + Lightbox, Dashboard (alle Zahlen live), Logistik mit
+  Kommissionierung/Touren/Lade-Modus, Kalender, Lieferanten, Einstellungen.
+- **M6:** Angebots-Lebenszyklus (Status-Übergänge, Gesamtsumme →
+  Zahlungsplan/Dashboard leben), vier PDFs (Angebot, Bestellung,
+  Lieferschein, Projektmappe), Dokumenten-Upload, Deep-Links.
+- **M7:** Stammdaten & Beschaffung — Kunden-/Artikel-CRUD, Alias-Verwaltung
+  (automatische Wareneingangs-Zuordnung), Lagerkorrektur, Bestellungen
+  anlegen inkl. Positions-Editor (Glas/Schiebe/Material), Bestellvorschlag/
+  Nachbestellen, Projekt-Reservierungen.
+- **M8:** Betrieb — Projektleitung/Termine/Status am Projekt, Kalender-
+  Terminanlage, Office-Pflege der Montage-Checkliste (READMEs Open Item 1),
+  Abnahme-Positionen aus erledigten Aufgaben, Rollen-Matrix auf allen
+  Schreibrouten (Open Item 3; PDFs = Open Item 4 in M6).
 
-## Security Vulnerabilities
+## Bewusst offen / zurückgestellt
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **Live-Draufsicht im Anfrage-Formular** (Prototyp `cfg-drawcard`): die
+  numerische Live-Kalkulation existiert, die mitzeichnende SVG nicht —
+  statische Draufsicht liegt im Anfrage-Detail.
+- **Globale Suche, Benachrichtigungen, Benutzermenü** der Prototyp-Kopfzeile.
+- **XLSX-Exporte** (Inventurliste, Katalog) — auch im Prototyp nur Toasts.
+- **Kalender-Legende** führt Service/Puffer als künftige Termintypen
+  (README nennt sie, Datenquellen existieren noch nicht).
+- **Anfrage-Formular** deckt die Kernfelder ab; die vollständige Feldliste
+  aus `docs/anfrage-fields.txt` ist im Schema angelegt, aber nicht komplett
+  im Formular verdrahtet.
+- **Lieferanten-Detailansicht** (Liste + Kennzahlen vorhanden, Pflege der
+  Stammdaten über den Seeder).

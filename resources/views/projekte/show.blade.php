@@ -22,6 +22,9 @@
         </div>
         <div class="fx" style="margin-top:14px">
             <span class="anf-nr mono">{{ $projekt->nr }}</span>
+            @if ($projekt->konfiguration === null && ! $vorschau)
+                <span class="badge b-yellow">Standardkonfiguration — noch nicht erfasst</span>
+            @endif
             <span class="badge {{ $projekt->status->badgeClass() }}">{{ $projekt->status->label() }}</span>
         </div>
         <h2 class="serif" style="margin:8px 0 14px;font-size:23px">{{ $projekt->titel }}</h2>

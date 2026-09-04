@@ -97,6 +97,12 @@ class AbnahmeTest extends TestCase
         // Download über den Auth-Stream-Endpunkt
         $this->actingAs($this->monteur)->get('/dokumente/'.$dokument->id)->assertOk();
 
+        // Dokumente-Tab zeigt den echten Protokoll-Stand statt «Offen»
+        $this->actingAs($this->monteur)->get('/projekte/PRJ-2026-011?tab=dokumente')
+            ->assertSee('unterschrieben am')
+            ->assertSee('Abgenommen')
+            ->assertDontSee('Offen — Montage ausstehend');
+
         // Unveränderlich nach Unterzeichnung
         $this->expectException(LogicException::class);
         $protokoll->update(['ort' => 'Berlin']);
