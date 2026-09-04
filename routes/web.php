@@ -43,6 +43,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/kunden/{kunde:kunden_nr}', [KundeController::class, 'show'])->name('kunden.show');
     Route::get('/angebote', [AngebotController::class, 'index'])->name('angebote');
     Route::get('/angebote/{angebot:nr}', [AngebotController::class, 'show'])->name('angebote.show');
+    Route::post('/angebote/{angebot:nr}/status', [AngebotController::class, 'setzeStatus'])->name('angebote.status');
+    Route::post('/angebote/{angebot:nr}/summe', [AngebotController::class, 'speichereSumme'])->name('angebote.summe');
 
     Route::get('/anfragen', [AnfrageController::class, 'index'])->name('anfragen');
     Route::get('/anfragen/neu', [AnfrageController::class, 'create'])->name('anfragen.create');

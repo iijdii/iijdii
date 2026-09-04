@@ -73,11 +73,39 @@
                 @if ($angebot->summe === null)
                     <p class="hint">Noch keine Summe erfasst — «in Konfiguration».</p>
                 @endif
+                <form method="POST" action="{{ route('angebote.summe', $angebot) }}"
+                      class="fx ac gap8" style="margin-top:10px">
+                    @csrf
+                    <input class="inp mono" type="number" step="0.01" min="0" name="summe"
+                           value="{{ old('summe', $angebot->summe) }}" placeholder="Gesamtsumme (brutto)" style="flex:1">
+                    <button class="btn btns" type="submit">Speichern</button>
+                </form>
+                @error('summe')<p class="hint" style="color:var(--red)">{{ $message }}</p>@enderror
             </div>
             <div class="card">
                 <div class="mc-h"><svg class="i"><use href="#ic-angebote"/></svg>Status</div>
                 <div class="kv"><div class="k">Aktuell</div>
                     <div class="v"><span class="badge {{ $angebot->status->badgeClass() }}">{{ $angebot->status->label() }}</span></div></div>
+                @if ($naechsteStatus === [])
+                    <p class="hint">Keine weiteren Übergänge — Angebot ist angenommen.</p>
+                @endif
+                <div class="colstack" style="gap:8px;margin-top:8px">
+                    @foreach ($naechsteStatus as $wert)
+                        @php $ziel = \App\Enums\AngebotStatus::from($wert); @endphp
+                        <form method="POST" action="{{ route('angebote.status', $angebot) }}">
+                            @csrf
+                            <input type="hidden" name="status" value="{{ $wert }}">
+                            <button class="btn btns {{ $wert === 'angenommen' ? 'btnp' : '' }}" type="submit" style="width:100%">
+                                {{ match ($wert) {
+                                    'versendet' => 'Versenden',
+                                    'angenommen' => 'Annehmen',
+                                    'abgelehnt' => 'Ablehnen',
+                                    'entwurf' => 'Erneut bearbeiten',
+                                } }}
+                            </button>
+                        </form>
+                    @endforeach
+                </div>
             </div>
         </div>
     </div>

@@ -56,4 +56,53 @@ class AngeboteTest extends TestCase
             ->assertSee('Keine Konfiguration hinterlegt')
             ->assertSee('28.400,00 €');
     }
+
+    public function test_summe_kann_erfasst_werden(): void
+    {
+        $this->actingAs($this->benutzer)->post('/angebote/ANG-2026-069/summe', ['summe' => 12500])
+            ->assertRedirect(route('angebote.show', 'ANG-2026-069'))
+            ->assertSessionHas('toast', 'Angebotssumme gespeichert');
+
+        $this->assertSame('12500.00', \App\Models\Angebot::query()->where('nr', 'ANG-2026-069')->value('summe'));
+    }
+
+    public function test_status_uebergaenge_mit_guards(): void
+    {
+        // Ungültiger Sprung: Entwurf → Angenommen
+        $this->actingAs($this->benutzer)->post('/angebote/ANG-2026-069/status', ['status' => 'angenommen'])
+            ->assertSessionHas('toast', 'Übergang nicht möglich');
+
+        // Versendet, aber ohne Summe nicht annehmbar
+        $angebot = \App\Models\Angebot::query()->where('nr', 'ANG-2026-069')->firstOrFail();
+        $angebot->update(['summe' => null]);
+        $this->actingAs($this->benutzer)->post('/angebote/ANG-2026-069/status', ['status' => 'versendet'])
+            ->assertSessionHas('toast', 'Status: Versendet');
+        $this->actingAs($this->benutzer)->post('/angebote/ANG-2026-069/status', ['status' => 'angenommen'])
+            ->assertSessionHas('toast', 'Bitte zuerst die Angebotssumme erfassen');
+        $this->assertSame('versendet', $angebot->fresh()->status->value);
+
+        // Mit Summe: Annehmen klappt
+        $this->actingAs($this->benutzer)->post('/angebote/ANG-2026-069/summe', ['summe' => 9990]);
+        $this->actingAs($this->benutzer)->post('/angebote/ANG-2026-069/status', ['status' => 'angenommen'])
+            ->assertSessionHas('toast', 'Status: Angenommen');
+        $this->assertSame('angenommen', $angebot->fresh()->status->value);
+    }
+
+    public function test_annahme_loggt_aktivitaet_und_belebt_zahlungsplan(): void
+    {
+        // Frisches Angebot am Projekt PRJ-2026-038 erzeugen (Konfigurator-Weg)
+        $projekt = \App\Models\Projekt::query()->where('nr', 'PRJ-2026-038')->firstOrFail();
+        $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-038/angebot');
+        $angebot = $projekt->fresh()->angebot;
+
+        $this->actingAs($this->benutzer)->post(route('angebote.summe', $angebot), ['summe' => 20000]);
+        $this->actingAs($this->benutzer)->post(route('angebote.status', $angebot), ['status' => 'versendet']);
+        $this->actingAs($this->benutzer)->post(route('angebote.status', $angebot), ['status' => 'angenommen']);
+
+        $this->assertTrue($projekt->aktivitaeten()->where('titel', 'like', 'Angebot%angenommen')->exists());
+
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-038?tab=zahlungen')
+            ->assertSee('Bezahlt')
+            ->assertSee('6.000,00 €'); // Rate 1 = 30 % von 20.000
+    }
 }
