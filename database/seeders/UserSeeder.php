@@ -18,10 +18,13 @@ class UserSeeder extends Seeder
             [Rolle::Monteur, 'Team Berlin K1', 'monteur@lea.test'],
         ];
 
+        // Auf öffentlichen Servern per SEED_PASSWORD in der .env überschreiben.
+        $passwort = (string) env('SEED_PASSWORD', 'password');
+
         foreach ($benutzer as [$rolle, $name, $email]) {
             User::query()->updateOrCreate(
                 ['email' => $email],
-                ['name' => $name, 'password' => 'password', 'role' => $rolle],
+                ['name' => $name, 'password' => $passwort, 'role' => $rolle],
             );
         }
     }
