@@ -15,9 +15,25 @@ use App\Http\Controllers\LogistikController;
 use App\Http\Controllers\MaterialKatalogController;
 use App\Http\Controllers\MontageController;
 use App\Http\Controllers\ProjektController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('dashboard'));
+
+// Einmalige Server-Einrichtung ohne Shell-Zugang (Shared Hosting):
+// SETUP_TOKEN in der .env setzen, /einrichtung/{token} im Browser aufrufen,
+// danach den Token aus der .env entfernen (Route liefert dann 404).
+Route::get('/einrichtung/{token}', function (string $token) {
+    $erwartet = (string) config('app.setup_token', '');
+    abort_unless($erwartet !== '' && hash_equals($erwartet, $token), 404);
+
+    Artisan::call('migrate', ['--force' => true, '--seed' => true]);
+
+    return response(
+        '<pre>'.e(Artisan::output()).'</pre>'
+        .'<p>Einrichtung abgeschlossen. Bitte SETUP_TOKEN jetzt aus der .env entfernen.</p>'
+    );
+})->name('einrichtung');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

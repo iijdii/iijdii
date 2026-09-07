@@ -1,0 +1,6 @@
+# Shared Hosting ohne konfigurierbaren Document Root (z. B. InfinityFree):
+# Projekt liegt komplett in htdocs, alle Anfragen laufen über public/.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

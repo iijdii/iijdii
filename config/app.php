@@ -99,6 +99,9 @@ return [
 
     'key' => env('APP_KEY'),
 
+    // Einmal-Token für die Web-Einrichtung auf Shared Hosting (routes/web.php).
+    'setup_token' => env('SETUP_TOKEN'),
+
     'previous_keys' => [
         ...array_filter(
             explode(',', (string) env('APP_PREVIOUS_KEYS', ''))
