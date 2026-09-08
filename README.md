@@ -9,6 +9,12 @@ Abnahmeprotokoll. Umsetzung des Design-Handoffs unter `design/`
 **Stack:** Laravel 13 · Blade (server-rendered, PRG) · Vite (plain CSS, keine
 Frameworks) · SQLite (Dev/CI) / MySQL (Prod, `.env.example`) · dompdf.
 
+**Ziel-Runtime:** PHP 8.3 (Shared Hosting). `composer.json` pinnt
+`config.platform.php` auf `8.3.0`, damit der Lock keine Pakete auflöst, die
+PHP >= 8.4.1 voraussetzen (Symfony bleibt dadurch auf 7.4 LTS). Ohne den Pin
+bricht `vendor/composer/platform_check.php` auf PHP 8.3 mit
+"Your Composer dependencies require a PHP version >= 8.4.1" ab.
+
 ## Loslegen
 
 ```sh
