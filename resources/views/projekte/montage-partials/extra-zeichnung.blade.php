@@ -1,6 +1,8 @@
 {{-- MontageZeichnung-Ausgabe: SVG + prozentpositionierte Labels --}}
-<div class="dw {{ ($klein ?? false) ? 'dw-sm' : '' }}" style="position:relative">
-    <svg viewBox="{{ $z['viewBox'] }}" style="width:100%;height:auto;display:block;{{ $z['aspect'] }}" preserveAspectRatio="xMidYMid meet">
+{{-- Aspekt liegt wie im Prototyp auf dem Wrapper: nur so greift dessen
+     max-height (dw-sm, 300px) — das absolut gefüllte SVG folgt der Box. --}}
+<div class="dw {{ ($klein ?? false) ? 'dw-sm' : '' }}" style="position:relative;{{ $z['aspect'] }}">
+    <svg viewBox="{{ $z['viewBox'] }}" style="position:absolute;inset:0;width:100%;height:100%;display:block" preserveAspectRatio="xMidYMid meet">
         @foreach ($z['polys'] as $poly)
             <polygon points="{{ $poly['pts'] }}" fill="{{ $poly['fill'] }}" stroke="{{ $poly['stroke'] }}" stroke-width="{{ $poly['w'] }}"/>
         @endforeach
