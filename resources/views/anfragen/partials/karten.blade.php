@@ -16,7 +16,9 @@
                 'Farbe' => $d['farbe'] ?? null,
             ]);
         @endphp
-        <a class="anf {{ $ac }}" href="{{ route('anfragen.show', $anfrage) }}">
+        {{-- div statt <a>: die CTA-Buttons im Fuß sind interaktive Elemente
+             und dürfen nicht in einem Anker stecken. --}}
+        <div class="anf {{ $ac }}" onclick="window.location='{{ route('anfragen.show', $anfrage) }}'">
             <div class="anf-top">
                 <span class="anf-nr mono">{{ $anfrage->nummer }}</span>
                 <span class="badge {{ $anfrage->status->badgeClass() }}">{{ $anfrage->status->label() }}</span>
@@ -46,6 +48,6 @@
                         <svg class="i"><use href="#ic-angebote"/></svg>Angebot</button>
                 @endif
             </div>
-        </a>
+        </div>
     @endforeach
 </div>

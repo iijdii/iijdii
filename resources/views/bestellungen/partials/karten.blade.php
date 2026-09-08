@@ -3,7 +3,10 @@
 <div class="anf-grid">
     @foreach ($karten as $karte)
         @php $b = $karte['bestellung']; @endphp
-        <a class="anf {{ $b->status->accentClass() }}" href="{{ route('bestellungen.show', $b) }}">
+        {{-- div statt <a>: der PDF-Link im Fuß darf nicht in einem Anker stecken
+             (verschachtelte <a> bricht der Browser auf — die Karte zerfällt). --}}
+        <div class="anf {{ $b->status->accentClass() }}"
+             onclick="window.location='{{ route('bestellungen.show', $b) }}'">
             <div class="anf-top">
                 <span class="anf-nr mono">{{ $b->nr }}</span>
                 <span class="badge {{ $b->status->badgeClass() }}">{{ $b->status->label() }}</span>
@@ -53,6 +56,6 @@
                 </span>
                 <a class="btn btns" href="{{ route('bestellungen.pdf', $b) }}" onclick="event.stopPropagation()">PDF</a>
             </div>
-        </a>
+        </div>
     @endforeach
 </div>

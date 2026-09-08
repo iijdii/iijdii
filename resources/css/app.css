@@ -340,6 +340,9 @@ body{margin:0;font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);backgr
   .seg{width:100%}
   .seg button{flex:1;justify-content:center}
   .gtiles>*{flex:1 1 46%}
+  /* Glaskacheln von der Streckung ausnehmen: das SVG ist 120px fix,
+     ein breiterer Kachelkasten lässt ×n/Maß-Labels wegdriften. */
+  .gtiles>.gtile{flex:0 0 auto}
 }
 @media(hover:none),(pointer:coarse){
   .btn{height:44px;padding:0 17px;font-size:13.5px}
