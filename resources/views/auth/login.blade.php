@@ -28,7 +28,14 @@
 
         <label class="field">
             <span class="field-label">Passwort</span>
-            <input class="input" type="password" name="password" required autocomplete="current-password">
+            <input class="input" type="password" name="password" id="passwort" required autocomplete="current-password">
+        </label>
+        @error('password')<p class="field-error">{{ $message }}</p>@enderror
+
+        <label class="check">
+            <input type="checkbox"
+                   onchange="document.getElementById('passwort').type = this.checked ? 'text' : 'password'">
+            <span>Passwort anzeigen</span>
         </label>
 
         <label class="check">

@@ -11,6 +11,14 @@ class AuthTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_login_seite_hat_passwort_anzeigen(): void
+    {
+        $this->get('/login')
+            ->assertOk()
+            ->assertSee('Passwort anzeigen')
+            ->assertSee('id="passwort"', false);
+    }
+
     public function test_login_succeeds_with_valid_credentials(): void
     {
         $user = User::factory()->create(['password' => 'geheim1234']);
