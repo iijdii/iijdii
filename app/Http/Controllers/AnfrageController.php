@@ -27,7 +27,7 @@ class AnfrageController extends Controller
 
     public function index(Request $request): View
     {
-        $ansicht = $request->query('ansicht') === 'tabelle' ? 'tabelle' : 'karten';
+        $ansicht = $request->query('ansicht') === 'karten' ? 'karten' : 'tabelle';
         $filter = $request->query('stufe', 'alle');
 
         $alle = Anfrage::query()->with(['kunde', 'projekt'])->orderByDesc('nummer')->get();

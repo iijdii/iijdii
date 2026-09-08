@@ -17,7 +17,7 @@ class MaterialKatalogController extends Controller
 {
     public function index(Request $request): View
     {
-        $ansicht = $request->query('ansicht') === 'liste' ? 'liste' : 'karten';
+        $ansicht = $request->query('ansicht') === 'karten' ? 'karten' : 'liste';
         $kategorie = $request->query('kategorie', 'alle');
         $suche = trim((string) $request->query('q', ''));
 

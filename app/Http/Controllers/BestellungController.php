@@ -7,10 +7,13 @@ use App\Enums\BestellungStatus;
 use App\Models\Artikel;
 use App\Models\Bestellung;
 use App\Models\BestellungPosition;
+use App\Models\Lieferant;
+use App\Models\Projekt;
 use App\Services\LagerService;
+use App\Support\Format;
+use App\Support\GlasSkizze;
 use App\Support\Nummern;
 use App\Support\PdfArchiv;
-use App\Support\GlasSkizze;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -19,13 +22,11 @@ use Illuminate\View\View;
 
 class BestellungController extends Controller
 {
-    public function __construct(private readonly LagerService $lager)
-    {
-    }
+    public function __construct(private readonly LagerService $lager) {}
 
     public function index(Request $request): View
     {
-        $ansicht = $request->query('ansicht') === 'tabelle' ? 'tabelle' : 'karten';
+        $ansicht = $request->query('ansicht') === 'karten' ? 'karten' : 'tabelle';
         $filter = $request->query('status', 'alle');
 
         // Optionaler Lieferanten-Filter (Deep-Link aus der Lieferanten-Übersicht);
@@ -207,8 +208,8 @@ class BestellungController extends Controller
     {
         return view('bestellungen.form', [
             'bestellung' => $bestellung,
-            'lieferanten' => \App\Models\Lieferant::query()->orderBy('name')->get(),
-            'projekte' => \App\Models\Projekt::query()->with('kunde')->orderByDesc('nr')->get(),
+            'lieferanten' => Lieferant::query()->orderBy('name')->get(),
+            'projekte' => Projekt::query()->with('kunde')->orderByDesc('nr')->get(),
         ]);
     }
 
@@ -226,7 +227,7 @@ class BestellungController extends Controller
 
         // Kunde folgt dem Projekt (eine Quelle der Wahrheit).
         $daten['kunde_id'] = isset($daten['projekt_id'])
-            ? \App\Models\Projekt::query()->find($daten['projekt_id'])?->kunde_id
+            ? Projekt::query()->find($daten['projekt_id'])?->kunde_id
             : null;
 
         return $daten;
@@ -354,7 +355,7 @@ class BestellungController extends Controller
             }),
             'mehr' => max(0, $glas->count() - 4),
             'materialChips' => $material->take(6)->map(
-                fn ($p) => \App\Support\Format::menge($p->menge).'× '.$p->bezeichnung
+                fn ($p) => Format::menge($p->menge).'× '.$p->bezeichnung
             ),
             'posCount' => (int) $glas->sum('menge') + (int) $schiebe->sum('menge') + $material->count(),
         ];

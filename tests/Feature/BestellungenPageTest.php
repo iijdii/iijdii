@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Enums\BestellungStatus;
 use App\Models\Bestellung;
+use App\Models\Lagerbewegung;
+use App\Models\Lieferant;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,20 +26,31 @@ class BestellungenPageTest extends TestCase
 
     public function test_list_shows_chips_cards_and_table_view(): void
     {
+        // Standard ist die Tabelle …
         $this->actingAs($this->benutzer)->get('/bestellungen')
             ->assertOk()
             ->assertSee('BST-2026-112')
             ->assertSee('Solarlux')
-            ->assertSee('Positionen');
+            ->assertSee('Liefertermin');
 
         $this->actingAs($this->benutzer)->get('/bestellungen?status=geliefert')
             ->assertOk()
             ->assertSee('BST-2026-112')
             ->assertDontSee('BST-2026-111');
 
-        $this->actingAs($this->benutzer)->get('/bestellungen?ansicht=tabelle')
+        // … die Karten bleiben per Umschalter erreichbar.
+        $this->actingAs($this->benutzer)->get('/bestellungen?ansicht=karten')
             ->assertOk()
-            ->assertSee('Liefertermin');
+            ->assertSee('Positionen');
+    }
+
+    public function test_lieferant_filter_ueberlebt_chip_und_ansicht_links(): void
+    {
+        $lieferant = Lieferant::query()->where('name', 'Solarlux')->firstOrFail();
+
+        $this->actingAs($this->benutzer)->get('/bestellungen?lieferant='.$lieferant->id)
+            ->assertOk()
+            ->assertSee('lieferant='.$lieferant->id, false); // Chips + Umschalter tragen den Filter weiter
     }
 
     public function test_delivered_order_detail_shows_banner_stepper_and_glass(): void
@@ -114,9 +127,10 @@ class BestellungenPageTest extends TestCase
             ->post('/bestellungen/BST-2026-111/status', ['status' => 'quatsch'])
             ->assertSessionHasErrors('status');
     }
+
     public function test_bestellung_anlegen_und_kopf_guard(): void
     {
-        $lieferant = \App\Models\Lieferant::query()->where('name', 'Sunshine')->firstOrFail();
+        $lieferant = Lieferant::query()->where('name', 'Sunshine')->firstOrFail();
 
         $this->actingAs($this->benutzer)->post('/bestellungen', [
             'titel' => 'Ersatzteile Carport', 'lieferant_id' => $lieferant->id,
@@ -124,7 +138,7 @@ class BestellungenPageTest extends TestCase
         ])->assertRedirect(route('bestellungen.show', 'BST-2026-113'))
             ->assertSessionHas('toast', 'Bestellung BST-2026-113 angelegt (Entwurf)');
 
-        $bestellung = \App\Models\Bestellung::query()->where('nr', 'BST-2026-113')->firstOrFail();
+        $bestellung = Bestellung::query()->where('nr', 'BST-2026-113')->firstOrFail();
         $this->assertSame('entwurf', $bestellung->status->value);
 
         // Kopf editierbar im Entwurf
@@ -136,15 +150,16 @@ class BestellungenPageTest extends TestCase
         $this->actingAs($this->benutzer)->put('/bestellungen/BST-2026-111', [
             'titel' => 'Hack', 'lieferant_id' => $lieferant->id,
         ])->assertSessionHas('toast', 'Nur im Entwurf/Geprüft bearbeitbar');
-        $this->assertNotSame('Hack', \App\Models\Bestellung::query()->where('nr', 'BST-2026-111')->value('titel'));
+        $this->assertNotSame('Hack', Bestellung::query()->where('nr', 'BST-2026-111')->value('titel'));
     }
+
     public function test_positions_editor_mit_alias_aufloesung_und_einlagerung(): void
     {
-        $lieferant = \App\Models\Lieferant::query()->where('name', 'Solarlux')->firstOrFail();
+        $lieferant = Lieferant::query()->where('name', 'Solarlux')->firstOrFail();
         $this->actingAs($this->benutzer)->post('/bestellungen', [
             'titel' => 'Nachbestellung Glas', 'lieferant_id' => $lieferant->id,
         ]);
-        $bestellung = \App\Models\Bestellung::query()->where('nr', 'BST-2026-113')->firstOrFail();
+        $bestellung = Bestellung::query()->where('nr', 'BST-2026-113')->firstOrFail();
 
         // Material mit Alias-Auflösung
         $this->actingAs($this->benutzer)->post('/bestellungen/BST-2026-113/positionen', [
@@ -167,7 +182,7 @@ class BestellungenPageTest extends TestCase
             ->assertSee('polygon', false); // GlasSkizze
 
         // Löschen + Ownership-Guard
-        $fremd = \App\Models\Bestellung::query()->where('nr', 'BST-2026-111')->firstOrFail()->positionen()->firstOrFail();
+        $fremd = Bestellung::query()->where('nr', 'BST-2026-111')->firstOrFail()->positionen()->firstOrFail();
         $this->actingAs($this->benutzer)
             ->post('/bestellungen/BST-2026-113/positionen/'.$fremd->id.'/loeschen')->assertNotFound();
         $this->actingAs($this->benutzer)
@@ -177,7 +192,7 @@ class BestellungenPageTest extends TestCase
         // E2E: geliefert → automatische Einlagerung des Materials
         $this->actingAs($this->benutzer)->post('/bestellungen/BST-2026-113/status', ['status' => 'geliefert']);
         $this->assertSame($bestandVorher + 4, $artikel->fresh()->bestand);
-        $this->assertTrue(\App\Models\Lagerbewegung::query()
+        $this->assertTrue(Lagerbewegung::query()
             ->where('referenz', 'BST-2026-113')->where('typ', 'Eingang')->exists());
 
         // Nach «geliefert» keine Positionsänderungen mehr

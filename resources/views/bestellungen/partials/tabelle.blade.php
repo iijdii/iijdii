@@ -8,18 +8,18 @@
     <div class="card-b" style="overflow-x:auto">
         <table class="tbl">
             <thead>
-            <tr><th>Nr.</th><th>Projekt</th><th>Lieferant</th><th>Kategorie</th><th>Liefertermin</th><th>Status</th></tr>
+            <tr><th>Nr.</th><th>Projekt</th><th>Lieferant</th><th>Kategorie</th><th>Liefertermin</th><th class="num">Status</th></tr>
             </thead>
             <tbody>
             @foreach ($karten as $karte)
                 @php $b = $karte['bestellung']; @endphp
                 <tr class="lrow" onclick="window.location='{{ route('bestellungen.show', $b) }}'">
-                    <td class="mono"><b>{{ $b->nr }}</b></td>
+                    <td class="b mono">{{ $b->nr }}</td>
                     <td class="mono">{{ $b->projekt?->nr ?? '–' }}</td>
                     <td>{{ $b->lieferant->name }}</td>
                     <td><span class="pill {{ $b->kategoriePillClass() }}">{{ $b->kategorieLabel() }}</span></td>
                     <td class="mono">{{ Format::datumKurz($b->liefertermin) }}</td>
-                    <td><span class="badge {{ $b->status->badgeClass() }}">{{ $b->status->label() }}</span></td>
+                    <td class="num"><span class="badge {{ $b->status->badgeClass() }}">{{ $b->status->label() }}</span></td>
                 </tr>
             @endforeach
             </tbody>

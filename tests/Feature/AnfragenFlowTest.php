@@ -165,8 +165,8 @@ class AnfragenFlowTest extends TestCase
 
         $this->assertSame($vorher, Projekt::query()->count());
 
-        // Kartenliste verlinkt das Projekt direkt.
-        $this->actingAs($this->benutzer)->get('/anfragen')
+        // Kartenansicht verlinkt das Projekt direkt.
+        $this->actingAs($this->benutzer)->get('/anfragen?ansicht=karten')
             ->assertSee('Projekt öffnen');
     }
 }
