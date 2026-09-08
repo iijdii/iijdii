@@ -32,8 +32,8 @@ class MontageController extends Controller
         $aktiveGruppe = collect($gruppen)->firstWhere('ek', $request->query('gruppe')) ?? ($gruppen[0] ?? null);
 
         // Verglasungs-Zeichnung: synthetisches Festelement (Prototyp).
-        $gw = max(0, $kalk['spar'] - 20);
-        $gt = max(0, (int) $p['depth'] - 50);
+        $gw = $kalk['glasB'];
+        $gt = $kalk['glasT'];
         $glas = MontageZeichnung::extra([
             'shape' => 'fest', 'noWall' => true, 'qty' => $kalk['fields'],
             'fields' => [$gw, $gt, $gt, (int) round(hypot($gw, $gt))],

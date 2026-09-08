@@ -44,7 +44,7 @@ class MontagePageTest extends TestCase
             ->assertSee('Notiz / Problem')
             ->assertSee('Zusatzmaterial')
             ->assertSee('Montage-Checkliste · Aufgaben je Termin')
-            ->assertSee('1.019 mm')          // Wandblende bei W=8630
+            ->assertSee('659 mm')            // Wandblende bei W=8630 (719−60)
             ->assertSee('Keil-Elemente')
             ->assertSee('Termin geplant von')
             ->assertSee('Glas nur zu zweit mit Saugheber einsetzen');
@@ -158,6 +158,7 @@ class MontagePageTest extends TestCase
             ->post('/projekte/PRJ-2026-011/montage/notizen/'.$notiz->id.'/loeschen')
             ->assertNotFound();
     }
+
     public function test_neuer_termin_und_aufgabe_loeschen(): void
     {
         // Neuer Tag auf PRJ-2026-011 (bisher 18./19.07.) → «Tag 3»

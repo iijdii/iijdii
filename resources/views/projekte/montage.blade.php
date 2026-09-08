@@ -111,7 +111,7 @@
         <section class="mm-card c5" id="s6">
             <div class="mm-h"><span class="n">6</span>Verglasung<span class="mm-sub" style="margin-left:auto">Feld · Ansicht außen</span></div>
             @include('projekte.montage-partials.extra-zeichnung', ['z' => $glasZeichnung, 'klein' => true])
-            <div class="mm-row"><span class="rk">Felder</span><span class="rv mono">{{ $kalk['fields'] }} × {{ $F(max(0, $kalk['spar'] - 20)) }} × {{ $F(max(0, $pcfg['depth'] - 50)) }} mm</span></div>
+            <div class="mm-row"><span class="rk">Felder</span><span class="rv mono">{{ $kalk['fields'] }} × {{ $F($kalk['glasB']) }} × {{ $F($kalk['glasT']) }} mm</span></div>
             <div class="mm-row"><span class="rk">Ausführung</span><span class="rv">{{ $pcfg['covering'] }} · {{ $pcfg['thickness'] }}</span></div>
             <div class="mm-row"><span class="rk">Farbe</span><span class="rv">{{ $pcfg['glasTrans'] === 'Milch' ? 'Milch' : 'Klar' }}</span></div>
             <div class="mm-note" style="background:var(--redbg);color:var(--red)"><svg class="i"><use href="#ic-bell"/></svg>Glas nur zu zweit mit Saugheber einsetzen · Kantenschutz.</div>

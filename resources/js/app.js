@@ -97,26 +97,35 @@ if (modal) {
 // der Wahrheit.
 function kalkUpdate() {
     const w = parseInt(document.querySelector('[data-kalk="width"]')?.value, 10) || 0;
+    const d = parseInt(document.querySelector('[data-kalk="depth"]')?.value, 10) || 0;
     const postN = parseInt(document.querySelector('[data-kalk="postN"]')?.value, 10) || 0;
+    const fieldN = parseInt(document.querySelector('[data-kalk="fieldN"]')?.value, 10) || 0;
     const ledSel = document.querySelector('[data-kalk="ledTotal"]');
     const rec = w > 0 ? Math.ceil(w / 4000) + 1 : 0;
     const pn = postN > 0 ? postN : rec;
-    const rafters = w > 0 ? Math.round(w / 1080) + 1 : 0;
-    const fields = Math.max(0, rafters - 1);
+    // Glasregeln: max. 750 mm Glasbreite, Breite = Achsmaß − 22, Tiefe = T − 60.
+    const autoFields = w > 0 ? Math.ceil(w / 772) : 0;
+    const fields = fieldN > 0 ? fieldN : autoFields;
+    const rafters = fields > 0 ? fields + 1 : 0;
     const spar = fields > 0 ? Math.round(w / fields) : 0;
     const blende = Math.max(0, spar - 60);
+    const glasB = Math.max(0, spar - 22);
+    const glasT = Math.max(0, d - 60);
     const ledTot = ledSel && parseInt(ledSel.value, 10) === 6 ? 6 : 12;
     const de = (n) => n.toLocaleString('de-DE');
     const out = {
         pn: pn || '–', rafters: rafters || '–', fields: fields || '–', rec: rec || '–',
         spar: spar ? de(spar) + ' mm' : '–',
         blende: de(blende) + ' mm', blende2: de(blende) + ' mm',
+        glas: spar ? de(glasB) + ' × ' + de(glasT) + ' mm' : '–',
         ledTot: ledTot, ledTot2: ledTot,
     };
     document.querySelectorAll('[data-kalk-out]').forEach((el) => {
         const key = el.dataset.kalkOut;
         if (key in out) el.textContent = out[key];
     });
+    const warn = document.querySelector('[data-kalk-warn="glas"]');
+    if (warn) warn.hidden = glasB <= 750;
 }
 
 if (document.querySelector('[data-kalk]')) {

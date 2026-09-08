@@ -3,24 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Enums\AngebotStatus;
+use App\Enums\LagerbewegungTyp;
 use App\Enums\ProjektStatus;
+use App\Models\Artikel;
+use App\Models\Lagerbewegung;
 use App\Models\Projekt;
+use App\Models\Reservierung;
 use App\Services\LagerService;
+use App\Support\Format;
 use App\Support\KonfiguratorRechner;
 use App\Support\Nummern;
 use App\Support\PdfArchiv;
 use App\Support\RoofZeichnung;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProjektController extends Controller
 {
     private const TABS = ['uebersicht', 'konfig', 'technik', 'material', 'dokumente', 'zahlungen', 'aktivitaet'];
 
-    public function __construct(private readonly LagerService $lager)
-    {
-    }
+    public function __construct(private readonly LagerService $lager) {}
 
     public function index(Request $request): View
     {
@@ -72,7 +79,7 @@ class ProjektController extends Controller
             ],
             'material' => [
                 'materialListe' => $this->lager->materialListe($projekt),
-                'alleArtikel' => \App\Models\Artikel::query()->orderBy('name')->get(['id', 'name', 'art_nr']),
+                'alleArtikel' => Artikel::query()->orderBy('name')->get(['id', 'name', 'art_nr']),
             ],
             'zahlungen' => ['zahlung' => $this->zahlungsplan($projekt)],
             default => [],
@@ -82,7 +89,7 @@ class ProjektController extends Controller
     }
 
     /** Projektmappe: Kopf, Kunde, Technische Daten, Positionen, Materialliste. */
-    public function pdf(Projekt $projekt): \Illuminate\Http\Response
+    public function pdf(Projekt $projekt): Response
     {
         $projekt->load(['kunde', 'angebot']);
 
@@ -104,8 +111,8 @@ class ProjektController extends Controller
         $projekt->update($daten);
         if ($daten['termin_von'] ?? null) {
             $projekt->aktivitaeten()->create([
-                'titel' => 'Montage-Termin '.\App\Support\Format::datumKurz($projekt->termin_von)
-                    .'–'.\App\Support\Format::datumKurz($projekt->termin_bis ?? $projekt->termin_von).' gesetzt',
+                'titel' => 'Montage-Termin '.Format::datumKurz($projekt->termin_von)
+                    .'–'.Format::datumKurz($projekt->termin_bis ?? $projekt->termin_von).' gesetzt',
                 'wer' => $request->user()->name,
                 'datum' => now()->format('d.m.'),
                 'status' => 'done',
@@ -118,7 +125,7 @@ class ProjektController extends Controller
     public function setzeStatus(Request $request, Projekt $projekt): RedirectResponse
     {
         $daten = $request->validate([
-            'status' => ['required', \Illuminate\Validation\Rule::enum(ProjektStatus::class)],
+            'status' => ['required', Rule::enum(ProjektStatus::class)],
         ]);
         $status = ProjektStatus::from($daten['status']);
         $projekt->update(['status' => $status]);
@@ -138,23 +145,23 @@ class ProjektController extends Controller
             'artikel_id' => ['required', 'exists:artikel,id'],
             'menge' => ['required', 'numeric', 'min:0.5'],
         ]);
-        $artikel = \App\Models\Artikel::query()->findOrFail($daten['artikel_id']);
+        $artikel = Artikel::query()->findOrFail($daten['artikel_id']);
 
         if ($daten['menge'] > $artikel->verfuegbar()) {
             return redirect()->route('projekte.show', [$projekt, 'tab' => 'material'])
                 ->with('toast', 'Nur '.$artikel->verfuegbar().' verfügbar');
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($projekt, $artikel, $daten, $request) {
-            $reservierung = \App\Models\Reservierung::query()->firstOrNew([
+        DB::transaction(function () use ($projekt, $artikel, $daten, $request) {
+            $reservierung = Reservierung::query()->firstOrNew([
                 'projekt_id' => $projekt->id, 'artikel_id' => $artikel->id,
             ]);
             $reservierung->menge = (float) ($reservierung->menge ?? 0) + (float) $daten['menge'];
             $reservierung->save();
 
-            \App\Models\Lagerbewegung::query()->create([
+            Lagerbewegung::query()->create([
                 'datum' => now(),
-                'typ' => \App\Enums\LagerbewegungTyp::Reservierung,
+                'typ' => LagerbewegungTyp::Reservierung,
                 'artikel_id' => $artikel->id,
                 'menge' => $daten['menge'],
                 'referenz' => $projekt->nr,
@@ -167,14 +174,14 @@ class ProjektController extends Controller
             ->with('toast', 'Material reserviert');
     }
 
-    public function loescheReservierung(Request $request, Projekt $projekt, \App\Models\Reservierung $reservierung): RedirectResponse
+    public function loescheReservierung(Request $request, Projekt $projekt, Reservierung $reservierung): RedirectResponse
     {
         abort_unless($reservierung->projekt_id === $projekt->id, 404);
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($projekt, $reservierung, $request) {
-            \App\Models\Lagerbewegung::query()->create([
+        DB::transaction(function () use ($projekt, $reservierung, $request) {
+            Lagerbewegung::query()->create([
                 'datum' => now(),
-                'typ' => \App\Enums\LagerbewegungTyp::Reservierung,
+                'typ' => LagerbewegungTyp::Reservierung,
                 'artikel_id' => $reservierung->artikel_id,
                 'menge' => -$reservierung->menge,
                 'referenz' => $projekt->nr.' aufgehoben',
@@ -198,7 +205,7 @@ class ProjektController extends Controller
         $datei = $request->file('datei');
         // Zeitstempel-Präfix gegen Namenskollisionen; privater Disk wie beim Protokoll.
         $name = $projekt->nr.'_'.now()->format('YmdHis').'_'.$datei->getClientOriginalName();
-        $pfad = \Illuminate\Support\Facades\Storage::putFileAs('dokumente', $datei, $name);
+        $pfad = Storage::putFileAs('dokumente', $datei, $name);
 
         $projekt->dokumente()->create([
             'typ' => 'upload',
@@ -287,6 +294,7 @@ class ProjektController extends Controller
             'glasTrans' => $enum($request->input('glasTrans'), ['Klar', 'Milch'], $d['glasTrans']),
             'thickness' => $enum($request->input('thickness'), KonfiguratorRechner::STAERKEN, $d['thickness']),
             'postN' => ((int) $request->input('postN')) ?: '',
+            'fieldN' => ((int) $request->input('fieldN')) ?: '',
             'snow' => $enum($request->input('snow'), KonfiguratorRechner::SCHNEELAST, $d['snow']),
             'wind' => $enum($request->input('wind'), KonfiguratorRechner::WINDZONE, $d['wind']),
             'extras' => $extras,

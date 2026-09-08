@@ -3,7 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Angebot;
+use App\Models\Artikel;
+use App\Models\Lagerbewegung;
 use App\Models\Projekt;
+use App\Models\Reservierung;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -52,7 +55,7 @@ class ProjektePageTest extends TestCase
 
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=technik')
             ->assertOk()
-            ->assertSee('8 Felder à 1079')
+            ->assertSee('12 Felder à 719')
             ->assertSee('Gefälle 8° ≈ 141 mm/m → Rinne')
             ->assertSee('PRJ-2026-011 · DEMO Demo') // Titelblock der Zeichnung
             ->assertDontSee('Zeichnungen folgen');
@@ -65,7 +68,7 @@ class ProjektePageTest extends TestCase
             ->assertSee('Überdachung Trapez 8630×3500 mm')
             ->assertSee('Pfosten 110×110 · Weiß · RAL 9016')
             ->assertSee('Keil Links · Glas (Klar)')
-            ->assertSee('1.019 mm')          // Wandblende bei W=8630
+            ->assertSee('659 mm')            // Wandblende bei W=8630 (719−60)
             ->assertSee('Dach-Kalkulation');
     }
 
@@ -130,10 +133,11 @@ class ProjektePageTest extends TestCase
         $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-038/angebot');
         $this->assertSame(1, Angebot::query()->where('nr', 'like', 'ANG-2026-072')->count());
     }
+
     public function test_reservierungen_anlegen_und_aufheben(): void
     {
         // PRJ-2026-033 hat keine Seed-Reservierungen → Materialliste leer
-        $artikel = \App\Models\Artikel::query()->where('art_nr', 'GU-2')->firstOrFail();
+        $artikel = Artikel::query()->where('art_nr', 'GU-2')->firstOrFail();
         $verfuegbarVorher = $artikel->verfuegbar();
 
         $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-033/reservierungen', [
@@ -142,7 +146,7 @@ class ProjektePageTest extends TestCase
             ->assertSessionHas('toast', 'Material reserviert');
 
         $this->assertSame($verfuegbarVorher - 2, $artikel->fresh()->verfuegbar());
-        $bewegung = \App\Models\Lagerbewegung::query()
+        $bewegung = Lagerbewegung::query()
             ->where('typ', 'Reservierung')->where('referenz', 'PRJ-2026-033')->firstOrFail();
         $this->assertSame(2, (int) $bewegung->menge);
 
@@ -154,7 +158,7 @@ class ProjektePageTest extends TestCase
         $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-033/reservierungen', [
             'artikel_id' => $artikel->id, 'menge' => 1,
         ]);
-        $reservierung = \App\Models\Reservierung::query()
+        $reservierung = Reservierung::query()
             ->where('artikel_id', $artikel->id)
             ->whereRelation('projekt', 'nr', 'PRJ-2026-033')->firstOrFail();
         $this->assertSame(3.0, (float) $reservierung->menge);
@@ -169,15 +173,16 @@ class ProjektePageTest extends TestCase
             ->post('/projekte/PRJ-2026-033/reservierungen/'.$reservierung->id.'/loeschen')
             ->assertSessionHas('toast', 'Reservierung aufgehoben');
         $this->assertSame($verfuegbarVorher, $artikel->fresh()->verfuegbar());
-        $this->assertTrue(\App\Models\Lagerbewegung::query()
+        $this->assertTrue(Lagerbewegung::query()
             ->where('referenz', 'PRJ-2026-033 aufgehoben')->where('menge', -3)->exists());
 
         // Fremde Reservierung → 404
-        $fremd = \App\Models\Reservierung::query()->whereRelation('projekt', 'nr', 'PRJ-2026-011')->firstOrFail();
+        $fremd = Reservierung::query()->whereRelation('projekt', 'nr', 'PRJ-2026-011')->firstOrFail();
         $this->actingAs($this->benutzer)
             ->post('/projekte/PRJ-2026-033/reservierungen/'.$fremd->id.'/loeschen')
             ->assertNotFound();
     }
+
     public function test_stammdaten_und_status_setzen(): void
     {
         // Termine + Projektleitung setzen → Kalender zeigt das Projekt
@@ -209,6 +214,7 @@ class ProjektePageTest extends TestCase
             ->assertSee('Status setzen:')
             ->assertSee('In Montage');
     }
+
     public function test_standardkonfigurations_hinweis(): void
     {
         // PRJ-2026-038 hat keine gespeicherte Konfiguration → Hinweis-Badge

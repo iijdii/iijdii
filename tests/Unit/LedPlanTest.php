@@ -10,13 +10,13 @@ class LedPlanTest extends TestCase
 {
     public function test_candidates_are_three_per_inner_rafter(): void
     {
-        // W=8630 → 9 Sparren → 7 innere → 21 Kandidaten.
+        // W=8630 → 13 Sparren → 11 innere → 33 Kandidaten.
         $kalk = KonfiguratorRechner::berechne([]);
         $kandidaten = LedPlan::kandidaten($kalk);
 
-        $this->assertCount(21, $kandidaten);
+        $this->assertCount(33, $kandidaten);
         $this->assertSame('s1.0', $kandidaten[0]['key']);
-        $this->assertSame('s7.2', end($kandidaten)['key']);
+        $this->assertSame('s11.2', end($kandidaten)['key']);
     }
 
     public function test_geometry_kpis(): void
@@ -28,7 +28,7 @@ class LedPlanTest extends TestCase
         $this->assertSame('3.390', $z['kpis']['sparLen']);
         $this->assertSame('1.130', $z['kpis']['pitch']);
         $this->assertSame('565', $z['kpis']['edge']);
-        $this->assertSame(7, $z['kpis']['frei']);
+        $this->assertSame(11, $z['kpis']['frei']);
         $this->assertSame(12, $z['kpis']['total']);
         $this->assertSame([], $z['lampen']);
     }

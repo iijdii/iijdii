@@ -24,6 +24,17 @@ final class KonfiguratorRechner
 
     public const SCHNEELAST = ['SLZ 1 · 0,65 kN/m²', 'SLZ 2 · 0,85 kN/m²', 'SLZ 3 · 1,10 kN/m²'];
 
+    /**
+     * Glas-Fertigungsregeln (Vorgabe des Betreibers, ersetzen die
+     * vereinfachte 1080er-Rasterformel des Prototyps):
+     * max. Glasbreite 750 mm; Breite = Achsmaß − 22 mm; Tiefe = T − 60 mm.
+     */
+    public const MAX_GLAS_BREITE = 750;
+
+    public const GLAS_ABZUG_BREITE = 22;
+
+    public const GLAS_ABZUG_TIEFE = 60;
+
     public const WINDZONE = ['WZ 1 · Binnenland', 'WZ 2 · Binnenland', 'WZ 3 · Küste', 'WZ 4 · Küste/Inseln'];
 
     public static function defaults(): array
@@ -42,6 +53,7 @@ final class KonfiguratorRechner
             'glasTrans' => 'Klar',
             'thickness' => '8 mm',
             'postN' => '',
+            'fieldN' => '',
             'snow' => 'SLZ 2 · 0,85 kN/m²',
             'wind' => 'WZ 2 · Binnenland',
             'extras' => ['Keile', 'Schiebe-Elemente', 'Markisen'],
@@ -73,8 +85,9 @@ final class KonfiguratorRechner
     }
 
     /**
-     * Abgeleitete Werte + Positionsliste (_pvals). Referenz W=8630:
-     * rec 4, rafters 9, fields 8, spar 1079, blende „1.019 mm".
+     * Abgeleitete Werte + Positionsliste (_pvals). Referenz W=8630, T=3500:
+     * rec 4, fields 12, rafters 13, spar 719, blende „659 mm",
+     * Glas 697 × 3.440 mm (Minimum an Feldern, sodass Glasbreite ≤ 750).
      */
     public static function berechne(array $pcfg): array
     {
@@ -85,10 +98,15 @@ final class KonfiguratorRechner
 
         $rec = $W > 0 ? (int) ceil($W / 4000) + 1 : 0;
         $pn = ($p['postN'] !== '' && $I($p['postN']) > 0) ? $I($p['postN']) : $rec;
-        $rafters = $W > 0 ? (int) round($W / 1080) + 1 : 0;
-        $fields = max(0, $rafters - 1);
+        $maxAchsmass = self::MAX_GLAS_BREITE + self::GLAS_ABZUG_BREITE;
+        $autoFields = $W > 0 ? (int) ceil($W / $maxAchsmass) : 0;
+        // Wie postN: manuelle Feldanzahl gewinnt, der Rest rechnet daraus weiter.
+        $fields = ($p['fieldN'] !== '' && $I($p['fieldN']) > 0) ? $I($p['fieldN']) : $autoFields;
+        $rafters = $fields > 0 ? $fields + 1 : 0;
         $spar = $fields > 0 ? (int) round($W / $fields) : 0;
         $blende = max(0, $spar - 60);
+        $glasB = max(0, $spar - self::GLAS_ABZUG_BREITE);
+        $glasT = max(0, $D - self::GLAS_ABZUG_TIEFE);
         $ledTot = ($I($p['led']['total'] ?? 12) === 6) ? 6 : 12;
 
         $extras = $p['extras'] ?? [];
@@ -133,6 +151,11 @@ final class KonfiguratorRechner
             'rafters' => $rafters,
             'fields' => $fields,
             'spar' => $spar,
+            'autoFields' => $autoFields,
+            'glasB' => $glasB,
+            'glasT' => $glasT,
+            'glasText' => $spar ? number_format($glasB, 0, ',', '.').' × '.number_format($glasT, 0, ',', '.').' mm' : '–',
+            'glasZuBreit' => $glasB > self::MAX_GLAS_BREITE,
             'blende' => $blende,
             'blendeText' => number_format($blende, 0, ',', '.').' mm',
             'sparText' => $spar ? number_format($spar, 0, ',', '.').' mm' : '–',

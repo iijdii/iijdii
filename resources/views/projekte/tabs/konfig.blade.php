@@ -44,6 +44,7 @@
                     <div class="fld"><label>Höhe Rinne (mm)</label><input class="inp" type="number" name="gutterH" value="{{ $k['gutterH'] }}"></div>
                     <div class="fld"><label>Dachneigung (°)</label><input class="inp" type="number" name="slope" value="{{ $k['slope'] }}"></div>
                     <div class="fld"><label>Pfosten (Override)</label><input class="inp" type="number" name="postN" value="{{ $k['postN'] }}" placeholder="auto" data-kalk="postN"></div>
+                    <div class="fld"><label>Glasfelder (Override)</label><input class="inp" type="number" name="fieldN" value="{{ $k['fieldN'] ?? '' }}" placeholder="auto" data-kalk="fieldN"></div>
                 </div>
                 <div class="fgrid2">
                     <div class="fld"><label>Farbe</label>
@@ -264,8 +265,11 @@
                 <div class="kcell"><span>Felder</span><b class="mono" data-kalk-out="fields">{{ $kalk['fields'] ?: '–' }}</b></div>
                 <div class="kcell"><span>Sparrenabstand</span><b class="mono" data-kalk-out="spar">{{ $kalk['sparText'] }}</b></div>
                 <div class="kcell"><span>Wandblende</span><b class="mono" data-kalk-out="blende2">{{ $kalk['blendeText'] }}</b></div>
+                <div class="kcell"><span>Glasmaß</span><b class="mono" data-kalk-out="glas">{{ $kalk['glasText'] }}</b></div>
                 <div class="kcell"><span>LED-Spots</span><b class="mono" data-kalk-out="ledTot2">{{ $kalk['ledTot'] }}</b></div>
             </div>
+            <div class="kwarn" data-kalk-warn="glas" @if (! $kalk['glasZuBreit']) hidden @endif>
+                Glasbreite &gt; {{ \App\Support\KonfiguratorRechner::MAX_GLAS_BREITE }} mm — Fertigungsgrenze überschritten (Feldanzahl erhöhen).</div>
             @if ($kalk['warnung'])
                 <div class="kwarn">Tiefe &gt; 4000 mm — statische Prüfung / Unterzug erforderlich.</div>
             @endif
