@@ -22,10 +22,10 @@
 
     <div class="mm-body" style="display:block;max-width:1060px">
         <div class="mm-kpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
-            <div class="mm-kpi"><span class="kl">Aufträge</span><b class="mono">{{ $auftraege->count() }}</b></div>
-            <div class="mm-kpi"><span class="kl">Positionen</span><b class="mono">{{ $tot }}</b></div>
-            <div class="mm-kpi"><span class="kl">Geladen</span><b class="mono">{{ $done }}</b></div>
-            <div class="mm-kpi"><span class="kl">Offen</span><b class="mono">{{ $offen }}</b></div>
+            <div class="mm-kpi"><div class="kl">Aufträge</div><div class="kn">{{ $auftraege->count() }}</div></div>
+            <div class="mm-kpi"><div class="kl">Positionen</div><div class="kn">{{ $tot }}</div></div>
+            <div class="mm-kpi"><div class="kl">Geladen</div><div class="kn">{{ $done }}</div></div>
+            <div class="mm-kpi"><div class="kl">Offen</div><div class="kn">{{ $offen }}</div></div>
         </div>
 
         @if ($tab === 'laden')

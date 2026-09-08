@@ -29,10 +29,10 @@
     @endif
 
     <div class="mm-kpis" style="grid-template-columns:repeat(4,1fr)">
-        <div class="mm-kpi"><span>Sparrenlänge</span><b class="mono">{{ $ledKpi['sparLen'] }}<span class="ku">mm</span></b></div>
-        <div class="mm-kpi"><span>Randabstand a</span><b class="mono">{{ $ledKpi['edge'] }}<span class="ku">mm</span></b></div>
-        <div class="mm-kpi"><span>Achsabstand e</span><b class="mono">{{ $ledKpi['pitch'] }}<span class="ku">mm</span></b></div>
-        <div class="mm-kpi"><span>Gesetzt</span><b class="mono">{{ $ledKpi['gesetzt'] }} / {{ $ledKpi['total'] }}</b></div>
+        <div class="mm-kpi"><div class="kl">Sparrenlänge</div><div class="kn">{{ $ledKpi['sparLen'] }}<span class="ku">mm</span></div></div>
+        <div class="mm-kpi"><div class="kl">Randabstand a</div><div class="kn">{{ $ledKpi['edge'] }}<span class="ku">mm</span></div></div>
+        <div class="mm-kpi"><div class="kl">Achsabstand e</div><div class="kn">{{ $ledKpi['pitch'] }}<span class="ku">mm</span></div></div>
+        <div class="mm-kpi"><div class="kl">Gesetzt</div><div class="kn">{{ $ledKpi['gesetzt'] }} / {{ $ledKpi['total'] }}</div></div>
     </div>
 
     <button class="btn btnp" style="width:100%;margin:10px 0" type="button" data-led-modal-open>

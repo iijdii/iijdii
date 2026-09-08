@@ -57,11 +57,11 @@
         <section class="mm-card c12" id="s2">
             <div class="mm-h"><span class="n">2</span>Kernmaße</div>
             <div class="mm-kpis">
-                <div class="mm-kpi"><span>Breite</span><b class="mono">{{ $F($pcfg['width']) }}<span class="ku">mm</span></b></div>
-                <div class="mm-kpi"><span>Tiefe</span><b class="mono">{{ $F($pcfg['depth']) }}<span class="ku">mm</span></b></div>
-                <div class="mm-kpi"><span>Höhe hinten</span><b class="mono">{{ $F($pcfg['wallH']) }}<span class="ku">mm</span></b></div>
-                <div class="mm-kpi"><span>Höhe vorn</span><b class="mono">{{ $F($pcfg['gutterH']) }}<span class="ku">mm</span></b></div>
-                <div class="mm-kpi"><span>Farbe</span><b>{{ $farbe }}</b><span class="ku">{{ $farbeRal }}</span></div>
+                <div class="mm-kpi"><div class="kl">Breite</div><div class="kn">{{ $F($pcfg['width']) }}<span class="ku">mm</span></div></div>
+                <div class="mm-kpi"><div class="kl">Tiefe</div><div class="kn">{{ $F($pcfg['depth']) }}<span class="ku">mm</span></div></div>
+                <div class="mm-kpi"><div class="kl">Höhe hinten</div><div class="kn">{{ $F($pcfg['wallH']) }}<span class="ku">mm</span></div></div>
+                <div class="mm-kpi"><div class="kl">Höhe vorn</div><div class="kn">{{ $F($pcfg['gutterH']) }}<span class="ku">mm</span></div></div>
+                <div class="mm-kpi"><div class="kl">Farbe</div><div class="kn" style="font-size:21px;line-height:1.2">{{ $farbe }}<span class="ku" style="display:block;margin-left:0;margin-top:5px">{{ $farbeRal }}</span></div></div>
             </div>
         </section>
 

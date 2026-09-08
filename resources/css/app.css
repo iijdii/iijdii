@@ -501,6 +501,13 @@ a.chip{text-decoration:none}
 .mm-date b{font-size:16px;font-weight:700}
 .mm-date span{font-size:12px;font-weight:500;color:rgba(255,255,255,.62)}
 .mm-body{max-width:1180px;margin:0 auto;padding:20px 22px 64px;display:grid;grid-template-columns:repeat(12,1fr);gap:16px;align-items:start}
+.mm .c4{grid-column:span 4}
+.mm .c5{grid-column:span 5}
+.mm .c6{grid-column:span 6}
+.mm .c7{grid-column:span 7}
+.mm .c8{grid-column:span 8}
+.mm .c12{grid-column:span 12}
+@media(max-width:820px){.mm-body{grid-template-columns:1fr}.mm-body>.mm-card{grid-column:1/-1}}
 .mm-card{background:#fff;border:1px solid var(--bd);border-radius:16px;padding:19px 22px;box-shadow:var(--sh)}
 .mm-h{display:flex;align-items:center;gap:11px;font-size:12px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--ink3);margin-bottom:15px}
 .mm-h .n{width:26px;height:26px;border-radius:8px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none}
