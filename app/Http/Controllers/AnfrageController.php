@@ -30,7 +30,7 @@ class AnfrageController extends Controller
         $ansicht = $request->query('ansicht') === 'tabelle' ? 'tabelle' : 'karten';
         $filter = $request->query('stufe', 'alle');
 
-        $alle = Anfrage::query()->with('kunde')->orderByDesc('nummer')->get();
+        $alle = Anfrage::query()->with(['kunde', 'projekt'])->orderByDesc('nummer')->get();
 
         $chips = collect([
             ['alle', 'Alle'], ['1', 'Neu'], ['2', 'In Bearbeitung'], ['3', 'Aufmaß'], ['4', 'Angebot'],
@@ -127,6 +127,11 @@ class AnfrageController extends Controller
 
     public function erstelleProjekt(Request $request, Anfrage $anfrage): RedirectResponse
     {
+        if ($anfrage->projekt) {
+            return redirect()->route('projekte.show', $anfrage->projekt)
+                ->with('toast', 'Projekt '.$anfrage->projekt->nr.' ist bereits verknüpft');
+        }
+
         $kunde = $anfrage->kunde;
         $pcfg = AnfrageKonfigMapper::pcfg($anfrage);
         $produkt = $pcfg['product'] === 'Überdachung' ? 'Terrassenüberdachung' : $pcfg['product'];
@@ -134,6 +139,10 @@ class AnfrageController extends Controller
         $projekt = $kunde->projekte()->create([
             'nr' => Nummern::projekt(),
             'titel' => $produkt.' '.$kunde->anzeigename,
+            'anfrage_id' => $anfrage->id,
+            // Existiert zur Anfrage schon ein (noch projektloses) Angebot,
+            // wird es gleich mit verknüpft — die Kette bleibt geschlossen.
+            'angebot_id' => $anfrage->angebot?->projekt ? null : $anfrage->angebot?->id,
             'objekt_strasse' => $anfrage->objekt_strasse ?? $kunde->strasse,
             'objekt_hausnummer' => $anfrage->objekt_hausnummer ?? $kunde->hausnummer,
             'objekt_plz' => $anfrage->objekt_plz ?? $kunde->plz,

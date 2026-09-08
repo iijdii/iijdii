@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProjektStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'nr', 'titel', 'kunde_id', 'angebot_id', 'projektleiter_id', 'objekt_strasse',
+    'nr', 'titel', 'kunde_id', 'angebot_id', 'anfrage_id', 'projektleiter_id', 'objekt_strasse',
     'objekt_hausnummer', 'objekt_plz', 'objekt_stadt', 'status',
     'termin_von', 'termin_bis', 'konfiguration', 'aufmass',
 ])]
@@ -22,7 +23,7 @@ class Projekt extends Model
     protected function casts(): array
     {
         return [
-            'status' => \App\Enums\ProjektStatus::class,
+            'status' => ProjektStatus::class,
             'termin_von' => 'date',
             'termin_bis' => 'date',
             'konfiguration' => 'array',
@@ -43,6 +44,11 @@ class Projekt extends Model
     public function angebot(): BelongsTo
     {
         return $this->belongsTo(Angebot::class, 'angebot_id');
+    }
+
+    public function anfrage(): BelongsTo
+    {
+        return $this->belongsTo(Anfrage::class, 'anfrage_id');
     }
 
     public function bestellungen(): HasMany
@@ -93,10 +99,10 @@ class Projekt extends Model
     public function stepper(): array
     {
         $stufe = match ($this->status) {
-            \App\Enums\ProjektStatus::InPlanung => $this->angebot_id ? 2 : 1,
-            \App\Enums\ProjektStatus::InMontageplanung => 4,
-            \App\Enums\ProjektStatus::InMontage => 5,
-            \App\Enums\ProjektStatus::Abgeschlossen => 6,
+            ProjektStatus::InPlanung => $this->angebot_id ? 2 : 1,
+            ProjektStatus::InMontageplanung => 4,
+            ProjektStatus::InMontage => 5,
+            ProjektStatus::Abgeschlossen => 6,
         };
 
         $daten = [

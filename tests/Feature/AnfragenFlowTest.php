@@ -47,6 +47,12 @@ class AnfragenFlowTest extends TestCase
             ->assertSee('polygon class="glp"', false)   // kSk-Skizze
             ->assertSee('Länge Wandprofil')             // Trapez-Felder
             ->assertSee('Schiebesystem(e)')
+            ->assertSee('Projekt PRJ-2026-011 öffnen') // Seed verknüpft ANF-012 → PRJ-011
+            ->assertDontSee('Projekt erstellen');
+
+        // Anfrage ohne Projekt behält den Erstellen-CTA.
+        $this->actingAs($this->benutzer)->get('/anfragen/ANF-2026-011')
+            ->assertOk()
             ->assertSee('Projekt erstellen');
     }
 
@@ -118,6 +124,9 @@ class AnfragenFlowTest extends TestCase
 
     public function test_projekt_erstellen_maps_the_configuration(): void
     {
+        // Seed-Verknüpfung lösen: ANF-2026-012 dient hier als „frische" Anfrage.
+        Projekt::query()->where('nr', 'PRJ-2026-011')->update(['anfrage_id' => null]);
+
         $antwort = $this->actingAs($this->benutzer)->post('/anfragen/ANF-2026-012/projekt');
 
         $projekt = Projekt::query()->orderByDesc('id')->first();
@@ -141,5 +150,23 @@ class AnfragenFlowTest extends TestCase
             Anfrage::query()->where('nummer', 'ANF-2026-012')->firstOrFail()
                 ->aktivitaeten()->where('typ', 'projekt_erstellt')->exists()
         );
+        $this->assertSame('ANF-2026-012', $projekt->anfrage?->nummer); // Herkunft verknüpft
+    }
+
+    public function test_projekt_erstellen_ist_idempotent(): void
+    {
+        // ANF-2026-012 ist per Seed mit PRJ-2026-011 verknüpft: der Klick
+        // legt kein Duplikat an, sondern führt ins bestehende Projekt.
+        $vorher = Projekt::query()->count();
+
+        $this->actingAs($this->benutzer)->post('/anfragen/ANF-2026-012/projekt')
+            ->assertRedirect(route('projekte.show', 'PRJ-2026-011'))
+            ->assertSessionHas('toast', 'Projekt PRJ-2026-011 ist bereits verknüpft');
+
+        $this->assertSame($vorher, Projekt::query()->count());
+
+        // Kartenliste verlinkt das Projekt direkt.
+        $this->actingAs($this->benutzer)->get('/anfragen')
+            ->assertSee('Projekt öffnen');
     }
 }

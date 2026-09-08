@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Angebot;
+use App\Models\Projekt;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -36,6 +38,7 @@ class AngeboteTest extends TestCase
         $this->actingAs($this->benutzer)->get('/angebote')
             ->assertSee('/angebote/ANG-2026-010', false)
             ->assertSee('/angebote/ANG-2026-071', false)
+            ->assertSee('/projekte/PRJ-2026-011', false) // Projekt-Spalte verlinkt
             ->assertDontSee('data-toast="Öffne', false);
     }
 
@@ -63,7 +66,7 @@ class AngeboteTest extends TestCase
             ->assertRedirect(route('angebote.show', 'ANG-2026-069'))
             ->assertSessionHas('toast', 'Angebotssumme gespeichert');
 
-        $this->assertSame('12500.00', \App\Models\Angebot::query()->where('nr', 'ANG-2026-069')->value('summe'));
+        $this->assertSame('12500.00', Angebot::query()->where('nr', 'ANG-2026-069')->value('summe'));
     }
 
     public function test_status_uebergaenge_mit_guards(): void
@@ -73,7 +76,7 @@ class AngeboteTest extends TestCase
             ->assertSessionHas('toast', 'Übergang nicht möglich');
 
         // Versendet, aber ohne Summe nicht annehmbar
-        $angebot = \App\Models\Angebot::query()->where('nr', 'ANG-2026-069')->firstOrFail();
+        $angebot = Angebot::query()->where('nr', 'ANG-2026-069')->firstOrFail();
         $angebot->update(['summe' => null]);
         $this->actingAs($this->benutzer)->post('/angebote/ANG-2026-069/status', ['status' => 'versendet'])
             ->assertSessionHas('toast', 'Status: Versendet');
@@ -91,7 +94,7 @@ class AngeboteTest extends TestCase
     public function test_annahme_loggt_aktivitaet_und_belebt_zahlungsplan(): void
     {
         // Frisches Angebot am Projekt PRJ-2026-038 erzeugen (Konfigurator-Weg)
-        $projekt = \App\Models\Projekt::query()->where('nr', 'PRJ-2026-038')->firstOrFail();
+        $projekt = Projekt::query()->where('nr', 'PRJ-2026-038')->firstOrFail();
         $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-038/angebot');
         $angebot = $projekt->fresh()->angebot;
 

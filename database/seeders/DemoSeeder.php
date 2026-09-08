@@ -271,10 +271,14 @@ class DemoSeeder extends Seeder
             ]);
         }
 
-        // Angebot ANG-2026-010 gehört zum Demo-Projekt.
+        // Angebot ANG-2026-010 gehört zum Demo-Projekt; Anfrage-Herkunft
+        // wird über dessen anfrage_id mitverknüpft (idempotent).
         if (isset($out['PRJ-2026-011'])) {
             $angebot = Angebot::query()->where('nr', 'ANG-2026-010')->first();
-            $out['PRJ-2026-011']->update(['angebot_id' => $angebot?->id]);
+            $out['PRJ-2026-011']->update([
+                'angebot_id' => $angebot?->id,
+                'anfrage_id' => $angebot?->anfrage_id,
+            ]);
         }
 
         return $out;

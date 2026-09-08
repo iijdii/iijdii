@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Artikel;
 use App\Models\Bestellung;
 use App\Models\Lieferant;
+use App\Models\Projekt;
 use App\Models\Reservierung;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -55,12 +56,22 @@ class MigrationsAndSeedsTest extends TestCase
     {
         $this->assertSame(20, Reservierung::count());
     }
+
     public function test_projektleiter_wird_geseedet(): void
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
-        $projekt = \App\Models\Projekt::query()->where('nr', 'PRJ-2026-011')->firstOrFail();
+        $projekt = Projekt::query()->where('nr', 'PRJ-2026-011')->firstOrFail();
         $this->assertSame('verkauf@lea.test', $projekt->projektleiter?->email);
         $this->assertSame('Max Schneider', $projekt->projektleiter?->name);
+    }
+
+    public function test_demo_projekt_kennt_seine_anfrage(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $projekt = Projekt::query()->where('nr', 'PRJ-2026-011')->firstOrFail();
+        $this->assertNotNull($projekt->anfrage_id);
+        $this->assertSame($projekt->angebot?->anfrage_id, $projekt->anfrage_id);
     }
 }

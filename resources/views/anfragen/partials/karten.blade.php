@@ -35,10 +35,16 @@
                     <span>Quelle <b>{{ $anfrage->anfrage_quelle ?? '–' }}</b></span>
                     <span>Eingang <b class="mono">{{ Format::datumKurz($anfrage->created_at) }}</b></span>
                 </span>
-                {{-- Weg zum Angebot: Detail → Projekt erstellen → Als Angebot übergeben --}}
-                <button class="anf-cta" type="button"
-                        onclick="event.preventDefault();event.stopPropagation();window.location='{{ route('anfragen.show', $anfrage) }}'">
-                    <svg class="i"><use href="#ic-angebote"/></svg>Angebot</button>
+                @if ($anfrage->projekt)
+                    <button class="anf-cta" type="button"
+                            onclick="event.preventDefault();event.stopPropagation();window.location='{{ route('projekte.show', $anfrage->projekt) }}'">
+                        <svg class="i"><use href="#ic-projekte"/></svg>Projekt öffnen</button>
+                @else
+                    {{-- Weg zum Angebot: Detail → Projekt erstellen → Als Angebot übergeben --}}
+                    <button class="anf-cta" type="button"
+                            onclick="event.preventDefault();event.stopPropagation();window.location='{{ route('anfragen.show', $anfrage) }}'">
+                        <svg class="i"><use href="#ic-angebote"/></svg>Angebot</button>
+                @endif
             </div>
         </a>
     @endforeach

@@ -73,4 +73,9 @@ class Anfrage extends Model
     {
         return $this->hasOne(Angebot::class, 'anfrage_id');
     }
+
+    public function projekt(): HasOne
+    {
+        return $this->hasOne(Projekt::class, 'anfrage_id');
+    }
 }

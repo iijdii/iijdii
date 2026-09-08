@@ -23,11 +23,16 @@
             <span class="ctas">
                 <a class="btn btns" href="{{ route('anfragen.edit', $anfrage) }}">
                     <svg class="i"><use href="#ic-edit"/></svg>Bearbeiten</a>
-                <form method="POST" action="{{ route('anfragen.projekt', $anfrage) }}">
-                    @csrf
-                    <button class="btn btns btnp" type="submit">
-                        <svg class="i"><use href="#ic-projekte"/></svg>Projekt erstellen</button>
-                </form>
+                @if ($anfrage->projekt)
+                    <a class="btn btns btnp" href="{{ route('projekte.show', $anfrage->projekt) }}">
+                        <svg class="i"><use href="#ic-projekte"/></svg>Projekt {{ $anfrage->projekt->nr }} öffnen</a>
+                @else
+                    <form method="POST" action="{{ route('anfragen.projekt', $anfrage) }}">
+                        @csrf
+                        <button class="btn btns btnp" type="submit">
+                            <svg class="i"><use href="#ic-projekte"/></svg>Projekt erstellen</button>
+                    </form>
+                @endif
             </span>
         </div>
         <div class="fx" style="margin-top:14px">

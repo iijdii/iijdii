@@ -253,6 +253,7 @@ class ProjektController extends Controller
         $angebot = $projekt->kunde->angebote()->create([
             'nr' => Nummern::angebot(),
             'titel' => $projekt->titel,
+            'anfrage_id' => $projekt->anfrage_id,
             'status' => AngebotStatus::Entwurf,
             'datum' => now()->toDateString(),
             'konfiguration' => $projekt->konfiguration,
