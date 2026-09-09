@@ -134,3 +134,19 @@ if (document.querySelector('[data-kalk]')) {
         el.addEventListener('change', kalkUpdate);
     });
 }
+
+// Produkt-Positions-Formular (Einheitssystem): Feldblöcke folgen dem
+// Produkt-Select. Ohne JS bleiben alle Blöcke sichtbar.
+document.querySelectorAll('[data-position-form]').forEach((form) => {
+    const select = form.querySelector('[data-pos-produkt]');
+    if (!select) return;
+    const update = () => {
+        const opt = select.selectedOptions[0];
+        const key = opt && opt.dataset.dach === '1' ? 'dach' : select.value;
+        form.querySelectorAll('[data-produkt-felder]').forEach((block) => {
+            block.hidden = block.dataset.produktFelder !== key;
+        });
+    };
+    select.addEventListener('change', update);
+    update();
+});

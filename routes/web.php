@@ -15,6 +15,7 @@ use App\Http\Controllers\LogistikController;
 use App\Http\Controllers\MaterialKatalogController;
 use App\Http\Controllers\MontageController;
 use App\Http\Controllers\ProjektController;
+use App\Http\Controllers\ProjektPositionController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +78,11 @@ Route::middleware('auth')->group(function () {
     Route::put('/anfragen/{anfrage:nummer}', [AnfrageController::class, 'update'])->middleware('role:verkaeufer,projektleiter')->name('anfragen.update');
     Route::post('/anfragen/{anfrage:nummer}/status', [AnfrageController::class, 'setzeStatus'])->middleware('role:verkaeufer,projektleiter')->name('anfragen.status');
     Route::post('/anfragen/{anfrage:nummer}/projekt', [AnfrageController::class, 'erstelleProjekt'])->middleware('role:verkaeufer,projektleiter')->name('anfragen.projekt');
+
+    // Projekt-Positionen (Einheitssystem: der Konfigurator lebt im Projekt).
+    Route::post('/projekte/{projekt:nr}/positionen', [ProjektPositionController::class, 'store'])->middleware('role:verkaeufer,projektleiter')->name('projekte.positionen.store');
+    Route::put('/projekte/{projekt:nr}/positionen/{position}', [ProjektPositionController::class, 'update'])->middleware('role:verkaeufer,projektleiter')->name('projekte.positionen.update');
+    Route::post('/projekte/{projekt:nr}/positionen/{position}/loeschen', [ProjektPositionController::class, 'loeschen'])->middleware('role:verkaeufer,projektleiter')->name('projekte.positionen.loeschen');
 
     Route::get('/projekte', [ProjektController::class, 'index'])->name('projekte');
     Route::get('/projekte/{projekt:nr}', [ProjektController::class, 'show'])->name('projekte.show');
