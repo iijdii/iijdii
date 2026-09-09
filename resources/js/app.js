@@ -73,34 +73,52 @@ function closeModal() {
     modalContent.innerHTML = '';
 }
 
-if (modal) {
-    document.addEventListener('click', async (e) => {
-        const row = e.target.closest('[data-modal-url]');
-        if (row && !e.target.closest('a,button,form')) {
-            const res = await fetch(row.dataset.modalUrl, { headers: { 'X-Requested-With': 'fetch' } });
-            if (res.ok) {
-                modalContent.innerHTML = await res.text();
-                modal.hidden = false;
-            }
-            return;
+document.addEventListener('click', async (e) => {
+    const row = e.target.closest('[data-modal-url]');
+    if (row && modal && !e.target.closest('a,button,form')) {
+        const res = await fetch(row.dataset.modalUrl, { headers: { 'X-Requested-With': 'fetch' } });
+        if (res.ok) {
+            modalContent.innerHTML = await res.text();
+            modal.hidden = false;
         }
-        if (e.target === modal || e.target.closest('[data-modal-close]')) closeModal();
-    });
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeModal();
-    });
-}
+        return;
+    }
+
+    // Statische Modals (Konfigurator-Fenster): Markup liegt im DOM,
+    // [data-modal-target] öffnet, Backdrop/[data-modal-close] schließt.
+    const opener = e.target.closest('[data-modal-target]');
+    if (opener) {
+        e.preventDefault();
+        const ziel = document.getElementById(opener.dataset.modalTarget);
+        if (ziel) ziel.hidden = false;
+        return;
+    }
+    if (e.target.closest('[data-modal-close]')) {
+        e.target.closest('.modal').hidden = true;
+        if (e.target.closest('.modal') === modal) closeModal();
+        return;
+    }
+    if (e.target.classList && e.target.classList.contains('modal')) {
+        e.target.hidden = true;
+        if (e.target === modal) closeModal();
+    }
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    document.querySelectorAll('.modal:not([hidden])').forEach((m) => { m.hidden = true; });
+    closeModal();
+});
 
 // ---------- Live-Dach-Kalkulation (Konfigurator / Anfrage-Formular) ----------
 // Progressive enhancement: die Formeln des Rechenkerns spiegeln, damit
 // die kbox ohne Server-Roundtrip aktualisiert. Der POST bleibt Quelle
 // der Wahrheit.
-function kalkUpdate() {
-    const w = parseInt(document.querySelector('[data-kalk="width"]')?.value, 10) || 0;
-    const d = parseInt(document.querySelector('[data-kalk="depth"]')?.value, 10) || 0;
-    const postN = parseInt(document.querySelector('[data-kalk="postN"]')?.value, 10) || 0;
-    const fieldN = parseInt(document.querySelector('[data-kalk="fieldN"]')?.value, 10) || 0;
-    const ledSel = document.querySelector('[data-kalk="ledTotal"]');
+function kalkUpdate(scope) {
+    const w = parseInt(scope.querySelector('[data-kalk="width"]')?.value, 10) || 0;
+    const d = parseInt(scope.querySelector('[data-kalk="depth"]')?.value, 10) || 0;
+    const postN = parseInt(scope.querySelector('[data-kalk="postN"]')?.value, 10) || 0;
+    const fieldN = parseInt(scope.querySelector('[data-kalk="fieldN"]')?.value, 10) || 0;
+    const ledSel = scope.querySelector('[data-kalk="ledTotal"]');
     const rec = w > 0 ? Math.ceil(w / 4000) + 1 : 0;
     const pn = postN > 0 ? postN : rec;
     // Glasregeln: max. 750 mm Glasbreite, Breite = Achsmaß − 22, Tiefe = T − 60.
@@ -120,20 +138,26 @@ function kalkUpdate() {
         glas: spar ? de(glasB) + ' × ' + de(glasT) + ' mm' : '–',
         ledTot: ledTot, ledTot2: ledTot,
     };
-    document.querySelectorAll('[data-kalk-out]').forEach((el) => {
+    scope.querySelectorAll('[data-kalk-out]').forEach((el) => {
         const key = el.dataset.kalkOut;
         if (key in out) el.textContent = out[key];
     });
-    const warn = document.querySelector('[data-kalk-warn="glas"]');
+    const warn = scope.querySelector('[data-kalk-warn="glas"]');
     if (warn) warn.hidden = glasB <= 750;
 }
 
-if (document.querySelector('[data-kalk]')) {
-    document.querySelectorAll('[data-kalk]').forEach((el) => {
-        el.addEventListener('input', kalkUpdate);
-        el.addEventListener('change', kalkUpdate);
+// Jede Konfigurator-Instanz (Seite + Modals) rechnet für sich —
+// [data-kalk-scope] kapselt Eingaben und Ausgaben zusammen.
+const kalkScopes = document.querySelectorAll('[data-kalk-scope]').length
+    ? [...document.querySelectorAll('[data-kalk-scope]')]
+    : (document.querySelector('[data-kalk]') ? [document] : []);
+kalkScopes.forEach((scope) => {
+    scope.querySelectorAll('[data-kalk]').forEach((el) => {
+        el.addEventListener('input', () => kalkUpdate(scope));
+        el.addEventListener('change', () => kalkUpdate(scope));
     });
-}
+    if (scope !== document) kalkUpdate(scope);
+});
 
 // Produkt-Positions-Formular (Einheitssystem): Feldblöcke folgen dem
 // Produkt-Select. Ohne JS bleiben alle Blöcke sichtbar.

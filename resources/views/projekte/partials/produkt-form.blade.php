@@ -12,7 +12,7 @@
     $produktWert = old($prefix.'.produkt', $position?->produkt?->value ?? ($standardProdukt ?? 'ueberdachung'));
 @endphp
 
-<div data-position-form>
+<div data-position-form data-kalk-scope>
     <div class="fgrid2">
         <div class="fld"><label>Produkt</label>
             <select class="inp" name="{{ $prefix }}[produkt]" data-pos-produkt>
