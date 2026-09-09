@@ -51,6 +51,11 @@ class Projekt extends Model
         return $this->belongsTo(Anfrage::class, 'anfrage_id');
     }
 
+    public function positionen(): HasMany
+    {
+        return $this->hasMany(ProjektPosition::class, 'projekt_id')->orderBy('pos');
+    }
+
     public function bestellungen(): HasMany
     {
         return $this->hasMany(Bestellung::class, 'projekt_id');
