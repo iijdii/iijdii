@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'nr', 'titel', 'kunde_id', 'angebot_id', 'anfrage_id', 'projektleiter_id', 'objekt_strasse',
     'objekt_hausnummer', 'objekt_plz', 'objekt_stadt', 'status',
     'termin_von', 'termin_bis', 'konfiguration', 'aufmass',
+    'aufmass_bestaetigt_am', 'aufmass_von', 'vor_ort_gewesen',
 ])]
 class Projekt extends Model
 {
@@ -28,7 +29,20 @@ class Projekt extends Model
             'termin_bis' => 'date',
             'konfiguration' => 'array',
             'aufmass' => 'array',
+            'aufmass_bestaetigt_am' => 'datetime',
+            'vor_ort_gewesen' => 'boolean',
         ];
+    }
+
+    public function aufmassBestaetiger(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'aufmass_von');
+    }
+
+    /** Harte Sperre M10: ohne bestätigtes Aufmaß keine Bestellung aus dem Projekt. */
+    public function aufmassBestaetigt(): bool
+    {
+        return $this->aufmass_bestaetigt_am !== null;
     }
 
     public function projektleiter(): BelongsTo

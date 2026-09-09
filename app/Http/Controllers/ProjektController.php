@@ -122,6 +122,42 @@ class ProjektController extends Controller
         return redirect()->route('projekte.show', $projekt)->with('toast', 'Projektdaten gespeichert');
     }
 
+    /**
+     * Aufmaß-Bestätigung (M10): der Verkäufer bestätigt die Maße am
+     * Objekt — harte Voraussetzung für Bestellungen aus dem Projekt.
+     */
+    public function bestaetigeAufmass(Request $request, Projekt $projekt): RedirectResponse
+    {
+        $daten = $request->validate([
+            'aktion' => ['required', Rule::in(['bestaetigen', 'zuruecksetzen'])],
+            'vor_ort_gewesen' => ['nullable', 'boolean'],
+        ]);
+
+        if ($daten['aktion'] === 'zuruecksetzen') {
+            $projekt->update(['aufmass_bestaetigt_am' => null, 'aufmass_von' => null, 'vor_ort_gewesen' => false]);
+            $titel = 'Aufmaß-Bestätigung zurückgesetzt';
+            $toast = 'Aufmaß-Bestätigung zurückgesetzt';
+        } else {
+            $vorOrt = (bool) ($daten['vor_ort_gewesen'] ?? false);
+            $projekt->update([
+                'aufmass_bestaetigt_am' => now(),
+                'aufmass_von' => $request->user()->id,
+                'vor_ort_gewesen' => $vorOrt,
+            ]);
+            $titel = 'Aufmaß bestätigt'.($vorOrt ? ' (vor Ort)' : ' (ohne Vor-Ort-Termin)');
+            $toast = 'Aufmaß bestätigt — Bestellungen sind jetzt möglich';
+        }
+
+        $projekt->aktivitaeten()->create([
+            'titel' => $titel,
+            'wer' => $request->user()->name,
+            'datum' => now()->format('d.m.'),
+            'status' => 'done',
+        ]);
+
+        return redirect()->route('projekte.show', [$projekt, 'tab' => 'konfig'])->with('toast', $toast);
+    }
+
     public function setzeStatus(Request $request, Projekt $projekt): RedirectResponse
     {
         $daten = $request->validate([

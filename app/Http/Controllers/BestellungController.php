@@ -220,7 +220,13 @@ class BestellungController extends Controller
             'lieferant_id' => ['required', 'exists:lieferanten,id'],
             'titel' => ['required', 'string', 'max:150'],
             'kategorie' => ['nullable', Rule::in(['glas', 'aluminium', 'gemischt'])],
-            'projekt_id' => ['nullable', 'exists:projekte,id'],
+            // Harte Sperre (M10): Projektbezug nur mit bestätigtem Aufmaß.
+            'projekt_id' => ['nullable', 'exists:projekte,id',
+                function (string $attribut, mixed $wert, \Closure $fehler) {
+                    if (! Projekt::query()->find($wert)?->aufmassBestaetigt()) {
+                        $fehler('Aufmaß nicht bestätigt — erst am Projekt bestätigen, dann bestellen.');
+                    }
+                }],
             'liefertermin' => ['nullable', 'date'],
             'notizen' => ['nullable', 'string', 'max:2000'],
         ]);

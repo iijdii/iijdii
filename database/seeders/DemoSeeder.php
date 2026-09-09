@@ -380,6 +380,17 @@ class DemoSeeder extends Seeder
                 }
             }
         }
+
+        // M10-Sperre: Seed-Projekte mit Bestellungen haben die Aufmaß-Stufe
+        // längst passiert — Bestätigung nachziehen, damit die Flüsse
+        // (Bestellung anlegen/bearbeiten) am Demo-Datenbestand offen bleiben.
+        $verkauf = User::query()->where('email', 'verkauf@lea.test')->first();
+        Projekt::query()->has('bestellungen')->whereNull('aufmass_bestaetigt_am')
+            ->update([
+                'aufmass_bestaetigt_am' => now()->subDays(30),
+                'aufmass_von' => $verkauf?->id,
+                'vor_ort_gewesen' => true,
+            ]);
     }
 
     private function seedReservierungen(array $projekte): void

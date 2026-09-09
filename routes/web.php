@@ -93,6 +93,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/projekte/{projekt:nr}/status', [ProjektController::class, 'setzeStatus'])->middleware('role:verkaeufer,projektleiter')->name('projekte.status');
     Route::post('/projekte/{projekt:nr}/reservierungen', [ProjektController::class, 'speichereReservierung'])->middleware('role:verkaeufer,projektleiter')->name('projekte.reservierungen.store');
     Route::post('/projekte/{projekt:nr}/reservierungen/{reservierung}/loeschen', [ProjektController::class, 'loescheReservierung'])->middleware('role:verkaeufer,projektleiter')->name('projekte.reservierungen.loeschen');
+    Route::post('/projekte/{projekt:nr}/aufmass-bestaetigung', [ProjektController::class, 'bestaetigeAufmass'])->middleware('role:verkaeufer,projektleiter')->name('projekte.aufmass');
     Route::post('/projekte/{projekt:nr}/konfiguration', [ProjektController::class, 'speichereKonfiguration'])
         ->middleware('role:verkaeufer,projektleiter')->name('projekte.konfiguration');
     Route::post('/projekte/{projekt:nr}/angebot', [ProjektController::class, 'erstelleAngebot'])
