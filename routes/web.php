@@ -78,6 +78,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/anfragen/{anfrage:nummer}', [AnfrageController::class, 'update'])->middleware('role:verkaeufer,projektleiter')->name('anfragen.update');
     Route::post('/anfragen/{anfrage:nummer}/status', [AnfrageController::class, 'setzeStatus'])->middleware('role:verkaeufer,projektleiter')->name('anfragen.status');
     Route::post('/anfragen/{anfrage:nummer}/projekt', [AnfrageController::class, 'erstelleProjekt'])->middleware('role:verkaeufer,projektleiter')->name('anfragen.projekt');
+    Route::post('/anfragen/{anfrage:nummer}/absage', [AnfrageController::class, 'absage'])->middleware('role:verkaeufer,projektleiter')->name('anfragen.absage');
 
     // Projekt-Positionen (Einheitssystem: der Konfigurator lebt im Projekt).
     Route::post('/projekte/{projekt:nr}/positionen', [ProjektPositionController::class, 'store'])->middleware('role:verkaeufer,projektleiter')->name('projekte.positionen.store');

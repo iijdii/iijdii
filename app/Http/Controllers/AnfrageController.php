@@ -229,6 +229,49 @@ class AnfrageController extends Controller
             ->with('toast', 'Projekt '.$projekt->nr.' aus '.$anfrage->nummer.' erstellt');
     }
 
+    /**
+     * Kunde hat abgesagt: Projekt + Angebot werden gelöscht (Betreiber-
+     * Prozess), die Anfrage bleibt als kein_interesse erhalten. Sobald am
+     * Projekt schon Bestellungen oder Reservierungen hängen, ist die
+     * Absage blockiert — dann muss zuerst aufgeräumt werden.
+     */
+    public function absage(Request $request, Anfrage $anfrage): RedirectResponse
+    {
+        $projekt = $anfrage->projekt;
+
+        if ($projekt && ($projekt->bestellungen()->exists() || $projekt->reservierungen()->exists()
+            || $projekt->abnahmeprotokolle()->exists())) {
+            return redirect()->route('anfragen.show', $anfrage)
+                ->with('toast', 'Absage nicht möglich — am Projekt hängen bereits Bestellungen/Reservierungen');
+        }
+
+        DB::transaction(function () use ($anfrage, $projekt, $request) {
+            $geloescht = [];
+            if ($projekt) {
+                $angebot = $projekt->angebot;
+                $geloescht[] = $projekt->nr;
+                $projekt->delete(); // Positionen/Aktivitäten/Dokumente/Aufgaben kaskadieren
+                if ($angebot) {
+                    $geloescht[] = $angebot->nr;
+                    $angebot->delete();
+                }
+            } elseif ($anfrage->angebot) {
+                $geloescht[] = $anfrage->angebot->nr;
+                $anfrage->angebot->delete();
+            }
+
+            $anfrage->update(['status' => AnfrageStatus::KeinInteresse]);
+            $anfrage->aktivitaeten()->create([
+                'typ' => 'status_geaendert',
+                'von_user_id' => $request->user()->id,
+                'details' => ['nach' => 'kein_interesse', 'geloescht' => $geloescht],
+            ]);
+        });
+
+        return redirect()->route('anfragen.show', $anfrage)
+            ->with('toast', 'Absage erfasst — Projekt & Angebot gelöscht');
+    }
+
     private function validiert(Request $request): array
     {
         $daten = $request->validate([

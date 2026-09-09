@@ -24,6 +24,11 @@
                 <a class="btn btns" href="{{ route('anfragen.edit', $anfrage) }}">
                     <svg class="i"><use href="#ic-edit"/></svg>Bearbeiten</a>
                 @if ($anfrage->projekt)
+                    <form method="POST" action="{{ route('anfragen.absage', $anfrage) }}"
+                          onsubmit="return confirm('Kunde hat abgesagt? Projekt {{ $anfrage->projekt->nr }} und Angebot werden gelöscht.')">
+                        @csrf
+                        <button class="btn btns" type="submit">Absage</button>
+                    </form>
                     <a class="btn btns btnp" href="{{ route('projekte.show', $anfrage->projekt) }}">
                         <svg class="i"><use href="#ic-projekte"/></svg>Projekt {{ $anfrage->projekt->nr }} öffnen</a>
                 @else

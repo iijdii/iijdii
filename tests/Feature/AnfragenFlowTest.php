@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\AnfrageStatus;
 use App\Models\Anfrage;
+use App\Models\Angebot;
 use App\Models\Kunde;
 use App\Models\Projekt;
 use App\Models\User;
@@ -215,5 +216,33 @@ class AnfragenFlowTest extends TestCase
         $anfrage = Anfrage::query()->orderByDesc('id')->first();
         $this->assertNull($anfrage->projekt);
         $this->assertSame('Nur Beratung', $anfrage->produkt_notiz);
+    }
+
+    public function test_absage_loescht_projekt_und_angebot(): void
+    {
+        $this->actingAs($this->benutzer)->post('/anfragen', [
+            'kunde_id' => 1, 'status' => 'neu',
+            'position' => ['produkt' => 'ueberdachung', 'felder' => ['width' => 6000]],
+        ]);
+        $anfrage = Anfrage::query()->orderByDesc('id')->first();
+        $projektNr = $anfrage->projekt->nr;
+        $angebotId = $anfrage->projekt->angebot_id;
+
+        $this->actingAs($this->benutzer)->post('/anfragen/'.$anfrage->nummer.'/absage')
+            ->assertSessionHas('toast', 'Absage erfasst — Projekt & Angebot gelöscht');
+
+        $anfrage = $anfrage->fresh();
+        $this->assertSame('kein_interesse', $anfrage->status->value);
+        $this->assertNull(Projekt::query()->where('nr', $projektNr)->first());
+        $this->assertNull(Angebot::query()->find($angebotId));
+    }
+
+    public function test_absage_blockiert_bei_bestellungen(): void
+    {
+        // PRJ-2026-011 (Seed, verknüpft mit ANF-2026-012) hat Bestellungen.
+        $this->actingAs($this->benutzer)->post('/anfragen/ANF-2026-012/absage')
+            ->assertSessionHas('toast', 'Absage nicht möglich — am Projekt hängen bereits Bestellungen/Reservierungen');
+
+        $this->assertNotNull(Projekt::query()->where('nr', 'PRJ-2026-011')->first());
     }
 }
