@@ -46,6 +46,9 @@ final class ProduktFelder
                 'glasTrans' => ['nullable', Rule::in(['Klar', 'Milch'])],
                 'snow' => ['nullable', Rule::in(KonfiguratorRechner::SCHNEELAST)],
                 'wind' => ['nullable', Rule::in(KonfiguratorRechner::WINDZONE)],
+                'terraceDepth' => $mm, 'gutterOverhang' => $mm,
+                'unterzug' => ['nullable', 'array'],
+                'unterzug.groesse' => ['nullable', Rule::in(['110×190', '110×110', 'manuell'])],
                 // Entwässerung, Dübel & LED — pcfg-verschachtelt (Montage-Modus liest sie).
                 'drain' => ['nullable', 'array'],
                 'drain.post' => $mm, 'drain.height' => $mm,

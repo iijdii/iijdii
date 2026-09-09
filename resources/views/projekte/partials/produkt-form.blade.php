@@ -46,6 +46,14 @@
         <div class="fld"><label>Dachneigung (°)</label><input class="inp" type="number" name="{{ $prefix }}[felder][slope]" value="{{ $v('slope') }}"></div>
         <div class="fld"><label>Pfosten (Override)</label><input class="inp" type="number" name="{{ $prefix }}[felder][postN]" value="{{ $v('postN') }}" placeholder="auto" data-kalk="postN"></div>
         <div class="fld"><label>Glasfelder (Override)</label><input class="inp" type="number" name="{{ $prefix }}[felder][fieldN]" value="{{ $v('fieldN') }}" placeholder="auto" data-kalk="fieldN"></div>
+        <div class="fld"><label>Terrassentiefe / Pfostenlinie (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][terraceDepth]" value="{{ $v('terraceDepth') }}" placeholder="= Dachtiefe"></div>
+        <div class="fld"><label>Dachüberstand Rinne (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][gutterOverhang]" value="{{ $v('gutterOverhang') }}" placeholder="0"></div>
+        <div class="fld"><label>Unterzug-Größe</label>
+            <select class="inp" name="{{ $prefix }}[felder][unterzug][groesse]">
+                @foreach (['110×190', '110×110', 'manuell'] as $groesse)
+                    <option @selected($v('unterzug.groesse', '110×190') === $groesse)>{{ $groesse }}</option>
+                @endforeach
+            </select></div>
         <div class="fld"><label>Farbe</label>
             <select class="inp" name="{{ $prefix }}[felder][color]">
                 @foreach (KonfiguratorRechner::FARBEN as $farbe)

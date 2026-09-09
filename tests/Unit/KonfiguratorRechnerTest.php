@@ -54,6 +54,42 @@ class KonfiguratorRechnerTest extends TestCase
         $this->assertSame(750, KonfiguratorRechner::berechne(['covering' => 'VSG-Glas'])['maxPlatte']);
     }
 
+    public function test_hoehen_und_neigung_verrechnen_sich_gegenseitig(): void
+    {
+        // Beide Höhen gesetzt → Winkel aus atan (Default 2990/2500 bei T=3500 ≈ 8°).
+        $e = KonfiguratorRechner::berechne([]);
+        $this->assertSame(8.0, $e['slopeEff']);
+        $this->assertSame(14.1, $e['gefaelleProzent']); // KD: 8° ≈ 14 %
+
+        // Nur Rinnenhöhe → Wandhöhe folgt aus der Neigung (KD-Beispiel S. 10:
+        // 2000 + 3 m · 14 % ≈ 2420).
+        $e = KonfiguratorRechner::berechne([
+            'wallH' => 0, 'gutterH' => 2000, 'slope' => 8, 'depth' => 3000,
+        ]);
+        $this->assertSame(2422, $e['wallHEff']); // tan(8°) = 14,05 %
+        $this->assertSame(2000, $e['gutterHEff']);
+    }
+
+    public function test_unterzug_pflicht_und_position(): void
+    {
+        // Standard-Wandmontage, T=3500: kein Unterzug nötig.
+        $this->assertFalse(KonfiguratorRechner::berechne([])['unterzug']['erforderlich']);
+
+        // Freistehend → Pflicht.
+        $u = KonfiguratorRechner::berechne(['mounting' => 'freistehend'])['unterzug'];
+        $this->assertTrue($u['erforderlich']);
+        $this->assertContains('freistehende Konstruktion', $u['gruende']);
+
+        // Pfostenlinie vor der Traufe: Position + Überstand.
+        $u = KonfiguratorRechner::berechne(['depth' => 3500, 'terraceDepth' => 3000])['unterzug'];
+        $this->assertTrue($u['erforderlich']);
+        $this->assertSame(3000, $u['position']);
+        $this->assertSame(500, $u['ueberstand']);
+
+        // Tiefe über 4000 → Pflicht.
+        $this->assertTrue(KonfiguratorRechner::berechne(['depth' => 4200])['unterzug']['erforderlich']);
+    }
+
     public function test_manual_field_count_overrides_and_warns_beyond_the_limit(): void
     {
         // Manuell weniger Felder: Rechner folgt der Vorgabe …

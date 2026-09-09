@@ -62,6 +62,9 @@ final class KonfiguratorRechner
             'fieldN' => '',
             'snow' => 'SLZ 2 · 0,85 kN/m²',
             'wind' => 'WZ 2 · Binnenland',
+            'terraceDepth' => '',
+            'gutterOverhang' => '',
+            'unterzug' => ['groesse' => '110×190'],
             'extras' => ['Keile', 'Schiebe-Elemente', 'Markisen'],
             'keil' => ['count' => 1, 'hFront' => 120, 'side' => 'Links', 'material' => 'Glas', 'trans' => 'Klar'],
             'fest' => ['count' => 1, 'width' => 1000, 'height' => 2000, 'glas' => 'VSG-Glas', 'h2' => 2400],
@@ -144,6 +147,48 @@ final class KonfiguratorRechner
         $glasT = max(0, $D - self::GLAS_ABZUG_TIEFE);
         $ledTot = ($I($p['led']['total'] ?? 12) === 6) ? 6 : 12;
 
+        // Höhen ↔ Neigung (v3.2): beide Höhen → realer Winkel aus atan;
+        // nur eine Höhe → die andere folgt aus der Neigung.
+        $wallH = $I($p['wallH']);
+        $gutterH = $I($p['gutterH']);
+        if ($wallH > 0 && $gutterH > 0 && $D > 0) {
+            $slopeEff = round(rad2deg(atan(abs($wallH - $gutterH) / $D)), 1);
+        } else {
+            $slopeEff = (float) ($p['slope'] ?: 8);
+            $diff = (int) round($D * tan(deg2rad($slopeEff)));
+            if ($wallH > 0 && $gutterH <= 0) {
+                $gutterH = max(0, $wallH - $diff);
+            } elseif ($gutterH > 0 && $wallH <= 0) {
+                $wallH = $gutterH + $diff;
+            }
+        }
+        $gefaelleProzent = round(tan(deg2rad($slopeEff)) * 100, 1);
+
+        // Unterzug (v3.2): Pflicht bei freistehend, Tiefe > 4000,
+        // Dachüberstand oder Pfostenlinie vor der Traufe.
+        $terrace = $I($p['terraceDepth'] ?? '');
+        $overhang = $I($p['gutterOverhang'] ?? '');
+        $gruende = [];
+        if ($p['mounting'] === 'freistehend') {
+            $gruende[] = 'freistehende Konstruktion';
+        }
+        if ($D > 4000) {
+            $gruende[] = 'Tiefe über 4.000 mm';
+        }
+        if ($overhang > 0) {
+            $gruende[] = 'Dachüberstand an der Rinne';
+        }
+        if ($terrace > 0 && $terrace < $D) {
+            $gruende[] = 'Pfostenlinie vor der Traufe';
+        }
+        $unterzug = [
+            'erforderlich' => $gruende !== [],
+            'gruende' => $gruende,
+            'position' => ($terrace > 0 && $terrace < $D) ? $terrace : $D,
+            'ueberstand' => ($terrace > 0 && $terrace < $D) ? $D - $terrace : 0,
+            'groesse' => $p['unterzug']['groesse'] ?? '110×190',
+        ];
+
         $extras = $p['extras'] ?? [];
         $hat = fn (string $x) => in_array($x, $extras, true);
         $trapez = $p['shape'] === 'trapez';
@@ -197,6 +242,11 @@ final class KonfiguratorRechner
             'maxPlatte' => $maxPlatte,
             'poly' => $poly,
             'polyRestPlatte' => $polyRestPlatte,
+            'slopeEff' => $slopeEff,
+            'gefaelleProzent' => $gefaelleProzent,
+            'wallHEff' => $wallH,
+            'gutterHEff' => $gutterH,
+            'unterzug' => $unterzug,
             'blende' => $blende,
             'blendeText' => number_format($blende, 0, ',', '.').' mm',
             'sparText' => $spar ? number_format($spar, 0, ',', '.').' mm' : '–',

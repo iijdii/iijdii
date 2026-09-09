@@ -66,6 +66,11 @@ final class Stueckliste
         $zeile('DN75 HT Rohrbogen', 1);
         $zeile('Laubfänger DN75', 1, 'Stück', ['such' => 'Laubfänger DN75']);
 
+        // Unterzug bei Pflicht (freistehend, Tiefe > 4000, Überstand …).
+        if ($kalk['unterzug']['erforderlich'] ?? false) {
+            $zeile('Unterzug '.$kalk['unterzug']['groesse'], 1, 'Stück', ['laenge_mm' => $W]);
+        }
+
         // Polycarbonat: Tropfkante je Feld (KD Kap. 7.1).
         if ($kalk['poly'] ?? false) {
             $zeile('Alu-Abschlussprofil / Tropfkante (Profil 35906)', $kalk['fields'], 'Stück', ['laenge_mm' => $kalk['glasB']]);

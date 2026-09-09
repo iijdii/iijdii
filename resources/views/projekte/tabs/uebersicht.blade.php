@@ -57,8 +57,8 @@
                     @if ($position->produkt->istDach())
                         <div class="specsec">Maße</div>
                         <div class="spec-row"><span class="spec-k">Breite × Tiefe</span><span class="spec-v mono">{{ $mm($k['width']) }} × {{ $mm($k['depth']) }}</span></div>
-                        <div class="spec-row"><span class="spec-k">Höhe Wand / Rinne</span><span class="spec-v mono">{{ $mm($k['wallH']) }} / {{ $mm($k['gutterH']) }}</span></div>
-                        <div class="spec-row"><span class="spec-k">Form · Montage</span><span class="spec-v">{{ $k['shape'] === 'trapez' ? 'Trapez' : 'Rechteck' }} · {{ $k['mounting'] }} · {{ $k['slope'] }}°</span></div>
+                        <div class="spec-row"><span class="spec-k">Höhe Wand / Rinne</span><span class="spec-v mono">{{ $mm($kalk['wallHEff']) }} / {{ $mm($kalk['gutterHEff']) }}</span></div>
+                        <div class="spec-row"><span class="spec-k">Form · Montage</span><span class="spec-v">{{ $k['shape'] === 'trapez' ? 'Trapez' : 'Rechteck' }} · {{ $k['mounting'] }} · {{ $kalk['slopeEff'] }}° ({{ $kalk['gefaelleProzent'] }} %)</span></div>
                         <div class="specsec">Konstruktion</div>
                         <div class="spec-row"><span class="spec-k">Farbe</span><span class="spec-v">{{ $k['color'] }}</span></div>
                         <div class="spec-row"><span class="spec-k">Dach</span><span class="spec-v">{{ $k['covering'] }} {{ $k['thickness'] }} · {{ $k['glasTrans'] }}</span></div>
@@ -67,6 +67,13 @@
                         <div class="spec-row"><span class="spec-k">LED</span><span class="spec-v">{{ $kalk['ledTot'] }} Spots · {{ $k['led']['color'] }}</span></div>
                         <div class="spec-row"><span class="spec-k">Entwässerung</span><span class="spec-v">Pfosten {{ $k['drain']['post'] }} · {{ $k['drain']['dir'] }}</span></div>
                         <div class="spec-row"><span class="spec-k">Dübel</span><span class="spec-v">{{ $k['duebel']['typ'] }} {{ $k['duebel']['size'] }}</span></div>
+                        <div class="spec-row"><span class="spec-k">Unterzug</span><span class="spec-v">
+                            @if ($kalk['unterzug']['erforderlich'])
+                                {{ $kalk['unterzug']['groesse'] }} · Position {{ $mm($kalk['unterzug']['position']) }}@if ($kalk['unterzug']['ueberstand'] > 0) · Überstand {{ $mm($kalk['unterzug']['ueberstand']) }}@endif
+                            @else
+                                nicht erforderlich
+                            @endif
+                        </span></div>
                     @else
                         <div class="anf-specs">
                             @foreach ($position->felder ?? [] as $schluessel => $wert)
@@ -104,8 +111,8 @@
             @if ($kalk['glasZuBreit'])
                 <div class="kwarn">Eindeckungsbreite &gt; {{ number_format($kalk['maxPlatte'], 0, ',', '.') }} mm — Fertigungsgrenze überschritten (Feldanzahl erhöhen).</div>
             @endif
-            @if ($kalk['warnung'])
-                <div class="kwarn">Tiefe &gt; 4000 mm — statische Prüfung / Unterzug erforderlich.</div>
+            @if ($kalk['unterzug']['erforderlich'])
+                <div class="kwarn">Unterzug erforderlich: {{ implode(', ', $kalk['unterzug']['gruende']) }}.</div>
             @endif
             @if ($vorschau)
                 <span class="hint">Vorschau — noch nicht gespeichert</span>
