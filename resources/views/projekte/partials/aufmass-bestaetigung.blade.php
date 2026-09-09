@@ -17,6 +17,11 @@
                 <span class="spec">Vor-Ort-Termin <b>{{ $projekt->vor_ort_gewesen ? 'Ja — Verkäufer war am Objekt' : 'Nein' }}</b></span>
             </div>
             <div class="jb wrap" style="margin-top:12px">
+                <form method="POST" action="{{ route('projekte.bestellung', $projekt) }}">
+                    @csrf
+                    <button class="btn btns btnp" type="submit">
+                        <svg class="i"><use href="#ic-bestellungen"/></svg>Bestellung aus Positionen (Phase 1)</button>
+                </form>
                 <form method="POST" action="{{ route('projekte.aufmass', $projekt) }}"
                       onsubmit="return confirm('Aufmaß-Bestätigung zurücksetzen? Neue Bestellungen sind dann gesperrt.')">
                     @csrf
@@ -24,6 +29,8 @@
                     <button class="btn btns" type="submit">Zurücksetzen</button>
                 </form>
             </div>
+            <p class="hint" style="margin-top:8px">Erzeugt einen Bestell-Entwurf mit den Phase-1-Positionen
+                (Dachfelder aus der Glas-Kalkulation, Pfosten, Sparren). Den Lieferanten wählen Sie im Entwurf.</p>
         @else
             <p class="hint">Bestellungen aus diesem Projekt sind gesperrt, bis der Verkäufer die Maße
                 am Objekt bestätigt hat.</p>

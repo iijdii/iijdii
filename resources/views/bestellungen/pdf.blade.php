@@ -17,8 +17,8 @@
         </td>
         <td>
             <table class="kv">
-                <tr><td class="k">Lieferant</td><td>{{ $bestellung->lieferant->name }}</td></tr>
-                <tr><td class="k">Anschrift</td><td>{{ trim(($bestellung->lieferant->strasse ?? '').', '.($bestellung->lieferant->plz ?? '').' '.($bestellung->lieferant->stadt ?? ''), ', ') ?: '–' }}</td></tr>
+                <tr><td class="k">Lieferant</td><td>{{ $bestellung->lieferant?->name ?? '–' }}</td></tr>
+                <tr><td class="k">Anschrift</td><td>{{ trim(($bestellung->lieferant?->strasse ?? '').', '.($bestellung->lieferant?->plz ?? '').' '.($bestellung->lieferant?->stadt ?? ''), ', ') ?: '–' }}</td></tr>
                 <tr><td class="k">Liefertermin</td><td>{{ Format::datum($bestellung->liefertermin) }}</td></tr>
             </table>
         </td>

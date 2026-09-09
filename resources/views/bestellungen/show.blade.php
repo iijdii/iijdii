@@ -27,7 +27,7 @@
         </div>
         <h2 class="serif" style="margin:8px 0 14px;font-size:23px">{{ $bestellung->titel }}</h2>
         <div class="metarow">
-            <span><span class="meta-k">Lieferant</span><span class="meta-v">{{ $bestellung->lieferant->name }}</span></span>
+            <span><span class="meta-k">Lieferant</span><span class="meta-v">{{ $bestellung->lieferant?->name ?? '— Lieferant wählen —' }}</span></span>
             <span><span class="meta-k">Kunde</span><span class="meta-v">{{ $bestellung->kunde?->anzeigename ?? '–' }}</span></span>
             <span><span class="meta-k">Projekt</span><span class="meta-v mono">{{ $bestellung->projekt?->nr ?? '–' }}</span></span>
             <span><span class="meta-k">Ersteller</span><span class="meta-v">{{ $bestellung->ersteller?->name ?? '–' }}</span></span>

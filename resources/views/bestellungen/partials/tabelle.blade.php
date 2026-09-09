@@ -16,7 +16,7 @@
                 <tr class="lrow" onclick="window.location='{{ route('bestellungen.show', $b) }}'">
                     <td class="b mono">{{ $b->nr }}</td>
                     <td class="mono">{{ $b->projekt?->nr ?? '–' }}</td>
-                    <td>{{ $b->lieferant->name }}</td>
+                    <td>{{ $b->lieferant?->name ?? '— wählen —' }}</td>
                     <td><span class="pill {{ $b->kategoriePillClass() }}">{{ $b->kategorieLabel() }}</span></td>
                     <td class="mono">{{ Format::datumKurz($b->liefertermin) }}</td>
                     <td class="num"><span class="badge {{ $b->status->badgeClass() }}">{{ $b->status->label() }}</span></td>

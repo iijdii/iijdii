@@ -28,7 +28,8 @@
                 <input class="inp" name="titel" value="{{ $wert('titel') }}" required
                        placeholder="z. B. Dachverglasung — Terrasse"></div>
             <div class="fld"><label>Lieferant *</label>
-                <select class="inp" name="lieferant_id" required>
+                <select class="inp" name="lieferant_id">
+                    <option value="">— Lieferant wählen —</option>
                     @foreach ($lieferanten as $lieferant)
                         <option value="{{ $lieferant->id }}"
                                 @selected((int) old('lieferant_id', $bestellung?->lieferant_id) === $lieferant->id)>{{ $lieferant->name }}</option>

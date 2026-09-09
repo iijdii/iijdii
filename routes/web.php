@@ -94,6 +94,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/projekte/{projekt:nr}/reservierungen', [ProjektController::class, 'speichereReservierung'])->middleware('role:verkaeufer,projektleiter')->name('projekte.reservierungen.store');
     Route::post('/projekte/{projekt:nr}/reservierungen/{reservierung}/loeschen', [ProjektController::class, 'loescheReservierung'])->middleware('role:verkaeufer,projektleiter')->name('projekte.reservierungen.loeschen');
     Route::post('/projekte/{projekt:nr}/aufmass-bestaetigung', [ProjektController::class, 'bestaetigeAufmass'])->middleware('role:verkaeufer,projektleiter')->name('projekte.aufmass');
+    Route::post('/projekte/{projekt:nr}/bestellung-aus-positionen', [BestellungController::class, 'ausProjektPositionen'])->middleware('role:verkaeufer,projektleiter')->name('projekte.bestellung');
     Route::post('/projekte/{projekt:nr}/konfiguration', [ProjektController::class, 'speichereKonfiguration'])
         ->middleware('role:verkaeufer,projektleiter')->name('projekte.konfiguration');
     Route::post('/projekte/{projekt:nr}/angebot', [ProjektController::class, 'erstelleAngebot'])
@@ -116,15 +117,16 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/bestellungen', [BestellungController::class, 'index'])->name('bestellungen');
     Route::get('/bestellungen/neu', [BestellungController::class, 'create'])->name('bestellungen.create');
-    Route::post('/bestellungen', [BestellungController::class, 'store'])->middleware('role:lager,projektleiter')->name('bestellungen.store');
+    // Verkäufer pflegt Bestell-Entwürfe aus Positionen mit (Lieferantenwahl).
+    Route::post('/bestellungen', [BestellungController::class, 'store'])->middleware('role:lager,verkaeufer,projektleiter')->name('bestellungen.store');
     Route::get('/bestellungen/{bestellung:nr}', [BestellungController::class, 'show'])->name('bestellungen.show');
     Route::get('/bestellungen/{bestellung:nr}/bearbeiten', [BestellungController::class, 'edit'])->name('bestellungen.edit');
-    Route::put('/bestellungen/{bestellung:nr}', [BestellungController::class, 'update'])->middleware('role:lager,projektleiter')->name('bestellungen.update');
-    Route::post('/bestellungen/{bestellung:nr}/positionen', [BestellungController::class, 'speicherePosition'])->middleware('role:lager,projektleiter')->name('bestellungen.positionen.store');
-    Route::post('/bestellungen/{bestellung:nr}/positionen/{position}/loeschen', [BestellungController::class, 'loeschePosition'])->middleware('role:lager,projektleiter')->name('bestellungen.positionen.loeschen');
+    Route::put('/bestellungen/{bestellung:nr}', [BestellungController::class, 'update'])->middleware('role:lager,verkaeufer,projektleiter')->name('bestellungen.update');
+    Route::post('/bestellungen/{bestellung:nr}/positionen', [BestellungController::class, 'speicherePosition'])->middleware('role:lager,verkaeufer,projektleiter')->name('bestellungen.positionen.store');
+    Route::post('/bestellungen/{bestellung:nr}/positionen/{position}/loeschen', [BestellungController::class, 'loeschePosition'])->middleware('role:lager,verkaeufer,projektleiter')->name('bestellungen.positionen.loeschen');
     Route::get('/bestellungen/{bestellung:nr}/pdf', [BestellungController::class, 'pdf'])->name('bestellungen.pdf');
     Route::post('/bestellungen/{bestellung:nr}/status', [BestellungController::class, 'setzeStatus'])
-        ->middleware('role:lager,projektleiter')->name('bestellungen.status');
+        ->middleware('role:lager,verkaeufer,projektleiter')->name('bestellungen.status');
 
     Route::get('/lager', [LagerController::class, 'index'])->name('lager');
     Route::get('/lager/artikel/{artikel}', [LagerController::class, 'artikel'])->name('lager.artikel');

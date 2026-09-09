@@ -13,7 +13,7 @@
             </div>
             <div class="anf-b">
                 <div class="fx">
-                    <span class="anf-title">{{ $b->lieferant->name }}</span>
+                    <span class="anf-title">{{ $b->lieferant?->name ?? '— Lieferant wählen —' }}</span>
                     <span class="pill {{ $b->kategoriePillClass() }}">{{ $b->kategorieLabel() }}</span>
                 </div>
                 <div class="anf-sub">{{ $b->projekt?->nr ?? '–' }} · {{ $b->kunde?->anzeigename ?? '–' }}</div>

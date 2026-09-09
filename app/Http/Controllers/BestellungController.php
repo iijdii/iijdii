@@ -12,11 +12,13 @@ use App\Models\Projekt;
 use App\Services\LagerService;
 use App\Support\Format;
 use App\Support\GlasSkizze;
+use App\Support\KonfiguratorRechner;
 use App\Support\Nummern;
 use App\Support\PdfArchiv;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -78,6 +80,98 @@ class BestellungController extends Controller
 
         return redirect()->route('bestellungen.show', $bestellung)
             ->with('toast', 'Bestellung '.$bestellung->nr.' angelegt (Entwurf)');
+    }
+
+    /**
+     * Bestell-Entwurf aus den Phase-1-Projektpositionen (M10): Dachfelder
+     * aus der Glas-Kalkulation, Pfosten und Sparren aus dem Rechenkern.
+     * Der Lieferant bleibt offen — der Verkäufer wählt ihn im Entwurf.
+     */
+    public function ausProjektPositionen(Request $request, Projekt $projekt): RedirectResponse
+    {
+        $zurueck = redirect()->route('projekte.show', [$projekt, 'tab' => 'konfig']);
+
+        if (! $projekt->aufmassBestaetigt()) {
+            return $zurueck->with('toast', 'Aufmaß nicht bestätigt — Bestellung gesperrt');
+        }
+
+        $dach = $projekt->positionen()->where('gruppe', 'dach')->first();
+        if ($dach === null) {
+            return $zurueck->with('toast', 'Keine Dachposition — Phase 1 hat nichts zu bestellen');
+        }
+
+        // Kein Duplikat: ein offener Entwurf aus Positionen wird geöffnet.
+        $entwurf = $projekt->bestellungen()
+            ->where('status', BestellungStatus::Entwurf)
+            ->whereHas('positionen', fn ($q) => $q->whereNotNull('projekt_position_id'))
+            ->first();
+        if ($entwurf !== null) {
+            return redirect()->route('bestellungen.show', $entwurf)
+                ->with('toast', 'Entwurf '.$entwurf->nr.' aus Positionen existiert bereits');
+        }
+
+        $kalk = KonfiguratorRechner::berechne($projekt->konfiguration ?? []);
+        if ($kalk['fields'] < 1) {
+            return $zurueck->with('toast', 'Konfiguration unvollständig — bitte Breite/Tiefe pflegen');
+        }
+        if ($kalk['glasZuBreit']) {
+            return $zurueck->with('toast', 'Glasbreite über '.KonfiguratorRechner::MAX_GLAS_BREITE.' mm — Felderzahl im Konfigurator prüfen');
+        }
+        $p = $kalk['pcfg'];
+
+        $bestellung = DB::transaction(function () use ($request, $projekt, $dach, $kalk, $p) {
+            $bestellung = Bestellung::query()->create([
+                'nr' => Nummern::bestellung(),
+                'titel' => 'Projekt '.$projekt->nr.' · Phase 1',
+                'kategorie' => 'gemischt',
+                'projekt_id' => $projekt->id,
+                'kunde_id' => $projekt->kunde_id,
+                'ersteller_id' => $request->user()->id,
+                'status' => BestellungStatus::Entwurf,
+                'notizen' => 'Automatisch aus den Projektpositionen erstellt — Lieferant im Entwurf wählen.',
+            ]);
+
+            $glasName = 'Dachfeld '.$p['covering'].' '.$p['thickness'];
+            $glasArtikel = Artikel::findeNachName($p['covering'].' '.$p['thickness'].' klar')
+                ?? Artikel::findeNachName($p['covering'].' '.$p['thickness']);
+            $bestellung->positionen()->create([
+                'typ' => 'glas', 'pos' => 1, 'bezeichnung' => $glasName,
+                'artikel_id' => $glasArtikel?->id,
+                'menge' => $kalk['fields'], 'einheit' => 'Feld',
+                'breite_mm' => $kalk['glasB'], 'hoehe_mm' => $kalk['glasT'],
+                'projekt_position_id' => $dach->id,
+                'details' => [
+                    'form' => 'Rechteck', 'hL' => $kalk['glasT'], 'hR' => $kalk['glasT'],
+                    'glas' => $p['covering'].' '.$p['thickness'], 'quelle' => 'projekt',
+                ],
+            ]);
+
+            $profile = [
+                ['Pfosten 110×110 · '.$p['color'], 'Pfosten 110×110', $kalk['pn']],
+                ['Dachsparren 80×60 mm', 'Dachsparren 80×60 mm', $kalk['rafters']],
+            ];
+            foreach ($profile as $i => [$bezeichnung, $suchname, $menge]) {
+                $artikel = Artikel::findeNachName($suchname);
+                $bestellung->positionen()->create([
+                    'typ' => 'material', 'pos' => $i + 2, 'bezeichnung' => $bezeichnung,
+                    'artikel_id' => $artikel?->id, 'menge' => $menge,
+                    'einheit' => $artikel?->einheit->value ?? 'Stück',
+                    'projekt_position_id' => $dach->id,
+                ]);
+            }
+
+            $projekt->aktivitaeten()->create([
+                'titel' => 'Bestell-Entwurf '.$bestellung->nr.' aus Positionen erstellt',
+                'wer' => $request->user()->name,
+                'datum' => now()->format('d.m.'),
+                'status' => 'done',
+            ]);
+
+            return $bestellung;
+        });
+
+        return redirect()->route('bestellungen.show', $bestellung)
+            ->with('toast', 'Entwurf '.$bestellung->nr.' erstellt — bitte Lieferant wählen');
     }
 
     public function edit(Bestellung $bestellung): View
@@ -217,7 +311,9 @@ class BestellungController extends Controller
     private function kopfDaten(Request $request): array
     {
         $daten = $request->validate([
-            'lieferant_id' => ['required', 'exists:lieferanten,id'],
+            // Entwürfe aus Positionen starten ohne Lieferant; ohne ihn
+            // verlässt setzeStatus den Entwurf nicht.
+            'lieferant_id' => ['nullable', 'exists:lieferanten,id'],
             'titel' => ['required', 'string', 'max:150'],
             'kategorie' => ['nullable', Rule::in(['glas', 'aluminium', 'gemischt'])],
             // Harte Sperre (M10): Projektbezug nur mit bestätigtem Aufmaß.
@@ -327,6 +423,10 @@ class BestellungController extends Controller
         ]);
 
         $status = BestellungStatus::from($validiert['status']);
+        if ($bestellung->lieferant_id === null && $status !== BestellungStatus::Entwurf) {
+            return redirect()->route('bestellungen.show', $bestellung)
+                ->with('toast', 'Bitte zuerst einen Lieferanten wählen');
+        }
         $bestellung->update(['status' => $status]);
 
         // Zentrale Regel: Geliefert/Montiert lagert automatisch ein.

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'bestellung_id', 'typ', 'pos', 'bezeichnung', 'artikel_id',
     'menge', 'einheit', 'breite_mm', 'hoehe_mm', 'details', 'eingelagert',
-    'kommissioniert_am', 'kommissionier_notiz',
+    'kommissioniert_am', 'kommissionier_notiz', 'projekt_position_id',
 ])]
 class BestellungPosition extends Model
 {
@@ -34,5 +34,10 @@ class BestellungPosition extends Model
     public function artikel(): BelongsTo
     {
         return $this->belongsTo(Artikel::class, 'artikel_id');
+    }
+
+    public function projektPosition(): BelongsTo
+    {
+        return $this->belongsTo(ProjektPosition::class, 'projekt_position_id');
     }
 }
