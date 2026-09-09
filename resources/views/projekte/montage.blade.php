@@ -121,7 +121,11 @@
         @include('projekte.montage-partials.led')
 
         {{-- 8 · Endmaße der Extras --}}
-        @include('projekte.montage-partials.endmasse')
+        @if ($phase2->isNotEmpty())
+            @include('projekte.montage-partials.endmasse-positionen')
+        @else
+            @include('projekte.montage-partials.endmasse')
+        @endif
 
         {{-- 9 · Notiz / Problem --}}
         <section class="mm-card c6" id="s9">

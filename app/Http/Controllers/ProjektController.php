@@ -173,6 +173,16 @@ class ProjektController extends Controller
             'status' => ['required', Rule::enum(ProjektStatus::class)],
         ]);
         $status = ProjektStatus::from($daten['status']);
+
+        // M11: mit Phase-2-Positionen schließt das Projekt erst nach der
+        // zweiten Abnahme (Dachmontage + Elementmontage).
+        if ($status === ProjektStatus::Abgeschlossen
+            && $projekt->positionen()->where('phase', 2)->exists()
+            && $projekt->abnahmeprotokolle()->count() < 2) {
+            return redirect()->route('projekte.show', $projekt)
+                ->with('toast', 'Abschluss erst nach der zweiten Abnahme (Phase 2)');
+        }
+
         $projekt->update(['status' => $status]);
         $projekt->aktivitaeten()->create([
             'titel' => 'Status: '.$status->label(),

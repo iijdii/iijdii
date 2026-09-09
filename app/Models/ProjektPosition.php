@@ -26,4 +26,9 @@ class ProjektPosition extends Model
     {
         return $this->belongsTo(Projekt::class, 'projekt_id');
     }
+
+    public function endmasseVon(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'endmasse_von');
+    }
 }

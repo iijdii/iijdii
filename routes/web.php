@@ -105,6 +105,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/projekte/{projekt:nr}/reservierungen/{reservierung}/loeschen', [ProjektController::class, 'loescheReservierung'])->middleware('role:verkaeufer,projektleiter')->name('projekte.reservierungen.loeschen');
     Route::post('/projekte/{projekt:nr}/aufmass-bestaetigung', [ProjektController::class, 'bestaetigeAufmass'])->middleware('role:verkaeufer,projektleiter')->name('projekte.aufmass');
     Route::post('/projekte/{projekt:nr}/bestellung-aus-positionen', [BestellungController::class, 'ausProjektPositionen'])->middleware('role:verkaeufer,projektleiter')->name('projekte.bestellung');
+    Route::post('/projekte/{projekt:nr}/nachbestellung', [BestellungController::class, 'nachbestellungAusEndmassen'])->middleware('role:verkaeufer,projektleiter')->name('projekte.nachbestellung');
     Route::post('/projekte/{projekt:nr}/konfiguration', [ProjektController::class, 'speichereKonfiguration'])
         ->middleware('role:verkaeufer,projektleiter')->name('projekte.konfiguration');
     Route::post('/projekte/{projekt:nr}/angebot', [ProjektController::class, 'erstelleAngebot'])
@@ -112,6 +113,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/projekte/{projekt:nr}/montage', [MontageController::class, 'zeige'])->name('projekte.montage');
     Route::post('/projekte/{projekt:nr}/montage/aufmass', [MontageController::class, 'speichereAufmass'])->middleware('role:monteur,projektleiter')->name('projekte.montage.aufmass');
+    Route::post('/projekte/{projekt:nr}/montage/endmasse', [MontageController::class, 'speichereEndmasse'])->middleware('role:monteur,projektleiter')->name('projekte.montage.endmasse');
     Route::post('/projekte/{projekt:nr}/montage/led', [MontageController::class, 'toggleLed'])->middleware('role:monteur,projektleiter')->name('projekte.montage.led');
     Route::post('/projekte/{projekt:nr}/montage/notizen', [MontageController::class, 'speichereNotiz'])->middleware('role:monteur,projektleiter')->name('projekte.montage.notizen');
     Route::post('/projekte/{projekt:nr}/montage/notizen/{notiz}/loeschen', [MontageController::class, 'loescheNotiz'])->middleware('role:monteur,projektleiter')->name('projekte.montage.notizen.loeschen');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\BestellungPositionTyp;
 use App\Enums\BestellungStatus;
+use App\Enums\ProjektProdukt;
 use App\Models\Artikel;
 use App\Models\Bestellung;
 use App\Models\BestellungPosition;
@@ -15,6 +16,7 @@ use App\Support\GlasSkizze;
 use App\Support\KonfiguratorRechner;
 use App\Support\Nummern;
 use App\Support\PdfArchiv;
+use App\Support\SeitenwandRechner;
 use App\Support\Stueckliste;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -175,6 +177,108 @@ class BestellungController extends Controller
 
         return redirect()->route('bestellungen.show', $bestellung)
             ->with('toast', 'Entwurf '.$bestellung->nr.' erstellt — bitte Lieferant wählen');
+    }
+
+    /**
+     * Nachbestellung Phase 2 (M11): Elemente aus den vom Monteur
+     * erfassten Endmaßen — Seitenwände als fertiger Glaszuschnitt
+     * (SeitenwandRechner), Schiebeanlagen als Schiebe-Positionen.
+     */
+    public function nachbestellungAusEndmassen(Request $request, Projekt $projekt): RedirectResponse
+    {
+        $zurueck = redirect()->route('projekte.show', [$projekt, 'tab' => 'material']);
+
+        $positionen = $projekt->positionen()->where('phase', 2)->whereNotNull('endmasse_am')->orderBy('pos')->get();
+        if ($positionen->isEmpty()) {
+            return $zurueck->with('toast', 'Keine Endmaße erfasst — zuerst im Montage-Modus eintragen');
+        }
+
+        $entwurf = $projekt->bestellungen()
+            ->where('status', BestellungStatus::Entwurf)
+            ->where('titel', 'like', '%Phase 2%')
+            ->first();
+        if ($entwurf !== null) {
+            return redirect()->route('bestellungen.show', $entwurf)
+                ->with('toast', 'Entwurf '.$entwurf->nr.' (Phase 2) existiert bereits');
+        }
+
+        $bestellung = DB::transaction(function () use ($request, $projekt, $positionen) {
+            $bestellung = Bestellung::query()->create([
+                'nr' => Nummern::bestellung(),
+                'titel' => 'Projekt '.$projekt->nr.' · Phase 2 (Endmaße)',
+                'kategorie' => 'gemischt',
+                'projekt_id' => $projekt->id,
+                'kunde_id' => $projekt->kunde_id,
+                'ersteller_id' => $request->user()->id,
+                'status' => BestellungStatus::Entwurf,
+                'notizen' => 'Nachbestellung aus den Endmaßen — Lieferant im Entwurf wählen.',
+            ]);
+
+            $pos = 0;
+            foreach ($positionen as $position) {
+                // Endmaß gewinnt, konfigurierte Felder füllen Lücken.
+                $m = ($position->endmasse ?? []) + ($position->felder ?? []);
+                $anzahl = max(1, (int) ($m['anzahl'] ?? $m['felder_n'] ?? 1));
+
+                if ($position->produkt === ProjektProdukt::Wand && (int) ($m['breite_mm'] ?? 0) > 0) {
+                    $hL = (int) ($m['h_links_mm'] ?? 0);
+                    $hR = (int) ($m['h_rechts_mm'] ?? $hL);
+                    foreach (SeitenwandRechner::panels((int) $m['breite_mm'], $hL, $hR, $anzahl) as $panel) {
+                        $bestellung->positionen()->create([
+                            'typ' => 'glas', 'pos' => ++$pos,
+                            'bezeichnung' => 'Seitenwand Panel '.$panel['nr'].' ('.$panel['form'].') — Pos. '.$position->pos,
+                            'menge' => 1, 'einheit' => 'Feld',
+                            'breite_mm' => $panel['breite'], 'hoehe_mm' => max($panel['hLinks'], $panel['hRechts']),
+                            'projekt_position_id' => $position->id,
+                            'details' => [
+                                'form' => $panel['form'], 'hL' => $panel['hLinks'], 'hR' => $panel['hRechts'],
+                                'glas' => (string) ($m['glas'] ?? ''), 'quelle' => 'live',
+                            ],
+                        ]);
+                    }
+
+                    continue;
+                }
+
+                if ($position->produkt === ProjektProdukt::Schiebe && (int) ($m['breite_mm'] ?? 0) > 0) {
+                    $bestellung->positionen()->create([
+                        'typ' => 'schiebe', 'pos' => ++$pos,
+                        'bezeichnung' => 'Schiebeanlage nach Endmaß — Pos. '.$position->pos,
+                        'menge' => $anzahl, 'einheit' => 'Stück',
+                        'breite_mm' => (int) $m['breite_mm'], 'hoehe_mm' => (int) ($m['hoehe_mm'] ?? 0),
+                        'projekt_position_id' => $position->id,
+                        'details' => ['count' => $anzahl, 'glas' => (string) ($m['glas'] ?? ''), 'quelle' => 'live'],
+                    ]);
+
+                    continue;
+                }
+
+                $masse = array_filter([
+                    $m['breite_mm'] ?? $m['laenge_mm'] ?? null,
+                    $m['hoehe_mm'] ?? $m['ausfall_mm'] ?? $m['h_vorn_mm'] ?? null,
+                ]);
+                $bestellung->positionen()->create([
+                    'typ' => 'material', 'pos' => ++$pos,
+                    'bezeichnung' => $position->produkt->label().' nach Endmaß'
+                        .($masse !== [] ? ' '.implode('×', $masse).' mm' : '').' — Pos. '.$position->pos,
+                    'menge' => $anzahl, 'einheit' => 'Stück',
+                    'projekt_position_id' => $position->id,
+                    'details' => $position->endmasse,
+                ]);
+            }
+
+            $projekt->aktivitaeten()->create([
+                'titel' => 'Nachbestellung '.$bestellung->nr.' aus Endmaßen erstellt (Phase 2)',
+                'wer' => $request->user()->name,
+                'datum' => now()->format('d.m.'),
+                'status' => 'done',
+            ]);
+
+            return $bestellung;
+        });
+
+        return redirect()->route('bestellungen.show', $bestellung)
+            ->with('toast', 'Entwurf '.$bestellung->nr.' (Phase 2) erstellt — bitte Lieferant wählen');
     }
 
     public function edit(Bestellung $bestellung): View

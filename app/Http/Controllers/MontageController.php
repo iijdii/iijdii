@@ -59,6 +59,7 @@ class MontageController extends Controller
 
         return view('projekte.montage', [
             'projekt' => $projekt,
+            'phase2' => $projekt->positionen()->where('phase', 2)->orderBy('pos')->get(),
             'kalk' => $kalk,
             'pcfg' => $p,
             'tolGruen' => $tolGruen,
@@ -80,6 +81,37 @@ class MontageController extends Controller
             'adresse' => $adresse,
             'mapsQuery' => urlencode($adresse),
         ]);
+    }
+
+    /**
+     * Endmaße je Phase-2-Position (M11): der Monteur erfasst die finalen
+     * Maße nach der Dachmontage — Grundlage der Nachbestellung.
+     */
+    public function speichereEndmasse(Request $request, Projekt $projekt): RedirectResponse
+    {
+        $eingaben = (array) $request->input('endmasse', []);
+        $erfasst = 0;
+
+        foreach ($projekt->positionen()->where('phase', 2)->get() as $position) {
+            $werte = array_filter(
+                array_map(fn ($w) => is_numeric($w) ? (int) $w : null, (array) ($eingaben[$position->id] ?? [])),
+                fn ($w) => $w !== null && $w >= 0,
+            );
+            if ($werte === []) {
+                continue;
+            }
+            $position->update([
+                'endmasse' => $werte + ($position->endmasse ?? []),
+                'endmasse_von' => $request->user()->id,
+                'endmasse_am' => now(),
+            ]);
+            $erfasst++;
+        }
+
+        return redirect()->route('projekte.montage', $projekt)
+            ->with('toast', $erfasst > 0
+                ? 'Endmaße gespeichert · '.$erfasst.' Position(en)'
+                : 'Keine Endmaße eingegeben');
     }
 
     public function speichereAufmass(Request $request, Projekt $projekt): RedirectResponse
