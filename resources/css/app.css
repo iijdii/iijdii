@@ -135,6 +135,7 @@ body{margin:0;font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);backgr
 .card.p0{padding:0}
 .fx{display:flex;align-items:center;gap:10px}
 .jb{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.wrap{flex-wrap:wrap}
 .colstack{display:flex;flex-direction:column;gap:16px}
 .cols-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:1024px){.cols-2{grid-template-columns:1fr}}

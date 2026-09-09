@@ -60,13 +60,6 @@
             </div>
         </div>
         <div class="card">
-            <div class="mc-h"><svg class="i"><use href="#ic-user"/></svg>Verantwortlich</div>
-            <div class="fx">
-                <span class="uava">{{ collect(explode(' ', $projekt->projektleiter?->name ?? '–'))->map(fn ($teil) => mb_substr($teil, 0, 1))->take(2)->implode('') }}</span>
-                <span><b>{{ $projekt->projektleiter?->name ?? '–' }}</b><div class="hint">Projektleitung</div></span>
-            </div>
-        </div>
-        <div class="card">
             <div class="mc-h"><svg class="i"><use href="#ic-kalender"/></svg>Termine &amp; Verantwortung</div>
             <form method="POST" action="{{ route('projekte.stammdaten', $projekt) }}" class="colstack" style="gap:8px">
                 @csrf
@@ -88,10 +81,12 @@
                 <button class="btn btns" type="submit" style="align-self:flex-end">Speichern</button>
             </form>
         </div>
-        <div class="card">
-            <div class="mc-h"><svg class="i"><use href="#ic-anfragen"/></svg>Projekt-Notizen</div>
-            <p class="note">{{ $projekt->kunde->notizen ?? '–' }}</p>
-        </div>
+        @if ($projekt->kunde->notizen)
+            <div class="card">
+                <div class="mc-h"><svg class="i"><use href="#ic-anfragen"/></svg>Kunden-Notizen</div>
+                <p class="note">{{ $projekt->kunde->notizen }}</p>
+            </div>
+        @endif
     </div>
 </div>
 

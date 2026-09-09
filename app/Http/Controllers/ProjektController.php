@@ -31,6 +31,7 @@ class ProjektController extends Controller
 
     public function index(Request $request): View
     {
+        $ansicht = $request->query('ansicht') === 'karten' ? 'karten' : 'tabelle';
         $filter = $request->query('status', 'alle');
         $alle = Projekt::query()->with(['kunde', 'angebot'])->orderByDesc('nr')->get();
 
@@ -46,6 +47,7 @@ class ProjektController extends Controller
             ]);
 
         return view('projekte.index', [
+            'ansicht' => $ansicht,
             'chips' => $chips,
             'filter' => $filter,
             'projekte' => $filter === 'alle'
