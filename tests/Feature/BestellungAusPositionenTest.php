@@ -57,7 +57,7 @@ class BestellungAusPositionenTest extends TestCase
         $this->assertSame(8.0, (float) $glas->menge);
         $this->assertSame(728, $glas->breite_mm);
         $this->assertSame(2940, $glas->hoehe_mm);
-        $this->assertSame('projekt', $glas->details['quelle']);
+        $this->assertSame('live', $glas->details['quelle']); // Badge «aus Projekt»
 
         $material = $bestellung->positionen()->where('typ', 'material')->orderBy('pos')->get();
         $this->assertSame(['Pfosten 110×110 · Weiß · RAL 9016', 'Dachsparren 80×60 mm'], $material->pluck('bezeichnung')->all());

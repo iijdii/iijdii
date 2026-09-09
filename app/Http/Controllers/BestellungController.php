@@ -142,7 +142,7 @@ class BestellungController extends Controller
                 'projekt_position_id' => $dach->id,
                 'details' => [
                     'form' => 'Rechteck', 'hL' => $kalk['glasT'], 'hR' => $kalk['glasT'],
-                    'glas' => $p['covering'].' '.$p['thickness'], 'quelle' => 'projekt',
+                    'glas' => $p['covering'].' '.$p['thickness'], 'quelle' => 'live',
                 ],
             ]);
 

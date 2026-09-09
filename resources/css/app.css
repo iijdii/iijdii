@@ -18,6 +18,9 @@
 .accent-blue{--acc:var(--blue);--accd:var(--blued);--accbg:var(--bluebg)}
 
 *{box-sizing:border-box}
+/* Das hidden-Attribut muss auch Klassen mit eigenem display schlagen
+   (z. B. .kwarn{display:flex} — die Glas-Warnung des Konfigurators). */
+[hidden]{display:none!important}
 body{margin:0;font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg2);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 .serif{font-family:'DM Serif Display',Georgia,serif;font-weight:400}
 .mono{font-family:'DM Mono',ui-monospace,monospace}
