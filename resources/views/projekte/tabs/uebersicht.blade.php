@@ -67,6 +67,10 @@
                         <div class="spec-row"><span class="spec-k">LED</span><span class="spec-v">{{ $kalk['ledTot'] }} Spots · {{ $k['led']['color'] }}</span></div>
                         <div class="spec-row"><span class="spec-k">Entwässerung</span><span class="spec-v">Pfosten {{ $k['drain']['post'] }} · {{ $k['drain']['dir'] }}</span></div>
                         <div class="spec-row"><span class="spec-k">Dübel</span><span class="spec-v">{{ $k['duebel']['typ'] }} {{ $k['duebel']['size'] }}</span></div>
+                        <div class="spec-row"><span class="spec-k">Pfosten-Positionen</span><span class="spec-v mono">{{ $kalk['postPositionen'] !== [] ? implode(' · ', array_map(fn ($x) => number_format($x, 0, ',', '.'), $kalk['postPositionen'])).' mm' : '–' }}</span></div>
+                        @if (count($kalk['profilSegmente']) > 1)
+                            <div class="spec-row"><span class="spec-k">Profilsegmente</span><span class="spec-v mono">{{ implode(' + ', array_map(fn ($s) => number_format($s, 0, ',', '.'), $kalk['profilSegmente'])) }} mm</span></div>
+                        @endif
                         <div class="spec-row"><span class="spec-k">Unterzug</span><span class="spec-v">
                             @if ($kalk['unterzug']['erforderlich'])
                                 {{ $kalk['unterzug']['groesse'] }} · Position {{ $mm($kalk['unterzug']['position']) }}@if ($kalk['unterzug']['ueberstand'] > 0) · Überstand {{ $mm($kalk['unterzug']['ueberstand']) }}@endif
@@ -113,6 +117,12 @@
             @endif
             @if ($kalk['unterzug']['erforderlich'])
                 <div class="kwarn">Unterzug erforderlich: {{ implode(', ', $kalk['unterzug']['gruende']) }}.</div>
+            @endif
+            @if ($kalk['spannZuGross'])
+                <div class="kwarn">Pfosten-Spannweite über 4.000 mm — Position prüfen.</div>
+            @endif
+            @if ($kalk['stossPfosten'] !== [])
+                <div class="kwarn">Profilstoß bei {{ implode(' / ', array_map(fn ($x) => number_format($x, 0, ',', '.'), $kalk['stossPfosten'])) }} mm — Pfosten unter dem Stoß empfohlen (Stoß − 55).</div>
             @endif
             @if ($vorschau)
                 <span class="hint">Vorschau — noch nicht gespeichert</span>

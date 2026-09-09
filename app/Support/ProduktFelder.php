@@ -47,6 +47,10 @@ final class ProduktFelder
                 'snow' => ['nullable', Rule::in(KonfiguratorRechner::SCHNEELAST)],
                 'wind' => ['nullable', Rule::in(KonfiguratorRechner::WINDZONE)],
                 'terraceDepth' => $mm, 'gutterOverhang' => $mm,
+                'postLeftOffset' => ['nullable', 'integer', 'between:0,500'],
+                'postRightOffset' => ['nullable', 'integer', 'between:0,500'],
+                'postMiddle' => $mm,
+                'postManual' => ['nullable', 'string', 'max:200', 'regex:/^[\d\s,]*$/'],
                 'unterzug' => ['nullable', 'array'],
                 'unterzug.groesse' => ['nullable', Rule::in(['110×190', '110×110', 'manuell'])],
                 // Entwässerung, Dübel & LED — pcfg-verschachtelt (Montage-Modus liest sie).

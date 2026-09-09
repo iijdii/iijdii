@@ -46,12 +46,24 @@ final class Stueckliste
             ];
         }
 
-        // Profile (Länge = Dachbreite bzw. Dachtiefe).
-        $zeile('Gigarinne (Profil 35732)', 1, 'Stück', ['laenge_mm' => $W]);
-        $zeile('Wandprofil (Profil 35721)', 1, 'Stück', ['laenge_mm' => $W]);
+        // Profile (Länge = Dachbreite bzw. Dachtiefe); über 7.000 mm in
+        // Segmenten (Stoß liegt über einem Pfosten).
+        $segmente = $kalk['profilSegmente'] ?? [$W];
+        $segText = count($segmente) > 1
+            ? ' — '.count($segmente).' Segmente: '.implode(' + ', array_map(
+                fn (int $s) => number_format($s, 0, ',', '.'), $segmente
+            )).' mm'
+            : '';
+        $breitProfil = function (string $name) use (&$zeilen, $segmente, $segText, $W) {
+            $zeilen[] = ['name' => $name.$segText, 'menge' => max(1, count($segmente)),
+                'einheit' => 'Stück', 'typ' => 'material']
+                + (count($segmente) > 1 ? [] : ['laenge_mm' => $W]);
+        };
+        $breitProfil('Gigarinne (Profil 35732)');
+        $breitProfil('Wandprofil (Profil 35721)');
         $zeile('Sparren/Träger (Profil 47047)', $kalk['rafters'], 'Stück', ['laenge_mm' => $D, 'such' => 'Dachsparren 80×60 mm']);
         $zeile('Alu-Pfosten 110×110 (Profil 35722) · '.$p['color'], $kalk['pn'], 'Stück', ['such' => 'Pfosten 110×110']);
-        $zeile('Wandblende (Profil 35715)', 1, 'Stück', ['laenge_mm' => $W]);
+        $breitProfil('Wandblende (Profil 35715)');
         $zeile('Seitenabdeckprofil / Eckleiste (Profil 35720)', 2, 'Stück', ['laenge_mm' => $D]);
         if ($kalk['rafters'] > 2) {
             $zeile('Abdeckprofil Rundleiste (Profil 35720)', $kalk['rafters'] - 2, 'Stück', ['laenge_mm' => $D]);

@@ -65,6 +65,10 @@ final class KonfiguratorRechner
             'terraceDepth' => '',
             'gutterOverhang' => '',
             'unterzug' => ['groesse' => '110×190'],
+            'postLeftOffset' => '',
+            'postRightOffset' => '',
+            'postMiddle' => '',
+            'postManual' => '',
             'extras' => ['Keile', 'Schiebe-Elemente', 'Markisen'],
             'keil' => ['count' => 1, 'hFront' => 120, 'side' => 'Links', 'material' => 'Glas', 'trans' => 'Klar'],
             'fest' => ['count' => 1, 'width' => 1000, 'height' => 2000, 'glas' => 'VSG-Glas', 'h2' => 2400],
@@ -75,6 +79,24 @@ final class KonfiguratorRechner
             'duebel' => ['typ' => 'Schlagdübel', 'size' => '10 × 80 mm', 'abstand' => 500],
             'led' => ['on' => true, 'total' => 12, 'color' => 'Warmweiß 3000K'],
         ];
+    }
+
+    /**
+     * Profilsegmente: Rinne/Wandprofil über 7.000 mm werden geteilt
+     * (Transport/Fertigung); der Stoß liegt später über einem Pfosten.
+     *
+     * @return list<int>
+     */
+    public static function segmente(int $laenge, int $max = 7000): array
+    {
+        if ($laenge <= 0) {
+            return [];
+        }
+        $anzahl = (int) ceil($laenge / $max);
+        $segmente = array_fill(0, $anzahl - 1, $max);
+        $segmente[] = $laenge - ($anzahl - 1) * $max;
+
+        return $segmente;
     }
 
     /** Teil-Konfiguration über die Defaults legen; extras ersetzen, nicht mischen. */
@@ -189,6 +211,56 @@ final class KonfiguratorRechner
             'groesse' => $p['unterzug']['groesse'] ?? '110×190',
         ];
 
+        // Pfosten-Positionen (v3.2): manuelle CSV-Positionen haben Vorrang;
+        // sonst Randabstände (max. 500), optional Mittelpfosten-Position.
+        $pfostenPositionen = [];
+        $linksX = min(500, max(0, $I($p['postLeftOffset'] ?? '')));
+        $rechtsX = max($linksX, $W - min(500, max(0, $I($p['postRightOffset'] ?? ''))));
+        $manuell = trim((string) ($p['postManual'] ?? ''));
+        if ($manuell !== '' && $W > 0) {
+            foreach (explode(',', $manuell) as $wert) {
+                $x = (int) trim($wert);
+                if ($x >= 0 && $x <= $W) {
+                    $pfostenPositionen[] = $x;
+                }
+            }
+        }
+        if ($pfostenPositionen === [] && $W > 0 && $pn >= 2) {
+            $pfostenPositionen = [$linksX];
+            if ($pn === 3) {
+                $mitte = $I($p['postMiddle'] ?? '');
+                $pfostenPositionen[] = ($mitte > $linksX && $mitte < $rechtsX) ? $mitte : (int) round($W / 2);
+            } elseif ($pn > 3) {
+                $schritt = ($rechtsX - $linksX) / ($pn - 1);
+                for ($i = 1; $i <= $pn - 2; $i++) {
+                    $pfostenPositionen[] = (int) round($linksX + $schritt * $i);
+                }
+            }
+            $pfostenPositionen[] = $rechtsX;
+        }
+        $pfostenPositionen = array_values(array_unique($pfostenPositionen));
+        sort($pfostenPositionen);
+        $spannZuGross = false;
+        for ($i = 1; $i < count($pfostenPositionen); $i++) {
+            if ($pfostenPositionen[$i] - $pfostenPositionen[$i - 1] > 4000) {
+                $spannZuGross = true;
+            }
+        }
+
+        // Profilsegmente (max. 7.000 mm Transport-/Fertigungslänge) und
+        // Stoß-Empfehlung: Pfosten mittig unter dem Stoß (Stoß − 55).
+        $segmente = self::segmente($W);
+        $stossPfosten = [];
+        $x = 0;
+        for ($i = 0; $i < count($segmente) - 1; $i++) {
+            $x += $segmente[$i];
+            $empfohlen = $x - 55;
+            $vorhanden = array_filter($pfostenPositionen, fn ($px) => abs($px - $empfohlen) <= 100);
+            if ($empfohlen > $linksX && $empfohlen < $rechtsX && $vorhanden === []) {
+                $stossPfosten[] = $empfohlen;
+            }
+        }
+
         $extras = $p['extras'] ?? [];
         $hat = fn (string $x) => in_array($x, $extras, true);
         $trapez = $p['shape'] === 'trapez';
@@ -247,6 +319,10 @@ final class KonfiguratorRechner
             'wallHEff' => $wallH,
             'gutterHEff' => $gutterH,
             'unterzug' => $unterzug,
+            'postPositionen' => $pfostenPositionen,
+            'spannZuGross' => $spannZuGross,
+            'profilSegmente' => $segmente,
+            'stossPfosten' => $stossPfosten,
             'blende' => $blende,
             'blendeText' => number_format($blende, 0, ',', '.').' mm',
             'sparText' => $spar ? number_format($spar, 0, ',', '.').' mm' : '–',

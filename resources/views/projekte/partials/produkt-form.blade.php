@@ -46,6 +46,10 @@
         <div class="fld"><label>Dachneigung (°)</label><input class="inp" type="number" name="{{ $prefix }}[felder][slope]" value="{{ $v('slope') }}"></div>
         <div class="fld"><label>Pfosten (Override)</label><input class="inp" type="number" name="{{ $prefix }}[felder][postN]" value="{{ $v('postN') }}" placeholder="auto" data-kalk="postN"></div>
         <div class="fld"><label>Glasfelder (Override)</label><input class="inp" type="number" name="{{ $prefix }}[felder][fieldN]" value="{{ $v('fieldN') }}" placeholder="auto" data-kalk="fieldN"></div>
+        <div class="fld"><label>Pfosten-Abstand links (mm, max. 500)</label><input class="inp" type="number" max="500" name="{{ $prefix }}[felder][postLeftOffset]" value="{{ $v('postLeftOffset') }}" placeholder="0"></div>
+        <div class="fld"><label>Pfosten-Abstand rechts (mm, max. 500)</label><input class="inp" type="number" max="500" name="{{ $prefix }}[felder][postRightOffset]" value="{{ $v('postRightOffset') }}" placeholder="0"></div>
+        <div class="fld"><label>Mittelpfosten-Position (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][postMiddle]" value="{{ $v('postMiddle') }}" placeholder="Mitte"></div>
+        <div class="fld"><label>Pfosten manuell (CSV, mm)</label><input class="inp mono" type="text" name="{{ $prefix }}[felder][postManual]" value="{{ $v('postManual') }}" placeholder="z. B. 0, 3500, 7000"></div>
         <div class="fld"><label>Terrassentiefe / Pfostenlinie (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][terraceDepth]" value="{{ $v('terraceDepth') }}" placeholder="= Dachtiefe"></div>
         <div class="fld"><label>Dachüberstand Rinne (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][gutterOverhang]" value="{{ $v('gutterOverhang') }}" placeholder="0"></div>
         <div class="fld"><label>Unterzug-Größe</label>

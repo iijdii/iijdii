@@ -90,6 +90,30 @@ class KonfiguratorRechnerTest extends TestCase
         $this->assertTrue(KonfiguratorRechner::berechne(['depth' => 4200])['unterzug']['erforderlich']);
     }
 
+    public function test_pfosten_positionen_segmente_und_stoss(): void
+    {
+        // Demo 8630, pn=4: gleichmäßig verteilt; Rinne > 7000 → 2 Segmente,
+        // der Stoß (7000 − 55) hat keinen Pfosten in ±100 → Empfehlung.
+        $e = KonfiguratorRechner::berechne([]);
+        $this->assertSame([0, 2877, 5753, 8630], $e['postPositionen']);
+        $this->assertSame([7000, 1630], $e['profilSegmente']);
+        $this->assertSame([6945], $e['stossPfosten']);
+        $this->assertFalse($e['spannZuGross']);
+
+        // Randabstände und Mittelpfosten
+        $e = KonfiguratorRechner::berechne([
+            'width' => 6000, 'postN' => 3,
+            'postLeftOffset' => 300, 'postRightOffset' => 200, 'postMiddle' => 2500,
+        ]);
+        $this->assertSame([300, 2500, 5800], $e['postPositionen']);
+        $this->assertSame([6000], $e['profilSegmente']);
+
+        // Manuelle CSV-Positionen gewinnen; Spannweite > 4000 warnt.
+        $e = KonfiguratorRechner::berechne(['width' => 9000, 'postManual' => '0, 4500, 9000']);
+        $this->assertSame([0, 4500, 9000], $e['postPositionen']);
+        $this->assertTrue($e['spannZuGross']);
+    }
+
     public function test_manual_field_count_overrides_and_warns_beyond_the_limit(): void
     {
         // Manuell weniger Felder: Rechner folgt der Vorgabe …
