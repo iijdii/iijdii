@@ -69,6 +69,7 @@ final class KonfiguratorRechner
             'postRightOffset' => '',
             'postMiddle' => '',
             'postManual' => '',
+            'trapez' => ['wand' => '', 'rinne' => '', 'offsetL' => '', 'offsetR' => ''],
             'extras' => ['Keile', 'Schiebe-Elemente', 'Markisen'],
             'keil' => ['count' => 1, 'hFront' => 120, 'side' => 'Links', 'material' => 'Glas', 'trans' => 'Klar'],
             'fest' => ['count' => 1, 'width' => 1000, 'height' => 2000, 'glas' => 'VSG-Glas', 'h2' => 2400],
@@ -247,6 +248,39 @@ final class KonfiguratorRechner
             }
         }
 
+        // Trapez-Geometrie (v3.2): Längendifferenz Wand/Rinne verteilt sich
+        // auf die Seiten-Offsets (leer = automatisch symmetrisch).
+        $trapezGeo = null;
+        if ($p['shape'] === 'trapez') {
+            $wandL = $I($p['trapez']['wand'] ?? '') ?: $W;
+            $rinneL = $I($p['trapez']['rinne'] ?? '') ?: $W;
+            $diffT = abs($wandL - $rinneL);
+            $oL = (string) ($p['trapez']['offsetL'] ?? '');
+            $oR = (string) ($p['trapez']['offsetR'] ?? '');
+            if ($oL === '' && $oR === '') {
+                $offL = intdiv($diffT, 2);
+                $offR = $diffT - $offL;
+            } elseif ($oL !== '' && $oR === '') {
+                $offL = max(0, $I($oL));
+                $offR = max(0, $diffT - $offL);
+            } elseif ($oL === '' && $oR !== '') {
+                $offR = max(0, $I($oR));
+                $offL = max(0, $diffT - $offR);
+            } else {
+                $offL = max(0, $I($oL));
+                $offR = max(0, $I($oR));
+            }
+            $trapezGeo = [
+                'wand' => $wandL,
+                'rinne' => $rinneL,
+                'offsetLinks' => $offL,
+                'offsetRechts' => $offR,
+                'winkelLinks' => $D > 0 ? round(rad2deg(atan($offL / $D)), 1) : 0.0,
+                'winkelRechts' => $D > 0 ? round(rad2deg(atan($offR / $D)), 1) : 0.0,
+                'kurzeSeite' => $wandL < $rinneL ? 'Wandprofil' : 'Rinne',
+            ];
+        }
+
         // Profilsegmente (max. 7.000 mm Transport-/Fertigungslänge) und
         // Stoß-Empfehlung: Pfosten mittig unter dem Stoß (Stoß − 55).
         $segmente = self::segmente($W);
@@ -323,6 +357,7 @@ final class KonfiguratorRechner
             'spannZuGross' => $spannZuGross,
             'profilSegmente' => $segmente,
             'stossPfosten' => $stossPfosten,
+            'trapez' => $trapezGeo,
             'blende' => $blende,
             'blendeText' => number_format($blende, 0, ',', '.').' mm',
             'sparText' => $spar ? number_format($spar, 0, ',', '.').' mm' : '–',

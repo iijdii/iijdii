@@ -67,6 +67,9 @@
                         <div class="spec-row"><span class="spec-k">LED</span><span class="spec-v">{{ $kalk['ledTot'] }} Spots · {{ $k['led']['color'] }}</span></div>
                         <div class="spec-row"><span class="spec-k">Entwässerung</span><span class="spec-v">Pfosten {{ $k['drain']['post'] }} · {{ $k['drain']['dir'] }}</span></div>
                         <div class="spec-row"><span class="spec-k">Dübel</span><span class="spec-v">{{ $k['duebel']['typ'] }} {{ $k['duebel']['size'] }}</span></div>
+                        @if ($kalk['trapez'])
+                            <div class="spec-row"><span class="spec-k">Trapez</span><span class="spec-v">Wand {{ $mm($kalk['trapez']['wand']) }} · Rinne {{ $mm($kalk['trapez']['rinne']) }} · Offsets {{ $kalk['trapez']['offsetLinks'] }}/{{ $kalk['trapez']['offsetRechts'] }} mm · Winkel {{ $kalk['trapez']['winkelLinks'] }}°/{{ $kalk['trapez']['winkelRechts'] }}°</span></div>
+                        @endif
                         <div class="spec-row"><span class="spec-k">Pfosten-Positionen</span><span class="spec-v mono">{{ $kalk['postPositionen'] !== [] ? implode(' · ', array_map(fn ($x) => number_format($x, 0, ',', '.'), $kalk['postPositionen'])).' mm' : '–' }}</span></div>
                         @if (count($kalk['profilSegmente']) > 1)
                             <div class="spec-row"><span class="spec-k">Profilsegmente</span><span class="spec-v mono">{{ implode(' + ', array_map(fn ($s) => number_format($s, 0, ',', '.'), $kalk['profilSegmente'])) }} mm</span></div>
@@ -86,6 +89,23 @@
                                     <b>{{ str_contains($schluessel, '_mm') && is_numeric($wert) ? number_format((int) $wert, 0, ',', '.').' mm' : $wert }}</b></span>
                             @endforeach
                         </div>
+                        @php
+                            $f = $position->felder ?? [];
+                            $wandPanels = $position->produkt === \App\Enums\ProjektProdukt::Wand
+                                && (int) ($f['breite_mm'] ?? 0) > 0 && (int) ($f['h_links_mm'] ?? 0) > 0
+                                ? \App\Support\SeitenwandRechner::panels(
+                                    (int) $f['breite_mm'], (int) $f['h_links_mm'],
+                                    (int) ($f['h_rechts_mm'] ?? $f['h_links_mm']), (int) ($f['anzahl'] ?? 1),
+                                )
+                                : [];
+                        @endphp
+                        @if ($wandPanels !== [])
+                            <div class="specsec" style="margin-top:10px">Glaszuschnitt (Fuge 30 mm)</div>
+                            @foreach ($wandPanels as $panel)
+                                <div class="spec-row"><span class="spec-k">Panel {{ $panel['nr'] }} · {{ $panel['form'] }}</span>
+                                    <span class="spec-v mono">{{ number_format($panel['breite'], 0, ',', '.') }} × {{ number_format($panel['hLinks'], 0, ',', '.') }}/{{ number_format($panel['hRechts'], 0, ',', '.') }} mm</span></div>
+                            @endforeach
+                        @endif
                     @endif
                 </div>
             </div>

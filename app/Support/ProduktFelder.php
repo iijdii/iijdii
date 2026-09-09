@@ -51,6 +51,9 @@ final class ProduktFelder
                 'postRightOffset' => ['nullable', 'integer', 'between:0,500'],
                 'postMiddle' => $mm,
                 'postManual' => ['nullable', 'string', 'max:200', 'regex:/^[\d\s,]*$/'],
+                'trapez' => ['nullable', 'array'],
+                'trapez.wand' => $mm, 'trapez.rinne' => $mm,
+                'trapez.offsetL' => $mm, 'trapez.offsetR' => $mm,
                 'unterzug' => ['nullable', 'array'],
                 'unterzug.groesse' => ['nullable', Rule::in(['110×190', '110×110', 'manuell'])],
                 // Entwässerung, Dübel & LED — pcfg-verschachtelt (Montage-Modus liest sie).

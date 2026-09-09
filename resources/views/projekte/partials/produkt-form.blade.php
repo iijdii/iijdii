@@ -46,6 +46,10 @@
         <div class="fld"><label>Dachneigung (°)</label><input class="inp" type="number" name="{{ $prefix }}[felder][slope]" value="{{ $v('slope') }}"></div>
         <div class="fld"><label>Pfosten (Override)</label><input class="inp" type="number" name="{{ $prefix }}[felder][postN]" value="{{ $v('postN') }}" placeholder="auto" data-kalk="postN"></div>
         <div class="fld"><label>Glasfelder (Override)</label><input class="inp" type="number" name="{{ $prefix }}[felder][fieldN]" value="{{ $v('fieldN') }}" placeholder="auto" data-kalk="fieldN"></div>
+        <div class="fld"><label>Trapez: Länge Wandprofil (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][trapez][wand]" value="{{ $v('trapez.wand') }}" placeholder="= Breite"></div>
+        <div class="fld"><label>Trapez: Länge Rinne (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][trapez][rinne]" value="{{ $v('trapez.rinne') }}" placeholder="= Breite"></div>
+        <div class="fld"><label>Trapez-Offset links (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][trapez][offsetL]" value="{{ $v('trapez.offsetL') }}" placeholder="auto"></div>
+        <div class="fld"><label>Trapez-Offset rechts (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][trapez][offsetR]" value="{{ $v('trapez.offsetR') }}" placeholder="auto"></div>
         <div class="fld"><label>Pfosten-Abstand links (mm, max. 500)</label><input class="inp" type="number" max="500" name="{{ $prefix }}[felder][postLeftOffset]" value="{{ $v('postLeftOffset') }}" placeholder="0"></div>
         <div class="fld"><label>Pfosten-Abstand rechts (mm, max. 500)</label><input class="inp" type="number" max="500" name="{{ $prefix }}[felder][postRightOffset]" value="{{ $v('postRightOffset') }}" placeholder="0"></div>
         <div class="fld"><label>Mittelpfosten-Position (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][postMiddle]" value="{{ $v('postMiddle') }}" placeholder="Mitte"></div>

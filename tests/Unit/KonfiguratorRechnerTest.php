@@ -90,6 +90,30 @@ class KonfiguratorRechnerTest extends TestCase
         $this->assertTrue(KonfiguratorRechner::berechne(['depth' => 4200])['unterzug']['erforderlich']);
     }
 
+    public function test_trapez_geometrie_mit_auto_offsets(): void
+    {
+        // Rinne 2000 länger als Wandprofil → symmetrische Offsets 1000/1000.
+        $e = KonfiguratorRechner::berechne([
+            'shape' => 'trapez', 'width' => 8000, 'depth' => 3500,
+            'trapez' => ['wand' => 6000, 'rinne' => 8000],
+        ]);
+        $this->assertSame(1000, $e['trapez']['offsetLinks']);
+        $this->assertSame(1000, $e['trapez']['offsetRechts']);
+        $this->assertSame(15.9, $e['trapez']['winkelLinks']); // atan(1000/3500)
+        $this->assertSame('Wandprofil', $e['trapez']['kurzeSeite']);
+
+        // Ein Offset gesetzt → der andere übernimmt den Rest.
+        $e = KonfiguratorRechner::berechne([
+            'shape' => 'trapez', 'width' => 8000,
+            'trapez' => ['wand' => 6000, 'rinne' => 8000, 'offsetL' => 500],
+        ]);
+        $this->assertSame(500, $e['trapez']['offsetLinks']);
+        $this->assertSame(1500, $e['trapez']['offsetRechts']);
+
+        // Rechteck-Dächer tragen keine Trapez-Daten.
+        $this->assertNull(KonfiguratorRechner::berechne([])['trapez']);
+    }
+
     public function test_pfosten_positionen_segmente_und_stoss(): void
     {
         // Demo 8630, pn=4: gleichmäßig verteilt; Rinne > 7000 → 2 Segmente,
