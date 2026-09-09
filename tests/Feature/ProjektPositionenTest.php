@@ -78,4 +78,38 @@ class ProjektPositionenTest extends TestCase
             'position' => ['produkt' => 'markise'],
         ])->assertForbidden();
     }
+
+    public function test_konfig_tab_zeigt_editor_und_konfigurator_schreibt_durch_die_dachposition(): void
+    {
+        // Dachposition + Element anlegen
+        $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-038/positionen', [
+            'position' => ['produkt' => 'ueberdachung', 'felder' => ['width' => 6000, 'depth' => 3000]],
+        ]);
+        $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-038/positionen', [
+            'position' => ['produkt' => 'markise', 'felder' => ['breite_mm' => 4500]],
+        ]);
+
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-038?tab=konfig')
+            ->assertOk()
+            ->assertSee('Position 1 — Überdachung')
+            ->assertSee('Position 2 — Markise')
+            ->assertSee('Phase 2 · Endmaße nach Dachmontage')
+            ->assertSee('Position hinzufügen');
+
+        // Großer Konfigurator speichert → Dachposition wird mitgeschrieben
+        $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-038/konfiguration', [
+            'aktion' => 'speichern', 'width' => 7200, 'depth' => 3100,
+        ]);
+        $projekt = Projekt::query()->where('nr', 'PRJ-2026-038')->firstOrFail();
+        $dach = $projekt->positionen()->where('gruppe', 'dach')->firstOrFail();
+        $this->assertSame(7200, $dach->felder['width']);
+        $this->assertSame(7200, $projekt->konfiguration['width']);
+
+        // Element-Update lässt die Dach-Spiegelung intakt
+        $markise = $projekt->positionen()->where('produkt', 'markise')->firstOrFail();
+        $this->actingAs($this->benutzer)->put('/projekte/PRJ-2026-038/positionen/'.$markise->id, [
+            'position' => ['produkt' => 'markise', 'felder' => ['breite_mm' => 5000]],
+        ]);
+        $this->assertSame(7200, $projekt->fresh()->konfiguration['width']);
+    }
 }

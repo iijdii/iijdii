@@ -9,7 +9,7 @@
     use App\Support\KonfiguratorRechner;
     $f = old($prefix.'.felder', $position?->felder ?? []);
     $v = fn (string $pfad, $standard = '') => data_get($f, $pfad, $standard);
-    $produktWert = old($prefix.'.produkt', $position?->produkt?->value ?? 'ueberdachung');
+    $produktWert = old($prefix.'.produkt', $position?->produkt?->value ?? ($standardProdukt ?? 'ueberdachung'));
 @endphp
 
 <div data-position-form>

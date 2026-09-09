@@ -57,7 +57,7 @@ class ProjektController extends Controller
     public function show(Request $request, Projekt $projekt): View
     {
         $tab = in_array($request->query('tab'), self::TABS, true) ? $request->query('tab') : 'uebersicht';
-        $projekt->load(['kunde', 'angebot', 'dokumente', 'aktivitaeten']);
+        $projekt->load(['kunde', 'angebot', 'dokumente', 'aktivitaeten', 'positionen']);
 
         // Vorschau aus „Berechnen" (PRG) hat Vorrang vor der gespeicherten Konfiguration.
         $pcfg = $request->session()->get('pcfg_preview.'.$projekt->nr, $projekt->konfiguration);
@@ -226,6 +226,9 @@ class ProjektController extends Controller
 
         if ($aktion === 'speichern') {
             $projekt->update(['konfiguration' => $pcfg]);
+            // Einheitssystem: existiert eine Dach-Position, ist SIE die
+            // Quelle — der Konfigurator schreibt durch sie hindurch.
+            $projekt->positionen()->where('gruppe', 'dach')->first()?->update(['felder' => $pcfg]);
             $request->session()->forget('pcfg_preview.'.$projekt->nr);
             $projekt->aktivitaeten()->create([
                 'titel' => 'Konfiguration gespeichert',

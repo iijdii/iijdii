@@ -288,3 +288,5 @@
         </div>
     </div>
 </div>
+
+@include('projekte.partials.positionen-editor')
