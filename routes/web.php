@@ -98,6 +98,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/projekte/{projekt:nr}', [ProjektController::class, 'show'])->name('projekte.show');
     Route::get('/projekte/{projekt:nr}/pdf', [ProjektController::class, 'pdf'])->name('projekte.pdf');
     Route::post('/projekte/{projekt:nr}/dokumente', [ProjektController::class, 'ladeDokumentHoch'])->middleware('role:verkaeufer,projektleiter')->name('projekte.dokumente.upload');
+    Route::post('/projekte/{projekt:nr}/fotos', [ProjektController::class, 'ladeFotoHoch'])->middleware('role:verkaeufer,monteur,projektleiter')->name('projekte.fotos.upload');
     Route::post('/projekte/{projekt:nr}/stammdaten', [ProjektController::class, 'speichereStammdaten'])->middleware('role:verkaeufer,projektleiter')->name('projekte.stammdaten');
     Route::post('/projekte/{projekt:nr}/status', [ProjektController::class, 'setzeStatus'])->middleware('role:verkaeufer,projektleiter')->name('projekte.status');
     Route::post('/projekte/{projekt:nr}/reservierungen', [ProjektController::class, 'speichereReservierung'])->middleware('role:verkaeufer,projektleiter')->name('projekte.reservierungen.store');
@@ -123,6 +124,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/projekte/{projekt:nr}/abnahme', [AbnahmeController::class, 'formular'])->name('projekte.abnahme');
     Route::post('/projekte/{projekt:nr}/abnahme', [AbnahmeController::class, 'speichere'])->middleware('role:monteur,projektleiter')->name('projekte.abnahme.speichern');
     Route::get('/dokumente/{dokument}', [DokumentController::class, 'download'])->name('dokumente.download');
+    Route::get('/dokumente/{dokument}/ansicht', [DokumentController::class, 'ansicht'])->name('dokumente.ansicht');
 
     Route::get('/bestellungen', [BestellungController::class, 'index'])->name('bestellungen');
     Route::get('/bestellungen/neu', [BestellungController::class, 'create'])->name('bestellungen.create');

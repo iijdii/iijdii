@@ -104,10 +104,10 @@ class ProjektPositionenTest extends TestCase
             'position' => ['produkt' => 'markise', 'felder' => ['breite_mm' => 4500]],
         ]);
 
-        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-038?tab=konfig')
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-038')
             ->assertOk()
-            ->assertSee('Position 1 — Überdachung')
-            ->assertSee('Position 2 — Markise')
+            ->assertSee('Technische Daten — Position 1 · Überdachung')
+            ->assertSee('Technische Daten — Position 2 · Markise')
             ->assertSee('Phase 2 · Endmaße nach Dachmontage')
             ->assertSee('Position hinzufügen');
 

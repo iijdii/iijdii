@@ -14,6 +14,7 @@ use App\Models\Reservierung;
 use App\Models\Tour;
 use App\Models\User;
 use App\Models\Wareneingang;
+use App\Support\KonfigurationSync;
 use Illuminate\Database\Seeder;
 
 /**
@@ -269,6 +270,12 @@ class DemoSeeder extends Seeder
                 'projektleiter_id' => $projektleiter?->id,
                 'konfiguration' => $konfiguration,
             ]);
+        }
+
+        // Einheitssystem: Projekte mit Konfiguration bekommen ihre
+        // Dach-Position (Produktpass/Konfigurator-Fenster lesen Positionen).
+        foreach ($out as $projekt) {
+            KonfigurationSync::ergaenzeDachPosition($projekt);
         }
 
         // Angebot ANG-2026-010 gehört zum Demo-Projekt; Anfrage-Herkunft

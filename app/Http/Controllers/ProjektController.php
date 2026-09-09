@@ -25,7 +25,7 @@ use Illuminate\View\View;
 
 class ProjektController extends Controller
 {
-    private const TABS = ['uebersicht', 'konfig', 'technik', 'material', 'dokumente', 'zahlungen', 'aktivitaet'];
+    private const TABS = ['uebersicht', 'kunde', 'material', 'fotos', 'dokumente', 'zahlungen', 'aktivitaet'];
 
     public function __construct(private readonly LagerService $lager) {}
 
@@ -76,12 +76,10 @@ class ProjektController extends Controller
         ];
 
         $daten += match ($tab) {
-            'uebersicht' => [
-                'materialVorschau' => array_slice($this->lager->materialListe($projekt), 0, 5),
-            ],
             'material' => [
                 'materialListe' => $this->lager->materialListe($projekt),
                 'alleArtikel' => Artikel::query()->orderBy('name')->get(['id', 'name', 'art_nr']),
+                'bestellungen' => $projekt->bestellungen()->with(['lieferant', 'positionen'])->orderByDesc('nr')->get(),
             ],
             'zahlungen' => ['zahlung' => $this->zahlungsplan($projekt)],
             default => [],
@@ -157,7 +155,7 @@ class ProjektController extends Controller
             'status' => 'done',
         ]);
 
-        return redirect()->route('projekte.show', $projekt)->with('toast', $toast);
+        return redirect()->route('projekte.show', [$projekt, 'tab' => 'material'])->with('toast', $toast);
     }
 
     public function setzeStatus(Request $request, Projekt $projekt): RedirectResponse
@@ -257,6 +255,33 @@ class ProjektController extends Controller
             ->with('toast', 'Dokument hochgeladen');
     }
 
+    /** Baustellenfotos (vor/nach der Montage) — als Dokument mit typ foto_*. */
+    public function ladeFotoHoch(Request $request, Projekt $projekt): RedirectResponse
+    {
+        $daten = $request->validate(
+            [
+                'foto' => ['required', 'file', 'max:10240', 'mimes:jpg,jpeg,png,webp'],
+                'phase' => ['required', Rule::in(['vorher', 'nachher'])],
+            ],
+            ['foto.mimes' => 'Nur JPG, PNG oder WebP bis 10 MB.', 'foto.max' => 'Nur JPG, PNG oder WebP bis 10 MB.'],
+        );
+
+        $datei = $request->file('foto');
+        $name = $projekt->nr.'_foto_'.now()->format('YmdHis').'_'.$datei->getClientOriginalName();
+        $pfad = Storage::putFileAs('fotos', $datei, $name);
+
+        $projekt->dokumente()->create([
+            'typ' => 'foto_'.$daten['phase'],
+            'dateiname' => $datei->getClientOriginalName(),
+            'pfad' => $pfad,
+            'groesse' => $datei->getSize(),
+            'datum' => now()->toDateString(),
+        ]);
+
+        return redirect()->route('projekte.show', [$projekt, 'tab' => 'fotos'])
+            ->with('toast', 'Foto hochgeladen ('.($daten['phase'] === 'vorher' ? 'vor' : 'nach').' der Montage)');
+    }
+
     public function speichereKonfiguration(Request $request, Projekt $projekt): RedirectResponse
     {
         $pcfg = $this->pcfgAusRequest($request);
@@ -275,19 +300,19 @@ class ProjektController extends Controller
                 'status' => 'done',
             ]);
 
-            return redirect()->route('projekte.show', [$projekt, 'tab' => 'konfig'])
+            return redirect()->route('projekte.show', $projekt)
                 ->with('toast', 'Projekt-Konfiguration gespeichert');
         }
 
         $request->session()->put('pcfg_preview.'.$projekt->nr, $pcfg);
 
-        return redirect()->route('projekte.show', [$projekt, 'tab' => 'konfig']);
+        return redirect()->route('projekte.show', $projekt);
     }
 
     public function erstelleAngebot(Request $request, Projekt $projekt): RedirectResponse
     {
         if ($projekt->angebot_id) {
-            return redirect()->route('projekte.show', [$projekt, 'tab' => 'konfig'])
+            return redirect()->route('projekte.show', $projekt)
                 ->with('toast', 'Angebot '.$projekt->angebot->nr.' ist bereits verknüpft');
         }
 
@@ -307,7 +332,7 @@ class ProjektController extends Controller
             'status' => 'done',
         ]);
 
-        return redirect()->route('projekte.show', [$projekt, 'tab' => 'konfig'])
+        return redirect()->route('projekte.show', $projekt)
             ->with('toast', 'Angebot aus Konfiguration erstellt');
     }
 

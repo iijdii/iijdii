@@ -212,6 +212,7 @@ class AnfrageController extends Controller
             'status' => ProjektStatus::InPlanung,
             'konfiguration' => $pcfg,
         ]);
+        KonfigurationSync::ergaenzeDachPosition($projekt);
 
         $projekt->aktivitaeten()->create([
             'titel' => 'Projekt aus '.$anfrage->nummer.' erstellt',
@@ -225,7 +226,7 @@ class AnfrageController extends Controller
             'details' => ['projekt' => $projekt->nr],
         ]);
 
-        return redirect()->route('projekte.show', [$projekt, 'tab' => 'konfig'])
+        return redirect()->route('projekte.show', $projekt)
             ->with('toast', 'Projekt '.$projekt->nr.' aus '.$anfrage->nummer.' erstellt');
     }
 

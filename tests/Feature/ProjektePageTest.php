@@ -36,14 +36,14 @@ class ProjektePageTest extends TestCase
 
     public function test_all_tabs_render(): void
     {
-        foreach (['uebersicht', 'konfig', 'technik', 'material', 'dokumente', 'zahlungen', 'aktivitaet'] as $tab) {
+        foreach (['uebersicht', 'kunde', 'material', 'fotos', 'dokumente', 'zahlungen', 'aktivitaet'] as $tab) {
             $this->actingAs($this->benutzer)
                 ->get('/projekte/PRJ-2026-011?tab='.$tab)
                 ->assertOk();
         }
     }
 
-    public function test_uebersicht_und_technik_render_the_five_roof_drawings(): void
+    public function test_uebersicht_rendert_bemasste_zeichnungen_und_produktpass(): void
     {
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=uebersicht')
             ->assertOk()
@@ -53,21 +53,23 @@ class ProjektePageTest extends TestCase
             ->assertSee('roofLightbox')
             ->assertDontSee('Zeichnungen folgen');
 
-        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=technik')
-            ->assertOk()
+        // Bemaßte Zeichnungsdaten (früher Technik-Tab) liegen jetzt auf der Übersicht.
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=uebersicht')
             ->assertSee('12 Felder à 719')
             ->assertSee('Gefälle 8° ≈ 141 mm/m → Rinne')
-            ->assertSee('PRJ-2026-011 · DEMO Demo') // Titelblock der Zeichnung
-            ->assertDontSee('Zeichnungen folgen');
+            ->assertSee('PRJ-2026-011 · DEMO Demo'); // Titelblock der Zeichnung
     }
 
     public function test_konfigurator_shows_prototype_positions_and_kalkulation(): void
     {
-        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=konfig')
+        // Vorbestell-Liste aus der Konfiguration → Tab «Material + Bestellungen».
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=material')
             ->assertOk()
             ->assertSee('Überdachung Trapez 8630×3500 mm')
             ->assertSee('Pfosten 110×110 · Weiß · RAL 9016')
-            ->assertSee('Keil Links · Glas (Klar)')
+            ->assertSee('Keil Links · Glas (Klar)');
+        // Kalkulation lebt auf der Übersicht.
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011')
             ->assertSee('659 mm')            // Wandblende bei W=8630 (719−60)
             ->assertSee('Dach-Kalkulation');
     }
@@ -78,11 +80,12 @@ class ProjektePageTest extends TestCase
             'aktion' => 'berechnen', 'width' => 6000, 'depth' => 3500,
         ]);
 
-        $antwort->assertRedirect(route('projekte.show', ['PRJ-2026-011', 'tab' => 'konfig']));
+        $antwort->assertRedirect(route('projekte.show', 'PRJ-2026-011'));
 
         // Vorschau sichtbar, Persistenz unverändert.
-        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=konfig')
-            ->assertSee('6000×3500')
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=material')
+            ->assertSee('6000×3500');
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011')
             ->assertSee('Vorschau — noch nicht gespeichert');
         $this->assertSame(8630, Projekt::query()->where('nr', 'PRJ-2026-011')->value('konfiguration')['width'] ?? json_decode(Projekt::query()->where('nr', 'PRJ-2026-011')->value('konfiguration'), true)['width']);
     }

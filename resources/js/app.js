@@ -159,6 +159,18 @@ kalkScopes.forEach((scope) => {
     if (scope !== document) kalkUpdate(scope);
 });
 
+// Foto-Vorschau (Projekt-Tab «Fotos»): Klick auf eine Miniatur öffnet
+// das Bild groß im Fenster.
+document.addEventListener('click', (e) => {
+    const thumb = e.target.closest('[data-foto-preview]');
+    if (!thumb) return;
+    const modal = document.getElementById('fotoModal');
+    if (!modal) return;
+    document.getElementById('fotoModalImg').src = thumb.dataset.fotoPreview;
+    document.getElementById('fotoModalName').textContent = thumb.dataset.fotoName || 'Foto';
+    modal.hidden = false;
+});
+
 // Anfrage-Formular: Kurzfassung der Konfiguration neben dem
 // «Konfigurator öffnen»-Knopf pflegen (Fenster-Felder senden mit dem Formular).
 const konfigModal = document.getElementById('konfigurator-modal');

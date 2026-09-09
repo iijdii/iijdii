@@ -40,7 +40,7 @@ class ProjektAufmassTest extends TestCase
 
         $this->actingAs($this->verkauf)
             ->post('/projekte/'.$projekt->nr.'/aufmass-bestaetigung', ['aktion' => 'bestaetigen', 'vor_ort_gewesen' => 1])
-            ->assertRedirect(route('projekte.show', $projekt))
+            ->assertRedirect(route('projekte.show', [$projekt, 'tab' => 'material']))
             ->assertSessionHas('toast', 'Aufmaß bestätigt — Bestellungen sind jetzt möglich');
 
         $projekt->refresh();
@@ -49,8 +49,8 @@ class ProjektAufmassTest extends TestCase
         $this->assertTrue($projekt->vor_ort_gewesen);
         $this->assertTrue($projekt->aktivitaeten()->where('titel', 'Aufmaß bestätigt (vor Ort)')->exists());
 
-        // Übersicht zeigt die Bestätigung
-        $this->actingAs($this->verkauf)->get('/projekte/'.$projekt->nr)
+        // Tab «Material + Bestellungen» zeigt die Bestätigung
+        $this->actingAs($this->verkauf)->get('/projekte/'.$projekt->nr.'?tab=material')
             ->assertSee('Aufmaß bestätigt')
             ->assertSee($this->verkauf->name);
     }
@@ -69,7 +69,7 @@ class ProjektAufmassTest extends TestCase
         $this->assertNull($projekt->aufmass_von);
         $this->assertFalse($projekt->vor_ort_gewesen);
 
-        $this->actingAs($this->verkauf)->get('/projekte/PRJ-2026-011')
+        $this->actingAs($this->verkauf)->get('/projekte/PRJ-2026-011?tab=material')
             ->assertSee('Aufmaß offen');
     }
 

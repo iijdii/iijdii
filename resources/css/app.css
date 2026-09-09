@@ -136,6 +136,11 @@ body{margin:0;font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);backgr
 .fx{display:flex;align-items:center;gap:10px}
 .jb{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .wrap{flex-wrap:wrap}
+/* Baustellenfotos (Projekt-Tab «Fotos») */
+.fotogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.fotogrid .foto{margin:0}
+.fotogrid img{width:100%;height:118px;object-fit:cover;border-radius:9px;border:1px solid var(--bd);cursor:zoom-in;display:block;background:var(--bg2)}
+.fotogrid figcaption{margin-top:4px}
 .colstack{display:flex;flex-direction:column;gap:16px}
 .cols-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:1024px){.cols-2{grid-template-columns:1fr}}

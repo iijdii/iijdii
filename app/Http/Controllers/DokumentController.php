@@ -14,4 +14,12 @@ class DokumentController extends Controller
 
         return Storage::download($dokument->pfad, $dokument->dateiname);
     }
+
+    /** Inline-Auslieferung für Foto-Vorschauen (img src). */
+    public function ansicht(Dokument $dokument): StreamedResponse
+    {
+        abort_unless($dokument->pfad && Storage::exists($dokument->pfad), 404);
+
+        return Storage::response($dokument->pfad, $dokument->dateiname);
+    }
 }

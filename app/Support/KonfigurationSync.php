@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\ProjektProdukt;
 use App\Models\Projekt;
 
 /**
@@ -23,5 +24,30 @@ final class KonfigurationSync
         $pcfg = ($dach->felder ?? []) + ['product' => $dach->produkt->konfiguratorProdukt()];
 
         $projekt->forceFill(['konfiguration' => KonfiguratorRechner::merge($pcfg)])->saveQuietly();
+    }
+
+    /**
+     * Hebt Legacy-Projekte (nur konfiguration, keine Positionen) ins
+     * Einheitssystem: die Dach-Position entsteht aus der Konfiguration,
+     * damit Produktpass und Konfigurator-Fenster überall funktionieren.
+     */
+    public static function ergaenzeDachPosition(Projekt $projekt): void
+    {
+        if ($projekt->konfiguration === null || $projekt->positionen()->where('gruppe', 'dach')->exists()) {
+            return;
+        }
+
+        $produktName = $projekt->konfiguration['product'] ?? 'Überdachung';
+        $produkt = collect(ProjektProdukt::cases())
+            ->first(fn (ProjektProdukt $p) => $p->istDach() && $p->konfiguratorProdukt() === $produktName)
+            ?? ProjektProdukt::Ueberdachung;
+
+        $projekt->positionen()->create([
+            'pos' => ((int) $projekt->positionen()->max('pos')) + 1,
+            'gruppe' => 'dach',
+            'produkt' => $produkt,
+            'phase' => 1,
+            'felder' => $projekt->konfiguration,
+        ]);
     }
 }

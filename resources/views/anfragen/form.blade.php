@@ -62,7 +62,7 @@
                 <div class="fsec">Konfiguration</div>
                 <p class="hint">Die Produkt-Positionen werden im
                     @if ($anfrage->projekt)
-                        <a href="{{ route('projekte.show', [$anfrage->projekt, 'tab' => 'konfig']) }}">Projekt-Konfigurator ({{ $anfrage->projekt->nr }})</a>
+                        <a href="{{ route('projekte.show', $anfrage->projekt) }}">Projekt-Konfigurator ({{ $anfrage->projekt->nr }})</a>
                     @else
                         Projekt-Konfigurator
                     @endif

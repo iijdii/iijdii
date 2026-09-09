@@ -39,19 +39,18 @@ class AnfragenFlowTest extends TestCase
             ->assertDontSee('ANF-2026-012');
     }
 
-    public function test_detail_renders_construction_cards_and_keil_sketch(): void
+    public function test_detail_zeigt_projektpositionen_statt_legacy_karten(): void
     {
+        // PRJ-2026-011 trägt seine Dach-Position (Einheitssystem) —
+        // die Anfrage zeigt die Positions-Karte statt der Legacy-Ansicht.
         $this->actingAs($this->benutzer)->get('/anfragen/ANF-2026-012')
             ->assertOk()
+            ->assertSee('Positionen — Projekt PRJ-2026-011')
             ->assertSee('Position 1 — Überdachung')
-            ->assertSee('Keil(e)')
-            ->assertSee('polygon class="glp"', false)   // kSk-Skizze
-            ->assertSee('Länge Wandprofil')             // Trapez-Felder
-            ->assertSee('Schiebesystem(e)')
             ->assertSee('Projekt PRJ-2026-011 öffnen') // Seed verknüpft ANF-012 → PRJ-011
             ->assertDontSee('Projekt erstellen');
 
-        // Anfrage ohne Projekt behält den Erstellen-CTA.
+        // Anfrage ohne Projekt behält Legacy-Konstruktionskarten und Erstellen-CTA.
         $this->actingAs($this->benutzer)->get('/anfragen/ANF-2026-011')
             ->assertOk()
             ->assertSee('Projekt erstellen');
@@ -132,7 +131,7 @@ class AnfragenFlowTest extends TestCase
 
         $projekt = Projekt::query()->orderByDesc('id')->first();
 
-        $antwort->assertRedirect(route('projekte.show', [$projekt, 'tab' => 'konfig']))
+        $antwort->assertRedirect(route('projekte.show', $projekt))
             ->assertSessionHas('toast', 'Projekt '.$projekt->nr.' aus ANF-2026-012 erstellt');
 
         $this->assertSame('PRJ-2026-039', $projekt->nr); // Seed-Maximum 038

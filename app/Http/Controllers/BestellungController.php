@@ -89,7 +89,7 @@ class BestellungController extends Controller
      */
     public function ausProjektPositionen(Request $request, Projekt $projekt): RedirectResponse
     {
-        $zurueck = redirect()->route('projekte.show', $projekt); // Karte «Aufmaß & Bestellung» auf der Übersicht
+        $zurueck = redirect()->route('projekte.show', [$projekt, 'tab' => 'material']); // Karte «Aufmaß & Bestellung»
 
         if (! $projekt->aufmassBestaetigt()) {
             return $zurueck->with('toast', 'Aufmaß nicht bestätigt — Bestellung gesperrt');

@@ -12,10 +12,6 @@
             <a class="btn btns" href="{{ route('projekte') }}">
                 <svg class="i"><use href="#ic-aleft"/></svg>Zurück zur Projektliste</a>
             <span class="ctas">
-                <a class="btn btns" href="{{ route('projekte.pdf', $projekt) }}">
-                    <svg class="i"><use href="#ic-download"/></svg>PDF exportieren</a>
-                <a class="btn btns" href="{{ route('projekte.show', [$projekt, 'tab' => 'konfig']) }}">
-                    <svg class="i"><use href="#ic-edit"/></svg>Bearbeiten</a>
                 <a class="btn btns btnp" href="{{ route('projekte.montage', $projekt) }}">
                     <svg class="i"><use href="#ic-layers"/></svg>Montage-Modus</a>
             </span>
@@ -65,9 +61,9 @@
     <div class="anf-tools">
         <div class="seg" style="flex-wrap:wrap">
             @foreach ([
-                'uebersicht' => 'Übersicht', 'konfig' => 'Konfigurator', 'technik' => 'Technik & Statik',
-                'material' => 'Material', 'dokumente' => 'Dokumente', 'zahlungen' => 'Zahlungen',
-                'aktivitaet' => 'Aktivität',
+                'uebersicht' => 'Übersicht', 'kunde' => 'Kunde & Termine',
+                'material' => 'Material + Bestellungen', 'fotos' => 'Fotos',
+                'dokumente' => 'Dokumente', 'zahlungen' => 'Zahlungen', 'aktivitaet' => 'Aktivität',
             ] as $key => $label)
                 <a class="{{ $tab === $key ? 'on' : '' }}" href="{{ route('projekte.show', [$projekt, 'tab' => $key]) }}">{{ $label }}</a>
             @endforeach

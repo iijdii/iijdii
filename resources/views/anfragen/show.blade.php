@@ -114,7 +114,7 @@
         <div class="card p0">
             <div class="card-h">
                 <span class="card-t">Positionen — Projekt {{ $anfrage->projekt->nr }}</span>
-                <a class="btn btns" href="{{ route('projekte.show', [$anfrage->projekt, 'tab' => 'konfig']) }}">
+                <a class="btn btns" href="{{ route('projekte.show', $anfrage->projekt) }}">
                     <svg class="i"><use href="#ic-edit"/></svg>Im Konfigurator bearbeiten</a>
             </div>
             <div class="card-b">

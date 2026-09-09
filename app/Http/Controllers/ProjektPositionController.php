@@ -23,7 +23,7 @@ class ProjektPositionController extends Controller
         $daten = ProduktFelder::daten((array) $request->input('position'));
 
         if ($daten['produkt']->istDach() && $projekt->positionen()->where('gruppe', 'dach')->exists()) {
-            return redirect()->route('projekte.show', [$projekt, 'tab' => 'konfig'])
+            return redirect()->route('projekte.show', $projekt)
                 ->with('toast', 'Nur eine Dachposition pro Projekt — bestehende bearbeiten');
         }
 
@@ -32,7 +32,7 @@ class ProjektPositionController extends Controller
         ]);
         KonfigurationSync::spiegleDach($projekt);
 
-        return redirect()->route('projekte.show', [$projekt, 'tab' => 'konfig'])
+        return redirect()->route('projekte.show', $projekt)
             ->with('toast', 'Position hinzugefügt · '.$daten['produkt']->label());
     }
 
@@ -44,14 +44,14 @@ class ProjektPositionController extends Controller
 
         if ($daten['produkt']->istDach() && ! $position->produkt->istDach()
             && $projekt->positionen()->where('gruppe', 'dach')->exists()) {
-            return redirect()->route('projekte.show', [$projekt, 'tab' => 'konfig'])
+            return redirect()->route('projekte.show', $projekt)
                 ->with('toast', 'Nur eine Dachposition pro Projekt');
         }
 
         $position->update($daten);
         KonfigurationSync::spiegleDach($projekt);
 
-        return redirect()->route('projekte.show', [$projekt, 'tab' => 'konfig'])
+        return redirect()->route('projekte.show', $projekt)
             ->with('toast', 'Position '.$position->pos.' aktualisiert');
     }
 
@@ -67,7 +67,7 @@ class ProjektPositionController extends Controller
         $position->delete();
         KonfigurationSync::spiegleDach($projekt);
 
-        return redirect()->route('projekte.show', [$projekt, 'tab' => 'konfig'])
+        return redirect()->route('projekte.show', $projekt)
             ->with('toast', 'Position entfernt');
     }
 }

@@ -1,10 +1,14 @@
-@php use App\Support\Format; @endphp
+@php
+    use App\Support\Format;
+    // Fotos haben ihren eigenen Tab.
+    $dokumente = $projekt->dokumente->reject(fn ($d) => str_starts_with($d->typ, 'foto_'))->values();
+@endphp
 
 <div class="cols-2">
     <div class="card p0">
         <div class="card-h">
             <span class="card-t">Dokumente</span>
-            <span class="pill">{{ $projekt->dokumente->count() }} Dateien</span>
+            <span class="pill">{{ $dokumente->count() }} Dateien</span>
         </div>
         <div class="card-b">
             <form method="POST" action="{{ route('projekte.dokumente.upload', $projekt) }}"
@@ -14,10 +18,10 @@
                 <button class="btn btns" type="submit"><svg class="i"><use href="#ic-download"/></svg>Hochladen</button>
             </form>
             @error('datei')<p class="hint" style="color:var(--red);margin-bottom:10px">{{ $message }}</p>@enderror
-            @if ($projekt->dokumente->isEmpty())
+            @if ($dokumente->isEmpty())
                 <p class="hint">Keine Dokumente vorhanden.</p>
             @endif
-            @foreach ($projekt->dokumente as $dokument)
+            @foreach ($dokumente as $dokument)
                 @php $ext = mb_strtolower(pathinfo($dokument->dateiname, PATHINFO_EXTENSION)); @endphp
                 <div class="doc">
                     <span class="fi {{ $ext === 'pdf' ? 'pdf' : ($ext === 'dwg' ? 'dwg' : 'xlsx') }}">{{ mb_strtoupper($ext) }}</span>
@@ -40,6 +44,14 @@
         </div>
     </div>
 
+    <div class="colstack">
+    <div class="card">
+        <div class="mc-h"><svg class="i"><use href="#ic-download"/></svg>Projektmappe</div>
+        <p class="note">Alle Projektdaten (Kopf, Kunde, Technik, Positionen, Materialliste) als PDF —
+            wird zugleich hier als Dokument archiviert.</p>
+        <a class="btn btns" style="margin-top:10px" href="{{ route('projekte.pdf', $projekt) }}">
+            <svg class="i"><use href="#ic-download"/></svg>PDF exportieren</a>
+    </div>
     <div class="card">
         <div class="mc-h"><svg class="i"><use href="#ic-pen"/></svg>Übergabeprotokoll</div>
         <p class="note">Das Übergabeprotokoll wird bei Abschluss der Montage vom Kunden digital unterschrieben.</p>
@@ -57,5 +69,6 @@
                     <span class="hint">Offen — Montage ausstehend</span></span>
             @endif
         </div>
+    </div>
     </div>
 </div>

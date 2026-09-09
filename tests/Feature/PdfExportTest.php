@@ -89,7 +89,8 @@ class PdfExportTest extends TestCase
         $this->actingAs($this->benutzer)->get('/lager?tab=wareneingang')
             ->assertDontSee('data-toast="Lieferschein', false)
             ->assertSee('/bestellungen/BST-2026-112', false);
-        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011')
+        // «PDF exportieren» lebt jetzt auf dem Dokumente-Tab.
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=dokumente')
             ->assertSee('/projekte/PRJ-2026-011/pdf', false);
     }
 }
