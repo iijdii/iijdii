@@ -70,8 +70,16 @@
             </div>
         @else
             <div class="cfg-block">
-                <div class="fsec">Position 1 — Konfigurator</div>
-                @include('projekte.partials.produkt-form', ['prefix' => 'position', 'position' => null])
+                <div class="fsec">Position 1 — Konfiguration</div>
+                <div class="jb wrap">
+                    <div class="anf-specs" style="margin:0">
+                        <span class="spec">Produkt <b data-konfig-summary="produkt">–</b></span>
+                        <span class="spec">Maße <b class="mono" data-konfig-summary="masse">–</b></span>
+                        <span class="spec">Glas <b class="mono" data-konfig-summary="glas">–</b></span>
+                    </div>
+                    <button class="btn btns btnp" type="button" data-modal-target="konfigurator-modal">
+                        <svg class="i"><use href="#ic-edit"/></svg>Konfigurator öffnen</button>
+                </div>
                 <p class="hint" style="margin-top:8px">Beim Speichern werden automatisch Projekt und
                     Angebot angelegt; weitere Positionen fügen Sie danach im Projekt-Konfigurator hinzu.</p>
             </div>
@@ -84,13 +92,20 @@
     </div>
 
     @unless ($anfrage)
-        <div class="kbox">
-            <div class="fsec">Dach-Kalkulation</div>
-            <div class="kgrid">
-                <div class="kcell"><span>Pfosten</span><b class="mono" data-kalk-out="pn">–</b></div>
-                <div class="kcell"><span>Sparren</span><b class="mono" data-kalk-out="rafters">–</b></div>
-                <div class="kcell"><span>Glasfelder</span><b class="mono" data-kalk-out="fields">–</b></div>
-                <div class="kcell"><span>Glasmaß</span><b class="mono" data-kalk-out="glas">–</b></div>
+        {{-- Konfigurator-Fenster — Felder liegen IM Formular und senden mit. --}}
+        <div class="modal" id="konfigurator-modal" hidden>
+            <div class="modalc lg">
+                <div style="display:flex;flex-direction:column;min-height:0">
+                    <div class="modalh">Konfigurator — Position 1
+                        <button class="btn btns" type="button" data-modal-close aria-label="Schließen">✕</button></div>
+                    <div class="modalb">
+                        @include('projekte.partials.produkt-form', ['prefix' => 'position', 'position' => null])
+                    </div>
+                    <div class="modalf">
+                        <button class="btn btns btnp" type="button" data-modal-close>
+                            <svg class="i"><use href="#ic-check"/></svg>Übernehmen</button>
+                    </div>
+                </div>
             </div>
         </div>
     @endunless

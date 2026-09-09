@@ -159,6 +159,27 @@ kalkScopes.forEach((scope) => {
     if (scope !== document) kalkUpdate(scope);
 });
 
+// Anfrage-Formular: Kurzfassung der Konfiguration neben dem
+// «Konfigurator öffnen»-Knopf pflegen (Fenster-Felder senden mit dem Formular).
+const konfigModal = document.getElementById('konfigurator-modal');
+if (konfigModal) {
+    const feld = (key) => document.querySelector(`[data-konfig-summary="${key}"]`);
+    const de = (n) => n.toLocaleString('de-DE');
+    const update = () => {
+        const sel = konfigModal.querySelector('[data-pos-produkt]');
+        const opt = sel && sel.selectedOptions[0];
+        const dach = !!(opt && opt.dataset.dach === '1');
+        if (feld('produkt')) feld('produkt').textContent = opt ? opt.textContent.trim() : '–';
+        const w = parseInt(konfigModal.querySelector('[data-kalk="width"]')?.value, 10) || 0;
+        const d = parseInt(konfigModal.querySelector('[data-kalk="depth"]')?.value, 10) || 0;
+        if (feld('masse')) feld('masse').textContent = dach ? (w && d ? `${de(w)} × ${de(d)} mm` : '–') : 'siehe Konfigurator';
+        if (feld('glas')) feld('glas').textContent = dach ? (konfigModal.querySelector('[data-kalk-out="glas"]')?.textContent ?? '–') : '–';
+    };
+    konfigModal.addEventListener('input', update);
+    konfigModal.addEventListener('change', update);
+    update();
+}
+
 // Produkt-Positions-Formular (Einheitssystem): Feldblöcke folgen dem
 // Produkt-Select. Ohne JS bleiben alle Blöcke sichtbar.
 document.querySelectorAll('[data-position-form]').forEach((form) => {
