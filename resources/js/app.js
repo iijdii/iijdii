@@ -127,12 +127,21 @@ function kalkUpdate(scope) {
     const poly = !!(coveringSel && coveringSel.value.indexOf('Polycarbonat') === 0);
     const maxPlatte = poly ? 980 : 750;
     const nutz = Math.max(0, w - 60);
-    const autoFields = nutz > 0 ? Math.ceil(nutz / (maxPlatte + 22)) : 0;
+    // Poly: volle 1000er-Felder + Restfeld; Glas: Minimum unter 750.
+    const volle = Math.floor(nutz / 1000);
+    const rest = nutz - volle * 1000;
+    const autoFields = nutz > 0 ? (poly ? Math.max(1, volle + (rest > 0 ? 1 : 0)) : Math.ceil(nutz / 772)) : 0;
     const fields = fieldN > 0 ? fieldN : autoFields;
     const rafters = fields > 0 ? fields + 1 : 0;
-    const spar = fields > 0 ? Math.round(nutz / fields) : 0;
+    let spar = fields > 0 ? Math.round(nutz / fields) : 0;
+    let glasB = Math.max(0, spar - 22);
+    let restText = '';
+    if (poly && !(fieldN > 0) && fields > 0) {
+        spar = Math.min(1000, spar);
+        glasB = fields === 1 ? Math.max(0, nutz - 20) : 980;
+        if (rest > 0 && fields > 1) restText = ' · Rest ' + Math.max(0, rest - 20).toLocaleString('de-DE');
+    }
     const blende = Math.max(0, spar - 60);
-    const glasB = Math.max(0, spar - 22);
     const glasT = Math.max(0, d - 50);
     const ledTot = ledSel && parseInt(ledSel.value, 10) === 6 ? 6 : 12;
     const de = (n) => n.toLocaleString('de-DE');
@@ -140,7 +149,7 @@ function kalkUpdate(scope) {
         pn: pn || '–', rafters: rafters || '–', fields: fields || '–', rec: rec || '–',
         spar: spar ? de(spar) + ' mm' : '–',
         blende: de(blende) + ' mm', blende2: de(blende) + ' mm',
-        glas: spar ? de(glasB) + ' × ' + de(glasT) + ' mm' : '–',
+        glas: spar ? de(glasB) + ' × ' + de(glasT) + ' mm' + restText : '–',
         ledTot: ledTot, ledTot2: ledTot,
     };
     scope.querySelectorAll('[data-kalk-out]').forEach((el) => {

@@ -33,12 +33,22 @@ class KonfiguratorRechnerTest extends TestCase
         $e = KonfiguratorRechner::berechne([
             'covering' => 'Polycarbonat klar', 'width' => 6060, 'depth' => 3050,
         ]);
-        $this->assertSame(6, $e['autoFields']);   // ceil((6060−60)/1002)
+        $this->assertSame(6, $e['autoFields']);   // 6 volle 1000er-Felder, kein Rest
         $this->assertSame(1000, $e['spar']);
-        $this->assertSame(978, $e['glasB']);      // ≤ 980 → keine Warnung
+        $this->assertSame(980, $e['glasB']);      // ungeschnittene Stegplatte
         $this->assertSame(3000, $e['glasT']);
+        $this->assertNull($e['polyRestPlatte']);
         $this->assertFalse($e['glasZuBreit']);
         $this->assertSame(980, $e['maxPlatte']);
+
+        // Mit Rest: volle Platten + ein Zuschnitt-Feld (Rest − 20).
+        $e = KonfiguratorRechner::berechne([
+            'covering' => 'Polycarbonat klar', 'width' => 6560, 'depth' => 3050,
+        ]);
+        $this->assertSame(7, $e['fields']);       // 6 volle + Restfeld 500
+        $this->assertSame(980, $e['glasB']);
+        $this->assertSame(480, $e['polyRestPlatte']);
+        $this->assertStringContainsString('Restfeld 480 mm', $e['glasText']);
 
         // Glas bleibt bei der 750er-Grenze.
         $this->assertSame(750, KonfiguratorRechner::berechne(['covering' => 'VSG-Glas'])['maxPlatte']);

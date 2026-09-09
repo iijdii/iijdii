@@ -25,11 +25,26 @@ final class Stueckliste
         };
 
         // Eindeckung zuerst — die Glas-/Plattenposition trägt die Maße.
-        $zeilen[] = [
-            'name' => 'Dachfeld '.$p['covering'].' '.$p['thickness'],
-            'menge' => $kalk['fields'], 'einheit' => 'Feld', 'typ' => 'glas',
-            'breite_mm' => $kalk['glasB'], 'hoehe_mm' => $kalk['glasT'],
-        ];
+        // Polycarbonat im Automatikmodus: volle 980er-Platten + ein
+        // geschnittenes Restfeld (v3.2-Regel «целые + остаток»).
+        if (($kalk['polyRestPlatte'] ?? null) !== null && $kalk['fields'] > 1) {
+            $zeilen[] = [
+                'name' => 'Dachfeld '.$p['covering'].' '.$p['thickness'],
+                'menge' => $kalk['fields'] - 1, 'einheit' => 'Feld', 'typ' => 'glas',
+                'breite_mm' => $kalk['glasB'], 'hoehe_mm' => $kalk['glasT'],
+            ];
+            $zeilen[] = [
+                'name' => 'Dachfeld '.$p['covering'].' '.$p['thickness'].' (Restfeld, Zuschnitt)',
+                'menge' => 1, 'einheit' => 'Feld', 'typ' => 'glas',
+                'breite_mm' => $kalk['polyRestPlatte'], 'hoehe_mm' => $kalk['glasT'],
+            ];
+        } else {
+            $zeilen[] = [
+                'name' => 'Dachfeld '.$p['covering'].' '.$p['thickness'],
+                'menge' => $kalk['fields'], 'einheit' => 'Feld', 'typ' => 'glas',
+                'breite_mm' => $kalk['glasB'], 'hoehe_mm' => $kalk['glasT'],
+            ];
+        }
 
         // Profile (Länge = Dachbreite bzw. Dachtiefe).
         $zeile('Gigarinne (Profil 35732)', 1, 'Stück', ['laenge_mm' => $W]);

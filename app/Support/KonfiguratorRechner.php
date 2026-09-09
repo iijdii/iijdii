@@ -108,15 +108,39 @@ final class KonfiguratorRechner
         $pn = ($p['postN'] !== '' && $I($p['postN']) > 0) ? $I($p['postN']) : $rec;
         $poly = str_starts_with((string) $p['covering'], 'Polycarbonat');
         $maxPlatte = $poly ? self::POLY_PLATTE : self::MAX_GLAS_BREITE;
-        $maxAchsmass = $maxPlatte + self::GLAS_ABZUG_BREITE;
         $nutzbreite = max(0, $W - self::RAND_ABZUG);
-        $autoFields = $nutzbreite > 0 ? (int) ceil($nutzbreite / $maxAchsmass) : 0;
+        $manuelleFelder = ($p['fieldN'] !== '' && $I($p['fieldN']) > 0) ? $I($p['fieldN']) : null;
+
+        // Polyrest nur im Automatikmodus: volle 1000er-Felder (Platte 980
+        // ungeschnitten) + ein schmales Restfeld (Platte = Rest − 20).
+        $polyRestPlatte = null;
+        if ($poly && $nutzbreite > 0) {
+            $volle = (int) floor($nutzbreite / 1000);
+            $rest = $nutzbreite - $volle * 1000;
+            $autoFields = max(1, $volle + ($rest > 0 ? 1 : 0));
+        } else {
+            $autoFields = $nutzbreite > 0
+                ? (int) ceil($nutzbreite / (self::MAX_GLAS_BREITE + self::GLAS_ABZUG_BREITE))
+                : 0;
+        }
         // Wie postN: manuelle Feldanzahl gewinnt, der Rest rechnet daraus weiter.
-        $fields = ($p['fieldN'] !== '' && $I($p['fieldN']) > 0) ? $I($p['fieldN']) : $autoFields;
+        $fields = $manuelleFelder ?? $autoFields;
         $rafters = $fields > 0 ? $fields + 1 : 0;
-        $spar = $fields > 0 ? (int) round($nutzbreite / $fields) : 0;
+
+        if ($poly && $manuelleFelder === null && $fields > 0) {
+            $spar = min(1000, (int) round($nutzbreite / $fields));
+            $glasB = self::POLY_PLATTE;
+            $rest = $nutzbreite - ((int) floor($nutzbreite / 1000)) * 1000;
+            if ($rest > 0 && $fields > 1) {
+                $polyRestPlatte = max(0, $rest - 20);
+            } elseif ($fields === 1) {
+                $glasB = max(0, $nutzbreite - 20);
+            }
+        } else {
+            $spar = $fields > 0 ? (int) round($nutzbreite / $fields) : 0;
+            $glasB = max(0, $spar - self::GLAS_ABZUG_BREITE);
+        }
         $blende = max(0, $spar - 60);
-        $glasB = max(0, $spar - self::GLAS_ABZUG_BREITE);
         $glasT = max(0, $D - self::GLAS_ABZUG_TIEFE);
         $ledTot = ($I($p['led']['total'] ?? 12) === 6) ? 6 : 12;
 
@@ -165,10 +189,14 @@ final class KonfiguratorRechner
             'autoFields' => $autoFields,
             'glasB' => $glasB,
             'glasT' => $glasT,
-            'glasText' => $spar ? number_format($glasB, 0, ',', '.').' × '.number_format($glasT, 0, ',', '.').' mm' : '–',
+            'glasText' => $spar
+                ? number_format($glasB, 0, ',', '.').' × '.number_format($glasT, 0, ',', '.').' mm'
+                    .($polyRestPlatte !== null ? ' · Restfeld '.number_format($polyRestPlatte, 0, ',', '.').' mm' : '')
+                : '–',
             'glasZuBreit' => $glasB > $maxPlatte,
             'maxPlatte' => $maxPlatte,
             'poly' => $poly,
+            'polyRestPlatte' => $polyRestPlatte,
             'blende' => $blende,
             'blendeText' => number_format($blende, 0, ',', '.').' mm',
             'sparText' => $spar ? number_format($spar, 0, ',', '.').' mm' : '–',
