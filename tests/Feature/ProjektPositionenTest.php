@@ -85,6 +85,24 @@ class ProjektPositionenTest extends TestCase
         $this->assertSame(0, $projekt->positionen()->count());
     }
 
+    public function test_bestandsprojekt_ohne_positionen_heilt_sich_beim_oeffnen(): void
+    {
+        // Projekt aus der Zeit vor dem Einheitssystem: nur konfiguration.
+        $projekt = Projekt::factory()->create(['konfiguration' => [
+            'product' => 'Carport', 'width' => 5000, 'depth' => 4000,
+        ]]);
+        $this->assertSame(0, $projekt->positionen()->count());
+
+        $this->actingAs($this->benutzer)->get('/projekte/'.$projekt->nr)
+            ->assertOk()
+            ->assertSee('Technische Daten — Position 1 · Carport')
+            ->assertSee('Ändern');
+
+        $dach = $projekt->positionen()->firstOrFail();
+        $this->assertSame('carport', $dach->produkt->value);
+        $this->assertSame(5000, $dach->felder['width']);
+    }
+
     public function test_monteur_darf_keine_positionen_schreiben(): void
     {
         $monteur = User::query()->where('email', 'monteur@lea.test')->firstOrFail();

@@ -11,6 +11,7 @@ use App\Models\Projekt;
 use App\Models\Reservierung;
 use App\Services\LagerService;
 use App\Support\Format;
+use App\Support\KonfigurationSync;
 use App\Support\KonfiguratorRechner;
 use App\Support\Nummern;
 use App\Support\PdfArchiv;
@@ -59,6 +60,14 @@ class ProjektController extends Controller
     public function show(Request $request, Projekt $projekt): View
     {
         $tab = in_array($request->query('tab'), self::TABS, true) ? $request->query('tab') : 'uebersicht';
+
+        // Selbstheilung für Bestandsprojekte (vor dem Einheitssystem angelegt):
+        // ohne Positionen entsteht die Dach-Position aus der Konfiguration,
+        // damit Produktpass und «Ändern»-Fenster überall funktionieren.
+        if ($projekt->konfiguration !== null && ! $projekt->positionen()->exists()) {
+            KonfigurationSync::ergaenzeDachPosition($projekt);
+        }
+
         $projekt->load(['kunde', 'angebot', 'dokumente', 'aktivitaeten', 'positionen']);
 
         // Vorschau aus „Berechnen" (PRG) hat Vorrang vor der gespeicherten Konfiguration.
