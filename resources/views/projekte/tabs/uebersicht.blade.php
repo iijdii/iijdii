@@ -102,7 +102,7 @@
                 <div class="kcell"><span>LED-Spots</span><b class="mono">{{ $kalk['ledTot'] }}</b></div>
             </div>
             @if ($kalk['glasZuBreit'])
-                <div class="kwarn">Glasbreite &gt; {{ \App\Support\KonfiguratorRechner::MAX_GLAS_BREITE }} mm — Fertigungsgrenze überschritten (Feldanzahl erhöhen).</div>
+                <div class="kwarn">Eindeckungsbreite &gt; {{ number_format($kalk['maxPlatte'], 0, ',', '.') }} mm — Fertigungsgrenze überschritten (Feldanzahl erhöhen).</div>
             @endif
             @if ($kalk['warnung'])
                 <div class="kwarn">Tiefe &gt; 4000 mm — statische Prüfung / Unterzug erforderlich.</div>

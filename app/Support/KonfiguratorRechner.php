@@ -25,15 +25,21 @@ final class KonfiguratorRechner
     public const SCHNEELAST = ['SLZ 1 · 0,65 kN/m²', 'SLZ 2 · 0,85 kN/m²', 'SLZ 3 · 1,10 kN/m²'];
 
     /**
-     * Glas-Fertigungsregeln (Vorgabe des Betreibers, ersetzen die
-     * vereinfachte 1080er-Rasterformel des Prototyps):
-     * max. Glasbreite 750 mm; Breite = Achsmaß − 22 mm; Tiefe = T − 60 mm.
+     * Fertigungsregeln nach der KD-Montageanleitung (Kap. 5/6):
+     * Achsmaß = (Dachbreite − 60) / Felder (2×30 mm Seitenrand);
+     * Eindeckungsbreite = Achsmaß − 22 mm (Glas max. 750 mm,
+     * Polycarbonat-Stegplatte Standard 980 mm → Achsmaß 1002 mm);
+     * Eindeckungslänge = Dachtiefe − 50 mm.
      */
     public const MAX_GLAS_BREITE = 750;
 
+    public const POLY_PLATTE = 980;
+
+    public const RAND_ABZUG = 60;
+
     public const GLAS_ABZUG_BREITE = 22;
 
-    public const GLAS_ABZUG_TIEFE = 60;
+    public const GLAS_ABZUG_TIEFE = 50;
 
     public const WINDZONE = ['WZ 1 · Binnenland', 'WZ 2 · Binnenland', 'WZ 3 · Küste', 'WZ 4 · Küste/Inseln'];
 
@@ -85,9 +91,11 @@ final class KonfiguratorRechner
     }
 
     /**
-     * Abgeleitete Werte + Positionsliste (_pvals). Referenz W=8630, T=3500:
-     * rec 4, fields 12, rafters 13, spar 719, blende „659 mm",
-     * Glas 697 × 3.440 mm (Minimum an Feldern, sodass Glasbreite ≤ 750).
+     * Abgeleitete Werte + Positionsliste (_pvals). Referenz W=8630, T=3500,
+     * VSG-Glas: rec 4, fields 12, rafters 13, spar 714 ((8630−60)/12),
+     * blende „654 mm", Glas 692 × 3.450 mm (Minimum an Feldern, sodass
+     * die Glasbreite ≤ 750 bleibt; Polycarbonat zielt auf die
+     * 980er-Stegplatte, Achsmaß 1002).
      */
     public static function berechne(array $pcfg): array
     {
@@ -98,12 +106,15 @@ final class KonfiguratorRechner
 
         $rec = $W > 0 ? (int) ceil($W / 4000) + 1 : 0;
         $pn = ($p['postN'] !== '' && $I($p['postN']) > 0) ? $I($p['postN']) : $rec;
-        $maxAchsmass = self::MAX_GLAS_BREITE + self::GLAS_ABZUG_BREITE;
-        $autoFields = $W > 0 ? (int) ceil($W / $maxAchsmass) : 0;
+        $poly = str_starts_with((string) $p['covering'], 'Polycarbonat');
+        $maxPlatte = $poly ? self::POLY_PLATTE : self::MAX_GLAS_BREITE;
+        $maxAchsmass = $maxPlatte + self::GLAS_ABZUG_BREITE;
+        $nutzbreite = max(0, $W - self::RAND_ABZUG);
+        $autoFields = $nutzbreite > 0 ? (int) ceil($nutzbreite / $maxAchsmass) : 0;
         // Wie postN: manuelle Feldanzahl gewinnt, der Rest rechnet daraus weiter.
         $fields = ($p['fieldN'] !== '' && $I($p['fieldN']) > 0) ? $I($p['fieldN']) : $autoFields;
         $rafters = $fields > 0 ? $fields + 1 : 0;
-        $spar = $fields > 0 ? (int) round($W / $fields) : 0;
+        $spar = $fields > 0 ? (int) round($nutzbreite / $fields) : 0;
         $blende = max(0, $spar - 60);
         $glasB = max(0, $spar - self::GLAS_ABZUG_BREITE);
         $glasT = max(0, $D - self::GLAS_ABZUG_TIEFE);
@@ -155,7 +166,9 @@ final class KonfiguratorRechner
             'glasB' => $glasB,
             'glasT' => $glasT,
             'glasText' => $spar ? number_format($glasB, 0, ',', '.').' × '.number_format($glasT, 0, ',', '.').' mm' : '–',
-            'glasZuBreit' => $glasB > self::MAX_GLAS_BREITE,
+            'glasZuBreit' => $glasB > $maxPlatte,
+            'maxPlatte' => $maxPlatte,
+            'poly' => $poly,
             'blende' => $blende,
             'blendeText' => number_format($blende, 0, ',', '.').' mm',
             'sparText' => $spar ? number_format($spar, 0, ',', '.').' mm' : '–',

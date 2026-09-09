@@ -55,7 +55,7 @@ class ProjektePageTest extends TestCase
 
         // Bemaßte Zeichnungsdaten (früher Technik-Tab) liegen jetzt auf der Übersicht.
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=uebersicht')
-            ->assertSee('12 Felder à 719')
+            ->assertSee('12 Felder à 714')
             ->assertSee('Gefälle 8° ≈ 141 mm/m → Rinne')
             ->assertSee('PRJ-2026-011 · DEMO Demo'); // Titelblock der Zeichnung
     }
@@ -70,7 +70,7 @@ class ProjektePageTest extends TestCase
             ->assertSee('Keil Links · Glas (Klar)');
         // Kalkulation lebt auf der Übersicht.
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011')
-            ->assertSee('659 mm')            // Wandblende bei W=8630 (719−60)
+            ->assertSee('654 mm')            // Wandblende bei W=8630 (714−60)
             ->assertSee('Dach-Kalkulation');
     }
 

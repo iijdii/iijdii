@@ -115,7 +115,7 @@ class BestellungController extends Controller
             return $zurueck->with('toast', 'Konfiguration unvollständig — bitte Breite/Tiefe pflegen');
         }
         if ($kalk['glasZuBreit']) {
-            return $zurueck->with('toast', 'Glasbreite über '.KonfiguratorRechner::MAX_GLAS_BREITE.' mm — Felderzahl im Konfigurator prüfen');
+            return $zurueck->with('toast', 'Eindeckungsbreite über '.$kalk['maxPlatte'].' mm — Felderzahl im Konfigurator prüfen');
         }
         $p = $kalk['pcfg'];
 

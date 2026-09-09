@@ -17,14 +17,31 @@ class KonfiguratorRechnerTest extends TestCase
         $this->assertSame(4, $e['pn']);
         $this->assertSame(12, $e['fields']);   // ceil(8630/772) — Minimum unter dem Limit
         $this->assertSame(13, $e['rafters']);  // fields+1
-        $this->assertSame(719, $e['spar']);    // round(8630/12)
-        $this->assertSame(697, $e['glasB']);   // spar−22, ≤ 750
-        $this->assertSame(3440, $e['glasT']);  // 3500−60
-        $this->assertSame('697 × 3.440 mm', $e['glasText']);
+        $this->assertSame(714, $e['spar']);    // round((8630−60)/12)
+        $this->assertSame(692, $e['glasB']);   // spar−22, ≤ 750
+        $this->assertSame(3450, $e['glasT']);  // 3500−50 (KD)
+        $this->assertSame('692 × 3.450 mm', $e['glasText']);
         $this->assertFalse($e['glasZuBreit']);
-        $this->assertSame('659 mm', $e['blendeText']); // spar−60, de-DE
+        $this->assertSame('654 mm', $e['blendeText']); // spar−60, de-DE
         $this->assertSame(12, $e['ledTot']);
         $this->assertFalse($e['warnung']);
+    }
+
+    public function test_polycarbonat_zielt_auf_die_980er_stegplatte(): void
+    {
+        // KD Kap. 6: Stegplatte 980 mm → Achsmaß 1002; Länge = T − 50.
+        $e = KonfiguratorRechner::berechne([
+            'covering' => 'Polycarbonat klar', 'width' => 6060, 'depth' => 3050,
+        ]);
+        $this->assertSame(6, $e['autoFields']);   // ceil((6060−60)/1002)
+        $this->assertSame(1000, $e['spar']);
+        $this->assertSame(978, $e['glasB']);      // ≤ 980 → keine Warnung
+        $this->assertSame(3000, $e['glasT']);
+        $this->assertFalse($e['glasZuBreit']);
+        $this->assertSame(980, $e['maxPlatte']);
+
+        // Glas bleibt bei der 750er-Grenze.
+        $this->assertSame(750, KonfiguratorRechner::berechne(['covering' => 'VSG-Glas'])['maxPlatte']);
     }
 
     public function test_manual_field_count_overrides_and_warns_beyond_the_limit(): void
@@ -33,8 +50,8 @@ class KonfiguratorRechnerTest extends TestCase
         $e = KonfiguratorRechner::berechne(['fieldN' => 8]);
         $this->assertSame(8, $e['fields']);
         $this->assertSame(9, $e['rafters']);
-        $this->assertSame(1079, $e['spar']);   // round(8630/8)
-        $this->assertSame(1057, $e['glasB']);
+        $this->assertSame(1071, $e['spar']);   // round((8630−60)/8)
+        $this->assertSame(1049, $e['glasB']);
         $this->assertTrue($e['glasZuBreit']);  // … warnt aber über 750 mm.
         $this->assertSame(12, $e['autoFields']);
 

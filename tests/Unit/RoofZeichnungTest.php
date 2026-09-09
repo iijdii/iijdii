@@ -10,7 +10,7 @@ class RoofZeichnungTest extends TestCase
 {
     private const META = ['firma' => 'LEA Überdachungen GmbH', 'projekt' => 'PRJ-2026-011 · DEMO Demo', 'datum' => '02.09.2026'];
 
-    /** Kalk der Demo-Konfiguration: pn=4, rafters=13, fields=12, spar=719. */
+    /** Kalk der Demo-Konfiguration: pn=4, rafters=13, fields=12, spar=714. */
     private function kalk(): array
     {
         return KonfiguratorRechner::berechne([
@@ -57,7 +57,7 @@ class RoofZeichnungTest extends TestCase
 
         $texte = $this->texte($z);
         $this->assertContains('DRAUFSICHT', $texte);
-        $this->assertContains('Maße in mm · 12 Felder à 719 · Sparren 80×60', $texte);
+        $this->assertContains('Maße in mm · 12 Felder à 714 · Sparren 80×60', $texte);
         $this->assertContains('Rinne (Traufe)', $texte);
         $this->assertContains('Wandanschlussprofil', $texte);
         $this->assertSame(3, count(array_keys($texte, '2877', true))); // Kette W/(pn−1) × 3
@@ -119,7 +119,7 @@ class RoofZeichnungTest extends TestCase
         $this->assertContains('VSG 8 mm klar', $texte);
         $this->assertContains('Sparren 80 × 60 mm', $texte);
         $this->assertContains('Abdeckprofil (Rundleiste)', $texte);
-        $this->assertContains('719', $texte); // spar statt Protos veralteter 1050
+        $this->assertContains('714', $texte); // spar statt Protos veralteter 1050
         $this->assertContains('Maßstab', $texte);
         $this->assertContains('1:5', $texte);
         $this->assertContains('4 / 4', $texte);

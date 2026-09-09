@@ -51,12 +51,12 @@ class BestellungAusPositionenTest extends TestCase
         $this->assertNull($bestellung->lieferant_id);
         $this->assertSame($projekt->kunde_id, $bestellung->kunde_id);
 
-        // Glasregeln des Betreibers: W=6000 → 8 Felder, Achsmaß 750,
-        // Glas 728 × 2.940; Pfosten rec=3, Sparren 9.
+        // KD-Regeln: W=6000 → (6000−60)/772 → 8 Felder, Achsmaß 743,
+        // Glas 721 × 2.950; Pfosten rec=3, Sparren 9.
         $glas = $bestellung->positionen()->where('typ', 'glas')->firstOrFail();
         $this->assertSame(8.0, (float) $glas->menge);
-        $this->assertSame(728, $glas->breite_mm);
-        $this->assertSame(2940, $glas->hoehe_mm);
+        $this->assertSame(721, $glas->breite_mm);
+        $this->assertSame(2950, $glas->hoehe_mm);
         $this->assertSame('live', $glas->details['quelle']); // Badge «aus Projekt»
 
         $material = $bestellung->positionen()->where('typ', 'material')->orderBy('pos')->get();

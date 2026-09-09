@@ -44,7 +44,7 @@ class MontagePageTest extends TestCase
             ->assertSee('Notiz / Problem')
             ->assertSee('Zusatzmaterial')
             ->assertSee('Montage-Checkliste · Aufgaben je Termin')
-            ->assertSee('659 mm')            // Wandblende bei W=8630 (719−60)
+            ->assertSee('654 mm')            // Wandblende bei W=8630 (714−60)
             ->assertSee('Keil-Elemente')
             ->assertSee('Termin geplant von')
             ->assertSee('Glas nur zu zweit mit Saugheber einsetzen');

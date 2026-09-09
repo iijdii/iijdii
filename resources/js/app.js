@@ -121,14 +121,19 @@ function kalkUpdate(scope) {
     const ledSel = scope.querySelector('[data-kalk="ledTotal"]');
     const rec = w > 0 ? Math.ceil(w / 4000) + 1 : 0;
     const pn = postN > 0 ? postN : rec;
-    // Glasregeln: max. 750 mm Glasbreite, Breite = Achsmaß − 22, Tiefe = T − 60.
-    const autoFields = w > 0 ? Math.ceil(w / 772) : 0;
+    // KD-Regeln: Achsmaß = (B − 60) / Felder; Eindeckung = Achsmaß − 22
+    // (Glas max. 750, Poly-Stegplatte 980), Länge = T − 50.
+    const coveringSel = scope.querySelector('[data-kalk="covering"]');
+    const poly = !!(coveringSel && coveringSel.value.indexOf('Polycarbonat') === 0);
+    const maxPlatte = poly ? 980 : 750;
+    const nutz = Math.max(0, w - 60);
+    const autoFields = nutz > 0 ? Math.ceil(nutz / (maxPlatte + 22)) : 0;
     const fields = fieldN > 0 ? fieldN : autoFields;
     const rafters = fields > 0 ? fields + 1 : 0;
-    const spar = fields > 0 ? Math.round(w / fields) : 0;
+    const spar = fields > 0 ? Math.round(nutz / fields) : 0;
     const blende = Math.max(0, spar - 60);
     const glasB = Math.max(0, spar - 22);
-    const glasT = Math.max(0, d - 60);
+    const glasT = Math.max(0, d - 50);
     const ledTot = ledSel && parseInt(ledSel.value, 10) === 6 ? 6 : 12;
     const de = (n) => n.toLocaleString('de-DE');
     const out = {
@@ -143,7 +148,7 @@ function kalkUpdate(scope) {
         if (key in out) el.textContent = out[key];
     });
     const warn = scope.querySelector('[data-kalk-warn="glas"]');
-    if (warn) warn.hidden = glasB <= 750;
+    if (warn) warn.hidden = glasB <= maxPlatte;
 }
 
 // Jede Konfigurator-Instanz (Seite + Modals) rechnet für sich —

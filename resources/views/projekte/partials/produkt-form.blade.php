@@ -53,7 +53,7 @@
                 @endforeach
             </select></div>
         <div class="fld"><label>Dachdeckung</label>
-            <select class="inp" name="{{ $prefix }}[felder][covering]">
+            <select class="inp" name="{{ $prefix }}[felder][covering]" data-kalk="covering">
                 @foreach (KonfiguratorRechner::DECKUNGEN as $deckung)
                     <option @selected($v('covering', 'VSG-Glas') === $deckung)>{{ $deckung }}</option>
                 @endforeach
@@ -126,7 +126,8 @@
                 <div class="kcell"><span>LED-Spots</span><b class="mono" data-kalk-out="ledTot">12</b></div>
             </div>
             <div class="kwarn" data-kalk-warn="glas" hidden>
-                Glasbreite &gt; {{ KonfiguratorRechner::MAX_GLAS_BREITE }} mm — Fertigungsgrenze überschritten (Feldanzahl erhöhen).</div>
+                Eindeckungsbreite über Plattenmaß (Glas {{ KonfiguratorRechner::MAX_GLAS_BREITE }} /
+                Stegplatte {{ KonfiguratorRechner::POLY_PLATTE }} mm) — Feldanzahl erhöhen.</div>
         </div>
     </div>
 
