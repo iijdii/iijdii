@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BestellungPosition;
 use App\Models\Projekt;
 use App\Models\ProjektPosition;
 use App\Support\KonfigurationSync;
@@ -58,6 +59,11 @@ class ProjektPositionController extends Controller
     {
         abort_unless($position->projekt_id === $projekt->id, 404);
 
+        // Verweise aus Bestellpositionen lösen — nicht jede Datenbank
+        // trägt den nullOnDelete-Fremdschlüssel (Shared Hosting).
+        BestellungPosition::query()
+            ->where('projekt_position_id', $position->id)
+            ->update(['projekt_position_id' => null]);
         $position->delete();
         KonfigurationSync::spiegleDach($projekt);
 

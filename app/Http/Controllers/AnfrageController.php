@@ -250,7 +250,10 @@ class AnfrageController extends Controller
             if ($projekt) {
                 $angebot = $projekt->angebot;
                 $geloescht[] = $projekt->nr;
-                $projekt->delete(); // Positionen/Aktivitäten/Dokumente/Aufgaben kaskadieren
+                // Positionen explizit löschen — Shared-Hosting-Datenbanken
+                // tragen die Kaskaden-Fremdschlüssel nicht immer.
+                $projekt->positionen()->delete();
+                $projekt->delete(); // Aktivitäten/Dokumente/Aufgaben kaskadieren
                 if ($angebot) {
                     $geloescht[] = $angebot->nr;
                     $angebot->delete();

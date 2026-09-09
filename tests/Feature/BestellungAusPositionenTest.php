@@ -129,6 +129,25 @@ class BestellungAusPositionenTest extends TestCase
             ->assertSessionHas('toast', 'Status: Geprüft');
     }
 
+    public function test_positionsloeschung_loest_verweise_in_bestellungen(): void
+    {
+        // App-seitiges nullOnDelete: nicht jede Server-Datenbank trägt
+        // den Fremdschlüssel (Shared Hosting, errno 150).
+        $projekt = $this->frischesProjekt();
+        $this->actingAs($this->verkauf)
+            ->post('/projekte/'.$projekt->nr.'/aufmass-bestaetigung', ['aktion' => 'bestaetigen']);
+        $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/bestellung-aus-positionen');
+        $bestellung = $projekt->bestellungen()->firstOrFail();
+        $dach = $projekt->positionen()->where('gruppe', 'dach')->firstOrFail();
+
+        $this->actingAs($this->verkauf)
+            ->post('/projekte/'.$projekt->nr.'/positionen/'.$dach->id.'/loeschen')
+            ->assertSessionHas('toast', 'Position entfernt');
+
+        $this->assertSame(0, $bestellung->positionen()->whereNotNull('projekt_position_id')->count());
+        $this->assertSame(3, $bestellung->positionen()->count()); // Positionen selbst bleiben
+    }
+
     public function test_konfig_tab_zeigt_bestellknopf_nur_mit_bestaetigung(): void
     {
         $projekt = $this->frischesProjekt();

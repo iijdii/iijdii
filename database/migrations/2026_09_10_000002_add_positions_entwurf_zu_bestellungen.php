@@ -31,10 +31,17 @@ return new class extends Migration
         $fkFehlt = ! collect(Schema::getForeignKeys('bestellung_positionen'))
             ->contains(fn (array $fk) => $fk['columns'] === ['projekt_position_id']);
         if ($fkFehlt) {
-            Schema::table('bestellung_positionen', function (Blueprint $table) {
-                $table->foreign('projekt_position_id')
-                    ->references('id')->on('projekt_positionen')->nullOnDelete();
-            });
+            try {
+                Schema::table('bestellung_positionen', function (Blueprint $table) {
+                    $table->foreign('projekt_position_id')
+                        ->references('id')->on('projekt_positionen')->nullOnDelete();
+                });
+            } catch (Throwable) {
+                // Manche Shared-Hosting-Datenbanken legen den Fremdschlüssel
+                // nicht an (errno 150, Engine-Mix). Er ist reine Absicherung:
+                // das Lösen der Verweise übernimmt die Anwendung selbst
+                // (ProjektPositionController::loeschen, Anfrage-Absage).
+            }
         }
     }
 
