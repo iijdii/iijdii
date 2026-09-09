@@ -215,7 +215,11 @@ document.querySelectorAll('[data-position-form]').forEach((form) => {
         const opt = select.selectedOptions[0];
         const key = opt && opt.dataset.dach === '1' ? 'dach' : select.value;
         form.querySelectorAll('[data-produkt-felder]').forEach((block) => {
-            block.hidden = block.dataset.produktFelder !== key;
+            const aktiv = block.dataset.produktFelder === key;
+            block.hidden = !aktiv;
+            // Versteckte Blöcke dürfen nicht mitsenden — gemeinsame Feldnamen
+            // (z. B. anzahl) würden sonst die gewählten Werte überschreiben.
+            block.querySelectorAll('input,select').forEach((el) => { el.disabled = !aktiv; });
         });
     };
     select.addEventListener('change', update);
