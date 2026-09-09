@@ -169,4 +169,51 @@ class AnfragenFlowTest extends TestCase
         $this->actingAs($this->benutzer)->get('/anfragen?ansicht=karten')
             ->assertSee('Projekt öffnen');
     }
+
+    public function test_anfrage_mit_position_startet_projekt_und_angebot(): void
+    {
+        $antwort = $this->actingAs($this->benutzer)->post('/anfragen', [
+            'kunde_id' => 1, 'status' => 'neu',
+            'position' => ['produkt' => 'carport', 'felder' => [
+                'width' => 5400, 'depth' => 5400, 'thickness' => '16 mm',
+            ]],
+        ]);
+
+        $anfrage = Anfrage::query()->orderByDesc('id')->first();
+        $projekt = $anfrage->projekt;
+        $angebot = $projekt->angebot;
+
+        $antwort->assertSessionHas('toast',
+            'Anfrage '.$anfrage->nummer.' → Projekt '.$projekt->nr.' + Angebot '.$angebot->nr);
+
+        // Kette vollständig verknüpft
+        $this->assertSame($anfrage->id, $projekt->anfrage_id);
+        $this->assertSame($anfrage->id, $angebot->anfrage_id);
+        $this->assertSame($angebot->id, $projekt->angebot_id);
+        $this->assertSame('Carport', $anfrage->produkt_notiz);
+
+        // Position gespeichert und nach konfiguration gespiegelt
+        $this->assertSame('carport', $projekt->positionen()->first()->produkt->value);
+        $this->assertSame(5400, $projekt->konfiguration['width']);
+        $this->assertSame('Carport', $projekt->konfiguration['product']);
+        $this->assertSame(5400, $angebot->konfiguration['width']);
+
+        // Detail zeigt die Positions-Karte und den Projekt-Link
+        $this->actingAs($this->benutzer)->get('/anfragen/'.$anfrage->nummer)
+            ->assertOk()
+            ->assertSee('Positionen — Projekt '.$projekt->nr)
+            ->assertSee('Position 1 — Carport')
+            ->assertSee('Projekt '.$projekt->nr.' öffnen');
+    }
+
+    public function test_anfrage_ohne_position_bleibt_lead_karte(): void
+    {
+        $this->actingAs($this->benutzer)->post('/anfragen', [
+            'kunde_id' => 1, 'status' => 'neu', 'produkt_notiz' => 'Nur Beratung',
+        ]);
+
+        $anfrage = Anfrage::query()->orderByDesc('id')->first();
+        $this->assertNull($anfrage->projekt);
+        $this->assertSame('Nur Beratung', $anfrage->produkt_notiz);
+    }
 }

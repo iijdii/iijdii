@@ -102,6 +102,35 @@
         </div>
     </div>
 
+    @php $projektPositionen = $anfrage->projekt?->positionen ?? collect(); @endphp
+
+    {{-- Einheitssystem: Positionen leben im Projekt — hier die Übersicht. --}}
+    @if ($projektPositionen->isNotEmpty())
+        <div class="card p0">
+            <div class="card-h">
+                <span class="card-t">Positionen — Projekt {{ $anfrage->projekt->nr }}</span>
+                <a class="btn btns" href="{{ route('projekte.show', [$anfrage->projekt, 'tab' => 'konfig']) }}">
+                    <svg class="i"><use href="#ic-edit"/></svg>Im Konfigurator bearbeiten</a>
+            </div>
+            <div class="card-b">
+                @foreach ($projektPositionen as $position)
+                    <div style="padding:8px 0;border-bottom:1px solid var(--bd2)">
+                        <div class="jb wrap">
+                            <b>Position {{ $position->pos }} — {{ $position->produkt->label() }}</b>
+                            <span class="badge {{ $position->phase === 2 ? 'b-yellow' : 'b-gray' }}">Phase {{ $position->phase }}</span>
+                        </div>
+                        <div class="anf-specs" style="margin:6px 0 0">
+                            @foreach (collect($position->felder ?? [])->take(8) as $schluessel => $wert)
+                                <span class="spec">{{ $schluessel }} <b>{{ is_array($wert) ? '…' : $wert }}</b></span>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
+    @if ($projektPositionen->isEmpty())
     <div class="card p0">
         <div class="card-h">
             <span class="card-t">Position 1 — Überdachung</span>
@@ -204,6 +233,8 @@
         </div>
     @endif
 
+    @endif
+
     {{-- Draufsicht (Prototyp: statische Schema-Karte im Anfrage-Detail) --}}
     <div class="card p0">
         <div class="card-h"><span class="card-t">Draufsicht</span><span class="pill mono">Schema</span></div>
@@ -222,7 +253,7 @@
         </div>
     @endif
 
-    @if ($sliding !== [])
+    @if ($projektPositionen->isEmpty() && $sliding !== [])
         <div class="card p0">
             <div class="card-h"><span class="card-t">Schiebesystem(e)</span><span class="pill">{{ count($sliding) }}</span></div>
             <div class="card-b" style="overflow-x:auto">

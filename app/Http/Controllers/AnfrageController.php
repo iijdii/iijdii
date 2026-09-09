@@ -3,15 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Enums\AnfrageStatus;
+use App\Enums\AngebotStatus;
 use App\Enums\ProjektStatus;
 use App\Models\Anfrage;
 use App\Models\Kunde;
 use App\Support\AnfrageKonfigMapper;
+use App\Support\KonfigurationSync;
 use App\Support\KonfiguratorRechner;
 use App\Support\Nummern;
+use App\Support\ProduktFelder;
 use App\Support\RoofZeichnung;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -61,7 +65,7 @@ class AnfrageController extends Controller
         ), ['projekt' => $anfrage->nummer.' · '.$anfrage->kunde->anzeigename]);
 
         return view('anfragen.show', [
-            'anfrage' => $anfrage->load(['kunde', 'aktivitaeten']),
+            'anfrage' => $anfrage->load(['kunde', 'aktivitaeten', 'projekt.positionen']),
             'stufen' => self::STUFEN,
             'draufsicht' => $draufsicht,
         ]);
@@ -82,14 +86,72 @@ class AnfrageController extends Controller
         $daten['nummer'] = Nummern::anfrage();
         $daten['erstellt_von'] = $request->user()->id;
 
-        $anfrage = Anfrage::query()->create($daten);
-        $anfrage->aktivitaeten()->create([
-            'typ' => 'angelegt',
-            'von_user_id' => $request->user()->id,
-        ]);
+        // Einheitssystem: mit Konfigurator-Position startet die Anfrage
+        // automatisch Projekt + Angebot (Betreiber-Prozess; Absage löscht
+        // beide wieder). Ohne Position bleibt es eine reine Lead-Karte.
+        $position = $request->filled('position.produkt')
+            ? ProduktFelder::daten((array) $request->input('position'))
+            : null;
+        if ($position && empty($daten['produkt_notiz'])) {
+            $daten['produkt_notiz'] = $position['produkt']->label();
+        }
+
+        $anfrage = DB::transaction(function () use ($daten, $position, $request) {
+            $anfrage = Anfrage::query()->create($daten);
+            $anfrage->aktivitaeten()->create([
+                'typ' => 'angelegt',
+                'von_user_id' => $request->user()->id,
+            ]);
+
+            if ($position === null) {
+                return $anfrage;
+            }
+
+            $kunde = $anfrage->kunde;
+            $projekt = $kunde->projekte()->create([
+                'nr' => Nummern::projekt(),
+                'titel' => $position['produkt']->label().' '.$kunde->anzeigename,
+                'anfrage_id' => $anfrage->id,
+                'objekt_strasse' => $anfrage->objekt_strasse ?? $kunde->strasse,
+                'objekt_hausnummer' => $anfrage->objekt_hausnummer ?? $kunde->hausnummer,
+                'objekt_plz' => $anfrage->objekt_plz ?? $kunde->plz,
+                'objekt_stadt' => $anfrage->objekt_stadt ?? $kunde->stadt,
+                'status' => ProjektStatus::InPlanung,
+            ]);
+            $projekt->positionen()->create($position + ['pos' => 1]);
+            KonfigurationSync::spiegleDach($projekt);
+
+            $angebot = $kunde->angebote()->create([
+                'nr' => Nummern::angebot(),
+                'titel' => $projekt->titel,
+                'anfrage_id' => $anfrage->id,
+                'status' => AngebotStatus::Entwurf,
+                'datum' => now()->toDateString(),
+                'konfiguration' => $projekt->fresh()->konfiguration,
+            ]);
+            $projekt->update(['angebot_id' => $angebot->id]);
+
+            $projekt->aktivitaeten()->create([
+                'titel' => 'Projekt aus '.$anfrage->nummer.' erstellt · Angebot '.$angebot->nr,
+                'wer' => $request->user()->name,
+                'datum' => now()->format('d.m.'),
+                'status' => 'done',
+            ]);
+            $anfrage->aktivitaeten()->create([
+                'typ' => 'projekt_erstellt',
+                'von_user_id' => $request->user()->id,
+                'details' => ['projekt' => $projekt->nr, 'angebot' => $angebot->nr],
+            ]);
+
+            return $anfrage;
+        });
+
+        $projekt = $anfrage->projekt;
 
         return redirect()->route('anfragen.show', $anfrage)
-            ->with('toast', 'Anfrage gespeichert · '.$anfrage->nummer);
+            ->with('toast', $projekt
+                ? 'Anfrage '.$anfrage->nummer.' → Projekt '.$projekt->nr.' + Angebot '.$projekt->angebot->nr
+                : 'Anfrage gespeichert · '.$anfrage->nummer);
     }
 
     public function edit(Anfrage $anfrage): View
