@@ -81,6 +81,53 @@
                     <option @selected($v('wind', 'WZ 2 · Binnenland') === $zone)>{{ $zone }}</option>
                 @endforeach
             </select></div>
+
+        {{-- Entwässerung, Wandanschluss & Beleuchtung — pcfg-verschachtelt,
+             damit KonfigurationSync sie 1:1 spiegelt (Montage-Modus liest sie). --}}
+        <div class="fsec" style="grid-column:1/-1;margin:6px 0 0">Entwässerung, Wandanschluss &amp; Beleuchtung</div>
+        <div class="fld"><label>Ablauf an Pfosten Nr.</label><input class="inp" type="number" name="{{ $prefix }}[felder][drain][post]" value="{{ $v('drain.post', 1) }}"></div>
+        <div class="fld"><label>Ablauf Höhe (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][drain][height]" value="{{ $v('drain.height', 1150) }}"></div>
+        <div class="fld"><label>Ablauf Blickrichtung</label>
+            <select class="inp" name="{{ $prefix }}[felder][drain][dir]">
+                @foreach (['nach vorn', 'nach hinten', 'nach links', 'nach rechts'] as $richtung)
+                    <option @selected($v('drain.dir', 'nach vorn') === $richtung)>{{ $richtung }}</option>
+                @endforeach
+            </select></div>
+        <div class="fld"><label>Dübeltyp</label>
+            <select class="inp" name="{{ $prefix }}[felder][duebel][typ]">
+                @foreach (['Schlagdübel', 'Bolzenanker', 'Injektionsanker', 'Porenbetonanker'] as $typ)
+                    <option @selected($v('duebel.typ', 'Schlagdübel') === $typ)>{{ $typ }}</option>
+                @endforeach
+            </select></div>
+        <div class="fld"><label>Dübelgröße</label><input class="inp" type="text" name="{{ $prefix }}[felder][duebel][size]" value="{{ $v('duebel.size', '10 × 80 mm') }}"></div>
+        <div class="fld"><label>Dübelabstand (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][duebel][abstand]" value="{{ $v('duebel.abstand', 500) }}"></div>
+        <div class="fld"><label>LED-Spots gesamt</label>
+            <select class="inp" name="{{ $prefix }}[felder][led][total]" data-kalk="ledTotal">
+                <option value="6" @selected((int) $v('led.total', 12) === 6)>6 Spots</option>
+                <option value="12" @selected((int) $v('led.total', 12) === 12)>12 Spots</option>
+            </select></div>
+        <div class="fld"><label>Lichtfarbe</label>
+            <select class="inp" name="{{ $prefix }}[felder][led][color]">
+                @foreach (['Warmweiß 3000K', 'Neutralweiß 4000K', 'RGBW'] as $farbe)
+                    <option @selected($v('led.color', 'Warmweiß 3000K') === $farbe)>{{ $farbe }}</option>
+                @endforeach
+            </select></div>
+
+        {{-- Live-Kalkulation im Konfigurator-Fenster --}}
+        <div class="kbox" style="grid-column:1/-1;margin-top:6px">
+            <div class="fsec">Dach-Kalkulation</div>
+            <div class="kgrid">
+                <div class="kcell"><span>Pfosten</span><b class="mono" data-kalk-out="pn">–</b></div>
+                <div class="kcell"><span>Sparren</span><b class="mono" data-kalk-out="rafters">–</b></div>
+                <div class="kcell"><span>Felder</span><b class="mono" data-kalk-out="fields">–</b></div>
+                <div class="kcell"><span>Sparrenabstand</span><b class="mono" data-kalk-out="spar">–</b></div>
+                <div class="kcell"><span>Wandblende</span><b class="mono" data-kalk-out="blende">–</b></div>
+                <div class="kcell"><span>Glasmaß</span><b class="mono" data-kalk-out="glas">–</b></div>
+                <div class="kcell"><span>LED-Spots</span><b class="mono" data-kalk-out="ledTot">12</b></div>
+            </div>
+            <div class="kwarn" data-kalk-warn="glas" hidden>
+                Glasbreite &gt; {{ KonfiguratorRechner::MAX_GLAS_BREITE }} mm — Fertigungsgrenze überschritten (Feldanzahl erhöhen).</div>
+        </div>
     </div>
 
     {{-- ——— Extras ——— --}}

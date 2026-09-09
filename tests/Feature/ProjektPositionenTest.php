@@ -35,6 +35,21 @@ class ProjektPositionenTest extends TestCase
         $this->assertSame('Carport', $projekt->konfiguration['product']); // gespiegelt
         $this->assertSame(5400, $projekt->konfiguration['width']);
 
+        // Verschachtelte Detailfelder (LED, Entwässerung, Dübel) spiegeln mit
+        $this->actingAs($this->benutzer)->put('/projekte/PRJ-2026-038/positionen/'.$projekt->positionen()->first()->id, [
+            'position' => ['produkt' => 'carport', 'felder' => [
+                'width' => 5400,
+                'led' => ['total' => '6', 'color' => 'RGBW'],
+                'drain' => ['post' => 2, 'dir' => 'nach hinten'],
+                'duebel' => ['typ' => 'Bolzenanker', 'abstand' => 400],
+            ]],
+        ])->assertSessionHas('toast', 'Position 1 aktualisiert');
+        $k = $projekt->fresh()->konfiguration;
+        $this->assertSame('RGBW', $k['led']['color']);
+        $this->assertSame('nach hinten', $k['drain']['dir']);
+        $this->assertSame('Bolzenanker', $k['duebel']['typ']);
+        $this->assertSame(1150, $k['drain']['height']); // Default bleibt (merge)
+
         // Zweite Dachposition wird abgewiesen
         $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-038/positionen', [
             'position' => ['produkt' => 'ueberdachung', 'felder' => ['width' => 6000]],

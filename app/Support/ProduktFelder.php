@@ -46,6 +46,17 @@ final class ProduktFelder
                 'glasTrans' => ['nullable', Rule::in(['Klar', 'Milch'])],
                 'snow' => ['nullable', Rule::in(KonfiguratorRechner::SCHNEELAST)],
                 'wind' => ['nullable', Rule::in(KonfiguratorRechner::WINDZONE)],
+                // Entwässerung, Dübel & LED — pcfg-verschachtelt (Montage-Modus liest sie).
+                'drain' => ['nullable', 'array'],
+                'drain.post' => $mm, 'drain.height' => $mm,
+                'drain.dir' => ['nullable', Rule::in(['nach vorn', 'nach hinten', 'nach links', 'nach rechts'])],
+                'duebel' => ['nullable', 'array'],
+                'duebel.typ' => ['nullable', Rule::in(['Schlagdübel', 'Bolzenanker', 'Injektionsanker', 'Porenbetonanker'])],
+                'duebel.size' => ['nullable', 'string', 'max:32'],
+                'duebel.abstand' => $mm,
+                'led' => ['nullable', 'array'],
+                'led.total' => ['nullable', Rule::in([6, 12, '6', '12'])],
+                'led.color' => ['nullable', Rule::in(['Warmweiß 3000K', 'Neutralweiß 4000K', 'RGBW'])],
             ]
             : match ($produkt) {
                 ProjektProdukt::Wand => [
@@ -80,6 +91,25 @@ final class ProduktFelder
 
         $validiert = Validator::make($felder, $regeln)->validate();
 
-        return array_filter($validiert, fn ($wert) => $wert !== null && $wert !== '');
+        return self::ohneLeere($validiert);
+    }
+
+    /** Leere Werte rekursiv entfernen (auch leer gewordene Teil-Arrays). */
+    private static function ohneLeere(array $werte): array
+    {
+        $ergebnis = [];
+        foreach ($werte as $schluessel => $wert) {
+            if (is_array($wert)) {
+                $wert = self::ohneLeere($wert);
+                if ($wert === []) {
+                    continue;
+                }
+            } elseif ($wert === null || $wert === '') {
+                continue;
+            }
+            $ergebnis[$schluessel] = $wert;
+        }
+
+        return $ergebnis;
     }
 }
