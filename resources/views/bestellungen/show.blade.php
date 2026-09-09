@@ -2,7 +2,13 @@
 
 @section('title', 'Bestellung '.$bestellung->nr)
 
-@php use App\Enums\BestellungStatus; use App\Support\Format; @endphp
+@php
+    use App\Enums\BestellungStatus;
+    use App\Support\Format;
+    // Lieferanten-Portal (M14): schlanke Sicht — kein Kundenbezug, kein
+    // Status-Stepper, keine internen Links; stattdessen «Bereit melden».
+    $portal = auth()->user()->istLieferant();
+@endphp
 
 @section('content')
 <div class="colstack">
@@ -12,7 +18,7 @@
             <a class="btn btns" href="{{ route('bestellungen') }}">
                 <svg class="i"><use href="#ic-aleft"/></svg>Zurück zur Liste</a>
             <span class="ctas">
-                @if (in_array($bestellung->status->value, ['entwurf', 'geprueft'], true))
+                @if (! $portal && in_array($bestellung->status->value, ['entwurf', 'geprueft'], true))
                     <a class="btn btns" href="{{ route('bestellungen.edit', $bestellung) }}">
                         <svg class="i"><use href="#ic-edit"/></svg>Bearbeiten</a>
                 @endif
@@ -28,13 +34,30 @@
         <h2 class="serif" style="margin:8px 0 14px;font-size:23px">{{ $bestellung->titel }}</h2>
         <div class="metarow">
             <span><span class="meta-k">Lieferant</span><span class="meta-v">{{ $bestellung->lieferant?->name ?? '— Lieferant wählen —' }}</span></span>
-            <span><span class="meta-k">Kunde</span><span class="meta-v">{{ $bestellung->kunde?->anzeigename ?? '–' }}</span></span>
+            @unless ($portal)
+                <span><span class="meta-k">Kunde</span><span class="meta-v">{{ $bestellung->kunde?->anzeigename ?? '–' }}</span></span>
+            @endunless
             <span><span class="meta-k">Projekt</span><span class="meta-v mono">{{ $bestellung->projekt?->nr ?? '–' }}</span></span>
             <span><span class="meta-k">Ersteller</span><span class="meta-v">{{ $bestellung->ersteller?->name ?? '–' }}</span></span>
             <span><span class="meta-k">Erstellt</span><span class="meta-v mono">{{ Format::datum($bestellung->created_at) }}</span></span>
             <span><span class="meta-k">Liefertermin</span><span class="meta-v mono">{{ Format::datumKurz($bestellung->liefertermin) }}</span></span>
         </div>
 
+        @if ($portal)
+            @if ($bestellung->status === BestellungStatus::Bestellt)
+                <form method="POST" action="{{ route('bestellungen.status', $bestellung) }}" style="margin-top:14px">
+                    @csrf
+                    <input type="hidden" name="status" value="bereit">
+                    <button class="btn btns btnp" type="submit"
+                            onclick="return confirm('Bestellung als „Bereit zur Abholung/Lieferung“ melden?')">
+                        <svg class="i"><use href="#ic-check"/></svg>Bereit melden</button>
+                </form>
+                <p class="hint" style="margin-top:8px">Damit melden Sie der LEA-Disposition, dass die Ware
+                    produziert und bereit ist.</p>
+            @else
+                <p class="hint" style="margin-top:14px">Statuspflege übernimmt ab hier die LEA-Disposition.</p>
+            @endif
+        @else
         <div class="stp">
             <span class="stp-l">Status</span>
             <span class="stp-bs">
@@ -53,6 +76,7 @@
                 @endforeach
             </span>
         </div>
+        @endif
     </div>
 
     @if ($wareneingang)
@@ -69,8 +93,10 @@
                             · Lieferschein {{ $wareneingang->lieferschein_nr }}</div>
                     </span>
                 </span>
-                <a class="btn btns" href="{{ route('lager', ['tab' => 'wareneingang']) }}">
-                    <svg class="i"><use href="#ic-lager"/></svg>Im Lager anzeigen</a>
+                @unless ($portal)
+                    <a class="btn btns" href="{{ route('lager', ['tab' => 'wareneingang']) }}">
+                        <svg class="i"><use href="#ic-lager"/></svg>Im Lager anzeigen</a>
+                @endunless
             </div>
         </div>
     @endif
@@ -84,7 +110,8 @@
             <div class="card-b" style="overflow-x:auto">
                 <table class="tbl">
                     <thead>
-                    <tr><th>Bezeichnung</th><th>Art.-Nr.</th><th>Menge</th><th>Einheit</th><th>Lagerort</th><th>Lager</th></tr>
+                    <tr><th>Bezeichnung</th><th>Art.-Nr.</th><th>Menge</th><th>Einheit</th>
+                        @unless ($portal)<th>Lagerort</th><th>Lager</th>@endunless</tr>
                     </thead>
                     <tbody>
                     @foreach ($materialPositionen as $position)
@@ -93,8 +120,10 @@
                             <td class="mono">{{ $position->artikel?->art_nr ?? '—' }}</td>
                             <td class="mono">{{ Format::menge($position->menge) }}</td>
                             <td>{{ $position->einheit ?? $position->artikel?->einheit->value ?? 'Stück' }}</td>
-                            <td class="mono">{{ $position->artikel?->lagerort ?? '–' }}</td>
-                            <td><span class="badge {{ $position->eingelagert ? 'b-green' : 'b-gray' }}">{{ $position->eingelagert ? 'Eingelagert' : 'Offen' }}</span></td>
+                            @unless ($portal)
+                                <td class="mono">{{ $position->artikel?->lagerort ?? '–' }}</td>
+                                <td><span class="badge {{ $position->eingelagert ? 'b-green' : 'b-gray' }}">{{ $position->eingelagert ? 'Eingelagert' : 'Offen' }}</span></td>
+                            @endunless
                         </tr>
                     @endforeach
                     </tbody>

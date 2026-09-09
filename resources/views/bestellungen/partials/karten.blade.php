@@ -16,7 +16,7 @@
                     <span class="anf-title">{{ $b->lieferant?->name ?? '— Lieferant wählen —' }}</span>
                     <span class="pill {{ $b->kategoriePillClass() }}">{{ $b->kategorieLabel() }}</span>
                 </div>
-                <div class="anf-sub">{{ $b->projekt?->nr ?? '–' }} · {{ $b->kunde?->anzeigename ?? '–' }}</div>
+                <div class="anf-sub">{{ $b->projekt?->nr ?? '–' }}@unless (auth()->user()->istLieferant()) · {{ $b->kunde?->anzeigename ?? '–' }}@endunless</div>
 
                 @if ($karte['tiles']->isNotEmpty())
                     <div class="gtiles">

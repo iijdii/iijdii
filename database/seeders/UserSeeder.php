@@ -16,6 +16,9 @@ class UserSeeder extends Seeder
             [Rolle::Projektleiter, 'Anna Vogt', 'projekt@lea.test'],
             [Rolle::Lager, 'S. Krüger', 'lager@lea.test'],
             [Rolle::Monteur, 'Team Berlin K1', 'monteur@lea.test'],
+            // Portal-Zugang; die Zuordnung zum Lieferanten setzt der
+            // LieferantSeeder (Lieferanten existieren erst danach).
+            [Rolle::Lieferant, 'Sunshine Portal', 'lieferant@lea.test'],
         ];
 
         // Auf öffentlichen Servern per SEED_PASSWORD in der .env überschreiben.

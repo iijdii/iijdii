@@ -1,5 +1,11 @@
 @php
-    $gruppen = [
+    // Lieferanten-Portal (M14): nur die eigenen Bestellungen — der Rest
+    // der Navigation existiert für diese Rolle nicht.
+    $gruppen = auth()->user()?->istLieferant() ? [
+        'Portal' => [
+            ['bestellungen', 'Meine Bestellungen'],
+        ],
+    ] : [
         'Vertrieb' => [
             ['dashboard', 'Dashboard'],
             ['kunden', 'Kunden'],

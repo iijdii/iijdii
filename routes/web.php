@@ -45,7 +45,7 @@ Route::get('/einrichtung/{token}', function (string $token) {
     );
 })->name('einrichtung');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'lieferant.portal'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Logistik: /logistik/touren/* VOR dem {bestellung:nr}-Wildcard registrieren.
@@ -139,7 +139,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/bestellungen/{bestellung:nr}/positionen/{position}/loeschen', [BestellungController::class, 'loeschePosition'])->middleware('role:lager,verkaeufer,projektleiter')->name('bestellungen.positionen.loeschen');
     Route::get('/bestellungen/{bestellung:nr}/pdf', [BestellungController::class, 'pdf'])->name('bestellungen.pdf');
     Route::post('/bestellungen/{bestellung:nr}/status', [BestellungController::class, 'setzeStatus'])
-        ->middleware('role:lager,verkaeufer,projektleiter')->name('bestellungen.status');
+        ->middleware('role:lager,verkaeufer,projektleiter,lieferant')->name('bestellungen.status');
 
     Route::get('/lager', [LagerController::class, 'index'])->name('lager');
     Route::get('/lager/artikel/{artikel}', [LagerController::class, 'artikel'])->name('lager.artikel');

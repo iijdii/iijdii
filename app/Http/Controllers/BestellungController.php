@@ -33,20 +33,29 @@ class BestellungController extends Controller
     {
         $ansicht = $request->query('ansicht') === 'karten' ? 'karten' : 'tabelle';
         $filter = $request->query('status', 'alle');
+        $portal = $request->user()->istLieferant();
 
         // Optionaler Lieferanten-Filter (Deep-Link aus der Lieferanten-Übersicht);
         // die Status-Chips zählen innerhalb des gefilterten Satzes.
+        // Portal (M14): Lieferanten sehen nur die eigenen, bereits
+        // bestellten Vorgänge — interne Entwürfe bleiben unsichtbar.
         $alle = Bestellung::query()
             ->with(['lieferant', 'projekt', 'kunde', 'positionen'])
-            ->when($request->integer('lieferant'), fn ($q, $id) => $q->where('lieferant_id', $id))
+            ->when($portal ? 0 : $request->integer('lieferant'), fn ($q, $id) => $q->where('lieferant_id', $id))
+            ->when($portal, fn ($q) => $q
+                ->where('lieferant_id', $request->user()->lieferant_id)
+                ->whereNotIn('status', [BestellungStatus::Entwurf, BestellungStatus::Geprueft]))
             ->orderByDesc('nr')
             ->get();
 
-        $chips = collect([['alle', 'Alle']])
-            ->concat(collect([
+        $chipStatus = $portal
+            ? [BestellungStatus::Bestellt, BestellungStatus::Bereit, BestellungStatus::Geliefert]
+            : [
                 BestellungStatus::Entwurf, BestellungStatus::Geprueft, BestellungStatus::Bestellt,
                 BestellungStatus::Bereit, BestellungStatus::Geliefert,
-            ])->map(fn ($s) => [$s->value, $s->label()]))
+            ];
+        $chips = collect([['alle', 'Alle']])
+            ->concat(collect($chipStatus)->map(fn ($s) => [$s->value, $s->label()]))
             ->map(fn (array $chip) => [
                 'key' => $chip[0],
                 'label' => $chip[1],
@@ -533,6 +542,14 @@ class BestellungController extends Controller
         if ($bestellung->lieferant_id === null && $status !== BestellungStatus::Entwurf) {
             return redirect()->route('bestellungen.show', $bestellung)
                 ->with('toast', 'Bitte zuerst einen Lieferanten wählen');
+        }
+
+        // Portal (M14): der Lieferant meldet ausschließlich «Bereit» auf
+        // einer bestellten Bestellung — alle anderen Übergänge sind intern.
+        if ($request->user()->istLieferant()
+            && ! ($bestellung->status === BestellungStatus::Bestellt && $status === BestellungStatus::Bereit)) {
+            return redirect()->route('bestellungen.show', $bestellung)
+                ->with('toast', 'Im Portal nur möglich: Bestellt → Bereit melden');
         }
         $bestellung->update(['status' => $status]);
 

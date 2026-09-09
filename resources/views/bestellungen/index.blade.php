@@ -15,8 +15,10 @@
             @endforeach
         </div>
         <span class="fx ac gap8">
-        <a class="btn btns btnp" href="{{ route('bestellungen.create') }}">
-            <svg class="i"><use href="#ic-plus"/></svg>Neue Bestellung</a>
+        @unless (auth()->user()->istLieferant())
+            <a class="btn btns btnp" href="{{ route('bestellungen.create') }}">
+                <svg class="i"><use href="#ic-plus"/></svg>Neue Bestellung</a>
+        @endunless
         <div class="seg">
             <a class="{{ $ansicht === 'karten' ? 'on' : '' }}"
                href="{{ route('bestellungen', array_filter(['status' => $filter, 'ansicht' => 'karten', 'lieferant' => request('lieferant')])) }}">

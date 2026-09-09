@@ -31,6 +31,11 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
+        // Lieferanten-Portal (M14): direkt in die eigene Bestellliste.
+        if ($request->user()->istLieferant()) {
+            return redirect()->route('bestellungen');
+        }
+
         return redirect()->intended(route('dashboard'));
     }
 

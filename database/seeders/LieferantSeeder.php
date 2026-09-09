@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Lieferant;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class LieferantSeeder extends Seeder
@@ -29,5 +30,10 @@ class LieferantSeeder extends Seeder
                 'stadt' => $stadt,
             ]);
         }
+
+        // Portal-Benutzer (UserSeeder) mit seinem Lieferanten verknüpfen.
+        User::query()->where('email', 'lieferant@lea.test')->update([
+            'lieferant_id' => Lieferant::query()->where('name', 'Sunshine')->value('id'),
+        ]);
     }
 }

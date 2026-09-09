@@ -9,6 +9,7 @@ enum Rolle: string
     case Projektleiter = 'projektleiter';
     case Lager = 'lager';
     case Monteur = 'monteur';
+    case Lieferant = 'lieferant';
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum Rolle: string
             self::Projektleiter => 'Projektleiter',
             self::Lager => 'Lager',
             self::Monteur => 'Monteur',
+            self::Lieferant => 'Lieferant (Portal)',
         };
     }
 }
