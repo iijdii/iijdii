@@ -59,10 +59,18 @@ class BestellungAusPositionenTest extends TestCase
         $this->assertSame(2950, $glas->hoehe_mm);
         $this->assertSame('live', $glas->details['quelle']); // Badge «aus Projekt»
 
+        // KD-Stückliste: alle Hauptpositionen mit Mengen aus dem Rechenkern.
         $material = $bestellung->positionen()->where('typ', 'material')->orderBy('pos')->get();
-        $this->assertSame(['Pfosten 110×110 · Weiß · RAL 9016', 'Dachsparren 80×60 mm'], $material->pluck('bezeichnung')->all());
-        $this->assertSame([3.0, 9.0], $material->map(fn ($p) => (float) $p->menge)->all());
-        $this->assertNotNull($material[0]->artikel_id); // Alias «Pfosten 110×110»
+        $zeileVon = fn (string $name) => $material->first(fn ($z) => str_starts_with($z->bezeichnung, $name));
+        $menge = fn (string $name) => (float) $zeileVon($name)?->menge;
+        $this->assertSame(3.0, $menge('Alu-Pfosten 110×110'));
+        $this->assertSame(9.0, $menge('Sparren/Träger'));
+        $this->assertSame(9.0, $menge('Endstopp'));
+        $this->assertSame(7.0, $menge('Abdeckprofil Rundleiste'));
+        $this->assertSame(1.0, $menge('Gigarinne'));
+        $this->assertSame(1.0, $menge('LED-Set 12 Spots'));
+        $this->assertNotNull($zeileVon('Alu-Pfosten')->artikel_id); // Alias
+        $this->assertSame(6000, $zeileVon('Gigarinne')->details['laenge_mm']);
 
         // Rückverfolgbarkeit: alle Positionen zeigen auf die Dach-Projektposition.
         $dach = $projekt->positionen()->where('gruppe', 'dach')->firstOrFail();
@@ -145,7 +153,7 @@ class BestellungAusPositionenTest extends TestCase
             ->assertSessionHas('toast', 'Position entfernt');
 
         $this->assertSame(0, $bestellung->positionen()->whereNotNull('projekt_position_id')->count());
-        $this->assertSame(3, $bestellung->positionen()->count()); // Positionen selbst bleiben
+        $this->assertSame(16, $bestellung->positionen()->count()); // Positionen selbst bleiben
     }
 
     public function test_material_tab_zeigt_bestellknopf_nur_mit_bestaetigung(): void

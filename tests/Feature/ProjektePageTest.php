@@ -62,12 +62,14 @@ class ProjektePageTest extends TestCase
 
     public function test_konfigurator_shows_prototype_positions_and_kalkulation(): void
     {
-        // Vorbestell-Liste aus der Konfiguration → Tab «Material + Bestellungen».
+        // KD-Stückliste (Vorbestellung) → Tab «Material + Bestellungen».
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=material')
             ->assertOk()
-            ->assertSee('Überdachung Trapez 8630×3500 mm')
-            ->assertSee('Pfosten 110×110 · Weiß · RAL 9016')
-            ->assertSee('Keil Links · Glas (Klar)');
+            ->assertSee('Dachfeld VSG-Glas 8 mm')
+            ->assertSee('Gigarinne (Profil 35732)')
+            ->assertSee('Alu-Pfosten 110×110 (Profil 35722) · Weiß · RAL 9016')
+            ->assertSee('Endstopp / Stoppwinkel')
+            ->assertSee('692 × 3.450 mm');
         // Kalkulation lebt auf der Übersicht.
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011')
             ->assertSee('654 mm')            // Wandblende bei W=8630 (714−60)
@@ -83,8 +85,9 @@ class ProjektePageTest extends TestCase
         $antwort->assertRedirect(route('projekte.show', 'PRJ-2026-011'));
 
         // Vorschau sichtbar, Persistenz unverändert.
+        // Vorschau wirkt auch auf die Stückliste (W=6000/T=3500 → Glas 721 × 3.450).
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=material')
-            ->assertSee('6000×3500');
+            ->assertSee('721 × 3.450 mm');
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011')
             ->assertSee('Vorschau — noch nicht gespeichert');
         $this->assertSame(8630, Projekt::query()->where('nr', 'PRJ-2026-011')->value('konfiguration')['width'] ?? json_decode(Projekt::query()->where('nr', 'PRJ-2026-011')->value('konfiguration'), true)['width']);

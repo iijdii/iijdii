@@ -15,6 +15,7 @@ use App\Support\GlasSkizze;
 use App\Support\KonfiguratorRechner;
 use App\Support\Nummern;
 use App\Support\PdfArchiv;
+use App\Support\Stueckliste;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -131,32 +132,34 @@ class BestellungController extends Controller
                 'notizen' => 'Automatisch aus den Projektpositionen erstellt — Lieferant im Entwurf wählen.',
             ]);
 
-            $glasName = 'Dachfeld '.$p['covering'].' '.$p['thickness'];
-            $glasArtikel = Artikel::findeNachName($p['covering'].' '.$p['thickness'].' klar')
-                ?? Artikel::findeNachName($p['covering'].' '.$p['thickness']);
-            $bestellung->positionen()->create([
-                'typ' => 'glas', 'pos' => 1, 'bezeichnung' => $glasName,
-                'artikel_id' => $glasArtikel?->id,
-                'menge' => $kalk['fields'], 'einheit' => 'Feld',
-                'breite_mm' => $kalk['glasB'], 'hoehe_mm' => $kalk['glasT'],
-                'projekt_position_id' => $dach->id,
-                'details' => [
-                    'form' => 'Rechteck', 'hL' => $kalk['glasT'], 'hR' => $kalk['glasT'],
-                    'glas' => $p['covering'].' '.$p['thickness'], 'quelle' => 'live',
-                ],
-            ]);
+            // Vollständige Hauptpositionen nach KD-Stückliste; Kleinteile
+            // ergänzt der Verkäufer im Entwurf.
+            foreach (Stueckliste::dach($kalk) as $i => $zeile) {
+                if ($zeile['typ'] === 'glas') {
+                    $glasArtikel = Artikel::findeNachName($p['covering'].' '.$p['thickness'].' klar')
+                        ?? Artikel::findeNachName($p['covering'].' '.$p['thickness']);
+                    $bestellung->positionen()->create([
+                        'typ' => 'glas', 'pos' => $i + 1, 'bezeichnung' => $zeile['name'],
+                        'artikel_id' => $glasArtikel?->id,
+                        'menge' => $zeile['menge'], 'einheit' => $zeile['einheit'],
+                        'breite_mm' => $zeile['breite_mm'], 'hoehe_mm' => $zeile['hoehe_mm'],
+                        'projekt_position_id' => $dach->id,
+                        'details' => [
+                            'form' => 'Rechteck', 'hL' => $zeile['hoehe_mm'], 'hR' => $zeile['hoehe_mm'],
+                            'glas' => $p['covering'].' '.$p['thickness'], 'quelle' => 'live',
+                        ],
+                    ]);
 
-            $profile = [
-                ['Pfosten 110×110 · '.$p['color'], 'Pfosten 110×110', $kalk['pn']],
-                ['Dachsparren 80×60 mm', 'Dachsparren 80×60 mm', $kalk['rafters']],
-            ];
-            foreach ($profile as $i => [$bezeichnung, $suchname, $menge]) {
-                $artikel = Artikel::findeNachName($suchname);
+                    continue;
+                }
+
+                $artikel = isset($zeile['such']) ? Artikel::findeNachName($zeile['such']) : null;
                 $bestellung->positionen()->create([
-                    'typ' => 'material', 'pos' => $i + 2, 'bezeichnung' => $bezeichnung,
-                    'artikel_id' => $artikel?->id, 'menge' => $menge,
-                    'einheit' => $artikel?->einheit->value ?? 'Stück',
+                    'typ' => 'material', 'pos' => $i + 1, 'bezeichnung' => $zeile['name'],
+                    'artikel_id' => $artikel?->id, 'menge' => $zeile['menge'],
+                    'einheit' => $artikel?->einheit->value ?? $zeile['einheit'],
                     'projekt_position_id' => $dach->id,
+                    'details' => isset($zeile['laenge_mm']) ? ['laenge_mm' => $zeile['laenge_mm']] : null,
                 ]);
             }
 

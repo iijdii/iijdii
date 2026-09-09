@@ -8,15 +8,37 @@
 
 <div class="cols-2" style="grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);align-items:start">
     <div class="colstack">
+        @php $stueckliste = \App\Support\Stueckliste::dach($kalk); @endphp
         <div class="card p0">
             <div class="card-h">
                 <span class="card-t">Materialliste aus Konfiguration</span>
-                <span class="pill">{{ count($kalk['positionen']) }} Positionen · Vorbestellung</span>
+                <span class="pill">{{ count($stueckliste) }} Positionen · Vorbestellung</span>
             </div>
-            <div class="card-b">
-                @include('projekte.partials.positionsliste', ['positionen' => $kalk['positionen']])
-                <p class="hint" style="margin-top:10px">Diese Liste entsteht automatisch aus dem Konfigurator.
-                    Nach der Aufmaß-Bestätigung wird daraus per «Bestellung aus Positionen» der Bestell-Entwurf.</p>
+            <div class="card-b" style="overflow-x:auto">
+                <table class="tbl">
+                    <thead><tr><th>Pos</th><th>Bezeichnung</th><th>Maß</th><th class="num">Menge</th></tr></thead>
+                    <tbody>
+                    @foreach ($stueckliste as $i => $zeile)
+                        <tr>
+                            <td class="mono">{{ $i + 1 }}</td>
+                            <td class="b">{{ $zeile['name'] }}</td>
+                            <td class="mono">
+                                @if (isset($zeile['breite_mm']))
+                                    {{ number_format($zeile['breite_mm'], 0, ',', '.') }} × {{ number_format($zeile['hoehe_mm'], 0, ',', '.') }} mm
+                                @elseif (isset($zeile['laenge_mm']))
+                                    L {{ number_format($zeile['laenge_mm'], 0, ',', '.') }} mm
+                                @else
+                                    –
+                                @endif
+                            </td>
+                            <td class="num mono">{{ $zeile['menge'] }} {{ $zeile['einheit'] }}</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+                <p class="hint" style="margin-top:10px">Hauptpositionen nach KD-Stückliste, automatisch aus dem
+                    Konfigurator. Nach der Aufmaß-Bestätigung wird daraus per «Bestellung aus Positionen» der
+                    Bestell-Entwurf; Kleinteile (Schrauben, Silikon, Dichtungen) ergänzen Sie dort.</p>
             </div>
         </div>
 
