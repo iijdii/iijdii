@@ -84,7 +84,7 @@ class BestellungAusPositionenTest extends TestCase
         // Harte Sperre ohne Bestätigung
         $this->actingAs($this->verkauf)
             ->post('/projekte/'.$projekt->nr.'/bestellung-aus-positionen')
-            ->assertRedirect(route('projekte.show', [$projekt, 'tab' => 'konfig']))
+            ->assertRedirect(route('projekte.show', $projekt))
             ->assertSessionHas('toast', 'Aufmaß nicht bestätigt — Bestellung gesperrt');
         $this->assertSame(0, $projekt->bestellungen()->count());
 
@@ -148,18 +148,18 @@ class BestellungAusPositionenTest extends TestCase
         $this->assertSame(3, $bestellung->positionen()->count()); // Positionen selbst bleiben
     }
 
-    public function test_konfig_tab_zeigt_bestellknopf_nur_mit_bestaetigung(): void
+    public function test_uebersicht_zeigt_bestellknopf_nur_mit_bestaetigung(): void
     {
         $projekt = $this->frischesProjekt();
 
-        $this->actingAs($this->verkauf)->get('/projekte/'.$projekt->nr.'?tab=konfig')
+        $this->actingAs($this->verkauf)->get('/projekte/'.$projekt->nr)
             ->assertSee('Aufmaß offen')
             ->assertDontSee('Bestellung aus Positionen (Phase 1)');
 
         $this->actingAs($this->verkauf)
             ->post('/projekte/'.$projekt->nr.'/aufmass-bestaetigung', ['aktion' => 'bestaetigen']);
 
-        $this->actingAs($this->verkauf)->get('/projekte/'.$projekt->nr.'?tab=konfig')
+        $this->actingAs($this->verkauf)->get('/projekte/'.$projekt->nr)
             ->assertSee('Bestellung aus Positionen (Phase 1)');
     }
 

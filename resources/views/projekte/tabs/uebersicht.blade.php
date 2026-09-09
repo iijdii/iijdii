@@ -50,6 +50,7 @@
     </div>
 
     <div class="colstack">
+        @include('projekte.partials.aufmass-bestaetigung')
         <div class="card">
             <div class="mc-h"><svg class="i"><use href="#ic-kunden"/></svg>Kunde</div>
             <div class="pinfo">

@@ -155,7 +155,7 @@ class ProjektController extends Controller
             'status' => 'done',
         ]);
 
-        return redirect()->route('projekte.show', [$projekt, 'tab' => 'konfig'])->with('toast', $toast);
+        return redirect()->route('projekte.show', $projekt)->with('toast', $toast);
     }
 
     public function setzeStatus(Request $request, Projekt $projekt): RedirectResponse

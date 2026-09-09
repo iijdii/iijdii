@@ -1,6 +1,6 @@
 {{-- Aufmaß-Bestätigung (M10): harte Voraussetzung, bevor Bestellungen
      aus den Projektpositionen erzeugt werden dürfen. --}}
-<div class="card p0" style="margin-top:16px">
+<div class="card p0">
     <div class="card-h">
         <span class="card-t">Aufmaß &amp; Bestellung</span>
         @if ($projekt->aufmassBestaetigt())
