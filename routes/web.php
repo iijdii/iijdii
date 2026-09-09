@@ -28,7 +28,16 @@ Route::get('/einrichtung/{token}', function (string $token) {
     $erwartet = (string) config('app.setup_token', '');
     abort_unless($erwartet !== '' && hash_equals($erwartet, $token), 404);
 
-    Artisan::call('migrate', ['--force' => true, '--seed' => true]);
+    try {
+        Artisan::call('migrate', ['--force' => true, '--seed' => true]);
+    } catch (Throwable $e) {
+        // Fehler lesbar machen statt nacktem 500 (Shared Hosting ohne Log-Zugriff).
+        return response(
+            '<h3>Einrichtung fehlgeschlagen</h3><pre>'.e($e->getMessage()).'</pre>'
+            .'<pre>'.e(Artisan::output()).'</pre>',
+            500
+        );
+    }
 
     return response(
         '<pre>'.e(Artisan::output()).'</pre>'
