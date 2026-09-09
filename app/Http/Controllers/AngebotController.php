@@ -8,6 +8,7 @@ use App\Support\KonfiguratorRechner;
 use App\Support\PdfArchiv;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -33,32 +34,58 @@ class AngebotController extends Controller
 
     public function show(Angebot $angebot): View
     {
-        $angebot->load(['kunde', 'projekt', 'anfrage']);
-
-        // Konfiguration des Angebots, sonst die des verknüpften Projekts
-        // (Seed-Angebote tragen keine eigene Kopie).
-        $konfiguration = $angebot->konfiguration ?? $angebot->projekt?->konfiguration;
+        $angebot->load(['kunde', 'projekt.positionen', 'anfrage']);
 
         return view('angebote.show', [
             'angebot' => $angebot,
-            'positionen' => $konfiguration !== null
-                ? KonfiguratorRechner::berechne($konfiguration)['positionen']
-                : [],
+            'positionen' => $this->angebotsPositionen($angebot),
             'naechsteStatus' => self::UEBERGAENGE[$angebot->status->value] ?? [],
         ]);
     }
 
-    public function pdf(Angebot $angebot): \Illuminate\Http\Response
+    public function pdf(Angebot $angebot): Response
     {
-        $angebot->load(['kunde', 'projekt']);
-        $konfiguration = $angebot->konfiguration ?? $angebot->projekt?->konfiguration;
+        $angebot->load(['kunde', 'projekt.positionen']);
 
         return PdfArchiv::liefere('angebote.pdf', [
             'angebot' => $angebot,
-            'positionen' => $konfiguration !== null
-                ? KonfiguratorRechner::berechne($konfiguration)['positionen']
-                : [],
+            'positionen' => $this->angebotsPositionen($angebot),
         ], 'Angebot_'.$angebot->nr.'.pdf', $angebot->projekt, 'angebot', $angebot->status->label());
+    }
+
+    /**
+     * Angebotspositionen = Dach-Rechenkern + Element-Positionen des
+     * Projekts (Einheitssystem: alles fließt aus dem Konfigurator).
+     */
+    private function angebotsPositionen(Angebot $angebot): array
+    {
+        // Konfiguration des Angebots, sonst die des verknüpften Projekts
+        // (Seed-Angebote tragen keine eigene Kopie).
+        $konfiguration = $angebot->konfiguration ?? $angebot->projekt?->konfiguration;
+        $positionen = $konfiguration !== null
+            ? KonfiguratorRechner::berechne($konfiguration)['positionen']
+            : [];
+
+        foreach ($angebot->projekt?->positionen ?? [] as $position) {
+            if ($position->produkt->istDach()) {
+                continue;
+            }
+            $f = $position->felder ?? [];
+            $masse = array_filter([
+                $f['breite_mm'] ?? $f['laenge_mm'] ?? null,
+                $f['hoehe_mm'] ?? $f['ausfall_mm'] ?? $f['h_links_mm'] ?? null,
+            ]);
+            $positionen[] = [
+                'pos' => count($positionen) + 1,
+                'name' => $position->produkt->label()
+                    .($masse !== [] ? ' '.implode('×', $masse).' mm' : '')
+                    .(isset($f['glas']) ? ' · '.$f['glas'] : '')
+                    .(isset($f['groesse']) ? ' '.$f['groesse'] : ''),
+                'menge' => (int) ($f['anzahl'] ?? 1) ?: 1,
+            ];
+        }
+
+        return $positionen;
     }
 
     public function setzeStatus(Request $request, Angebot $angebot): RedirectResponse

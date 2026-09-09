@@ -108,4 +108,27 @@ class AngeboteTest extends TestCase
             ->assertSee('Bezahlt')
             ->assertSee('6.000,00 €'); // Rate 1 = 30 % von 20.000
     }
+
+    public function test_angebot_zeigt_element_positionen_des_projekts(): void
+    {
+        // Anfrage mit Dach → Auto-Projekt/-Angebot, dann Markise ergänzen
+        $this->actingAs($this->benutzer)->post('/anfragen', [
+            'kunde_id' => 1, 'status' => 'neu',
+            'position' => ['produkt' => 'ueberdachung', 'felder' => ['width' => 6000, 'depth' => 3000]],
+        ]);
+        $projekt = Projekt::query()->orderByDesc('id')->first();
+        $this->actingAs($this->benutzer)->post('/projekte/'.$projekt->nr.'/positionen', [
+            'position' => ['produkt' => 'markise', 'felder' => [
+                'breite_mm' => 4500, 'ausfall_mm' => 3000, 'felder_n' => 2,
+            ]],
+        ]);
+
+        $this->actingAs($this->benutzer)->get('/angebote/'.$projekt->angebot->nr)
+            ->assertOk()
+            ->assertSee('Markise 4500×3000 mm')
+            ->assertSee('Dachfeld VSG-Glas 8 mm'); // Dach-Rechenkern weiterhin dabei
+
+        $this->actingAs($this->benutzer)->get('/angebote/'.$projekt->angebot->nr.'/pdf')
+            ->assertOk();
+    }
 }
