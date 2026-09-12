@@ -143,14 +143,16 @@ function kalkUpdate(scope) {
     }
     const blende = Math.max(0, spar - 60);
     const glasT = Math.max(0, d - 50);
-    const ledTot = ledSel && parseInt(ledSel.value, 10) === 6 ? 6 : 12;
+    // 0 = «Keine Beleuchtung» — die kbox zeigt dann keinen Spot-Wert.
+    const ledWahl = ledSel ? parseInt(ledSel.value, 10) : 12;
+    const ledTot = [0, 6].includes(ledWahl) ? ledWahl : 12;
     const de = (n) => n.toLocaleString('de-DE');
     const out = {
         pn: pn || '–', rafters: rafters || '–', fields: fields || '–', rec: rec || '–',
         spar: spar ? de(spar) + ' mm' : '–',
         blende: de(blende) + ' mm', blende2: de(blende) + ' mm',
         glas: spar ? de(glasB) + ' × ' + de(glasT) + ' mm' + restText : '–',
-        ledTot: ledTot, ledTot2: ledTot,
+        ledTot: ledTot === 0 ? 'Keine' : ledTot, ledTot2: ledTot === 0 ? 'Keine' : ledTot,
     };
     scope.querySelectorAll('[data-kalk-out]').forEach((el) => {
         const key = el.dataset.kalkOut;

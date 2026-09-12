@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Support\KonfiguratorRechner;
+use App\Support\Stueckliste;
 use PHPUnit\Framework\TestCase;
 
 class KonfiguratorRechnerTest extends TestCase
@@ -162,8 +163,21 @@ class KonfiguratorRechnerTest extends TestCase
         $this->assertSame(4, $e['rec']);
         $this->assertSame(6, $e['ledTot']);
 
-        // Alles außer exakt 6 wird 12 (Prototyp-Regel).
+        // Alles außer exakt 0/6 wird 12 (Prototyp-Regel).
         $this->assertSame(12, KonfiguratorRechner::berechne(['led' => ['total' => 8]])['ledTot']);
+    }
+
+    public function test_keine_beleuchtung(): void
+    {
+        $kalk = KonfiguratorRechner::berechne(['led' => ['total' => 0]]);
+
+        $this->assertSame(0, $kalk['ledTot']);
+
+        // Ohne Beleuchtung entfällt das LED-Set in der Stückliste.
+        $namen = collect(Stueckliste::dach($kalk))->pluck('name');
+        $this->assertFalse($namen->contains(fn (string $n) => str_starts_with($n, 'LED-Set')));
+        $this->assertTrue(collect(Stueckliste::dach(KonfiguratorRechner::berechne([])))
+            ->pluck('name')->contains(fn (string $n) => str_starts_with($n, 'LED-Set')));
     }
 
     public function test_depth_warning(): void

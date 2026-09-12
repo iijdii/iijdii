@@ -117,8 +117,10 @@
             <div class="mm-note" style="background:var(--redbg);color:var(--red)"><svg class="i"><use href="#ic-bell"/></svg>Glas nur zu zweit mit Saugheber einsetzen · Kantenschutz.</div>
         </section>
 
-        {{-- 7 · Beleuchtung · LED --}}
-        @include('projekte.montage-partials.led')
+        {{-- 7 · Beleuchtung · LED (entfällt bei «Keine Beleuchtung») --}}
+        @if ($ledKpi['total'] > 0)
+            @include('projekte.montage-partials.led')
+        @endif
 
         {{-- 8 · Endmaße der Extras --}}
         @if ($phase2->isNotEmpty())

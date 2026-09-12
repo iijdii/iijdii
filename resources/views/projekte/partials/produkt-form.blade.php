@@ -119,6 +119,7 @@
         <div class="fld"><label>Dübelabstand (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][duebel][abstand]" value="{{ $v('duebel.abstand', 500) }}"></div>
         <div class="fld"><label>LED-Spots gesamt</label>
             <select class="inp" name="{{ $prefix }}[felder][led][total]" data-kalk="ledTotal">
+                <option value="0" @selected((int) $v('led.total', 12) === 0)>Keine Beleuchtung</option>
                 <option value="6" @selected((int) $v('led.total', 12) === 6)>6 Spots</option>
                 <option value="12" @selected((int) $v('led.total', 12) === 12)>12 Spots</option>
             </select></div>

@@ -64,7 +64,7 @@
                         <div class="spec-row"><span class="spec-k">Dach</span><span class="spec-v">{{ $k['covering'] }} {{ $k['thickness'] }} · {{ $k['glasTrans'] }}</span></div>
                         <div class="spec-row"><span class="spec-k">Statik</span><span class="spec-v">{{ $k['snow'] }} · {{ $k['wind'] }}</span></div>
                         <div class="specsec">Ausstattung</div>
-                        <div class="spec-row"><span class="spec-k">LED</span><span class="spec-v">{{ $kalk['ledTot'] }} Spots · {{ $k['led']['color'] }}</span></div>
+                        <div class="spec-row"><span class="spec-k">LED</span><span class="spec-v">{{ $kalk['ledTot'] > 0 ? $kalk['ledTot'].' Spots · '.$k['led']['color'] : 'Keine Beleuchtung' }}</span></div>
                         <div class="spec-row"><span class="spec-k">Entwässerung</span><span class="spec-v">Pfosten {{ $k['drain']['post'] }} · {{ $k['drain']['dir'] }}</span></div>
                         <div class="spec-row"><span class="spec-k">Dübel</span><span class="spec-v">{{ $k['duebel']['typ'] }} {{ $k['duebel']['size'] }}</span></div>
                         @if ($kalk['trapez'])
@@ -130,7 +130,7 @@
                 <div class="kcell"><span>Sparrenabstand</span><b class="mono">{{ $kalk['sparText'] }}</b></div>
                 <div class="kcell"><span>Wandblende</span><b class="mono">{{ $kalk['blendeText'] }}</b></div>
                 <div class="kcell"><span>Glasmaß</span><b class="mono">{{ $kalk['glasText'] }}</b></div>
-                <div class="kcell"><span>LED-Spots</span><b class="mono">{{ $kalk['ledTot'] }}</b></div>
+                <div class="kcell"><span>LED-Spots</span><b class="mono">{{ $kalk['ledTot'] > 0 ? $kalk['ledTot'] : 'Keine' }}</b></div>
             </div>
             @if ($kalk['glasZuBreit'])
                 <div class="kwarn">Eindeckungsbreite &gt; {{ number_format($kalk['maxPlatte'], 0, ',', '.') }} mm — Fertigungsgrenze überschritten (Feldanzahl erhöhen).</div>
