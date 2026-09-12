@@ -29,8 +29,19 @@ const ledModal = document.getElementById('ledModal');
 if (ledModal) {
     document.addEventListener('click', (e) => {
         if (e.target.closest('[data-led-modal-open]')) ledModal.hidden = false;
-        if (e.target.closest('[data-led-modal-close]') || e.target === ledModal) ledModal.hidden = true;
+        if (e.target.closest('[data-led-modal-close]') || e.target === ledModal) {
+            ledModal.hidden = true;
+            // ?led=offen aus der URL nehmen, sonst öffnet F5 das Fenster erneut.
+            if (new URLSearchParams(window.location.search).has('led')) {
+                window.history.replaceState(null, '', window.location.pathname + '#s7');
+            }
+        }
     });
+    // Nach einem Lampen-Klick lädt die Seite neu (POST → Redirect):
+    // ?led=offen öffnet das Fenster direkt wieder.
+    if (new URLSearchParams(window.location.search).get('led') === 'offen') {
+        ledModal.hidden = false;
+    }
 }
 
 // ---------- Radiopills (Notiz-Typ) ----------

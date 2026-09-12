@@ -161,6 +161,11 @@ class MontageController extends Controller
 
     public function toggleLed(Request $request, Projekt $projekt): RedirectResponse
     {
+        // Die Lampen-Buttons liegen im Pickermodal; jeder Klick lädt die
+        // Seite neu. ?led=offen lässt das Fenster danach wieder öffnen,
+        // damit der Monteur nicht für jede Lampe neu einsteigen muss.
+        $zurueck = redirect()->to(route('projekte.montage', $projekt).'?led=offen#s7');
+
         $projekt->refresh();
         $aufmass = $projekt->aufmass ?? [];
         $gesetzt = $aufmass['led'] ?? [];
@@ -169,12 +174,12 @@ class MontageController extends Controller
             $aufmass['led'] = [];
             $projekt->update(['aufmass' => $aufmass]);
 
-            return redirect()->to(route('projekte.montage', $projekt).'#s7');
+            return $zurueck;
         }
 
         $pos = (string) $request->input('pos');
         if (! preg_match('/^s\d+\.[0-2]$/', $pos)) {
-            return redirect()->to(route('projekte.montage', $projekt).'#s7');
+            return $zurueck;
         }
 
         $kalk = KonfiguratorRechner::berechne($projekt->konfiguration ?? []);
@@ -182,8 +187,7 @@ class MontageController extends Controller
         if (in_array($pos, $gesetzt, true)) {
             $gesetzt = array_values(array_diff($gesetzt, [$pos]));
         } elseif (count($gesetzt) >= $kalk['ledTot']) {
-            return redirect()->to(route('projekte.montage', $projekt).'#s7')
-                ->with('toast', 'Laut Konfiguration sind nur '.$kalk['ledTot'].' Spots vorgesehen');
+            return $zurueck->with('toast', 'Laut Konfiguration sind nur '.$kalk['ledTot'].' Spots vorgesehen');
         } else {
             $gesetzt[] = $pos;
             sort($gesetzt);
@@ -192,7 +196,7 @@ class MontageController extends Controller
         $aufmass['led'] = $gesetzt;
         $projekt->update(['aufmass' => $aufmass]);
 
-        return redirect()->to(route('projekte.montage', $projekt).'#s7');
+        return $zurueck;
     }
 
     public function speichereNotiz(Request $request, Projekt $projekt): RedirectResponse

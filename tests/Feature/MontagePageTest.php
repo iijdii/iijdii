@@ -87,8 +87,10 @@ class MontagePageTest extends TestCase
 
     public function test_led_toggle_persists_and_cap_is_enforced(): void
     {
+        // Redirect trägt ?led=offen — das Pickermodal öffnet nach dem
+        // Neuladen wieder, der Monteur bleibt im Auswahlfenster.
         $this->actingAs($this->monteur)->post('/projekte/PRJ-2026-011/montage/led', ['pos' => 's1.0'])
-            ->assertRedirect();
+            ->assertRedirectContains('?led=offen');
         $this->assertSame(['s1.0'], $this->projekt()->aufmass['led']);
 
         // 12 setzen, 13. ablehnen
