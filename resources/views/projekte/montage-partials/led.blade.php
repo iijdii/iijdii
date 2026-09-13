@@ -47,8 +47,9 @@
     <div class="mm-note"><svg class="i"><use href="#ic-help"/></svg>Randsparren bleiben ohne LED — die Verteilung legt der Monteur vor Ort fest.</div>
 </section>
 
-{{-- LED-Pickermodal: alle Kandidaten als POST-Buttons --}}
-<div class="modal" id="ledModal" hidden>
+{{-- LED-Pickermodal: alle Kandidaten als POST-Buttons; data-led-total
+     steuert die clientseitige Obergrenze (Lampen setzen ohne Neuladen). --}}
+<div class="modal" id="ledModal" data-led-total="{{ $ledKpi['total'] }}" hidden>
     <div class="modalc xl">
         <div class="lbxh">
             <div>
@@ -59,7 +60,7 @@
         </div>
         <div class="mbody">
             <div class="jb" style="margin-bottom:10px">
-                <span class="fx"><span class="badge b-green">{{ $ledKpi['gesetzt'] }} von {{ $ledKpi['total'] }} gesetzt</span>
+                <span class="fx"><span class="badge b-green"><span data-led-count>{{ $ledKpi['gesetzt'] }}</span>&nbsp;von {{ $ledKpi['total'] }} gesetzt</span>
                     <span class="hint">Je Sparren stehen 3 Positionen zur Wahl — antippen setzt eine Lampe. Weniger als {{ $ledKpi['total'] }} ist erlaubt, mehr nicht.</span></span>
                 <form method="POST" action="{{ route('projekte.montage.led', $projekt) }}">
                     @csrf
