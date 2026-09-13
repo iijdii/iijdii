@@ -11,7 +11,7 @@
             <span class="uava">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
             <span class="uinfo">
                 <b>{{ auth()->user()->name }}</b>
-                <span>{{ auth()->user()->role->label() }}</span>
+                <span>{{ auth()->user()->role->label() }} · Patch {{ \App\Support\Version::PATCH }}</span>
             </span>
         </div>
     </div>

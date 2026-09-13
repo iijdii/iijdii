@@ -16,6 +16,7 @@ use App\Http\Controllers\MaterialKatalogController;
 use App\Http\Controllers\MontageController;
 use App\Http\Controllers\ProjektController;
 use App\Http\Controllers\ProjektPositionController;
+use App\Support\Version;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -29,7 +30,12 @@ Route::get('/einrichtung/{token}', function (string $token) {
     abort_unless($erwartet !== '' && hash_equals($erwartet, $token), 404);
 
     try {
+        // Erst alle Caches leeren (kompilierte Views/Config können nach
+        // einem Datei-Upload veraltet sein), dann migrieren.
+        Artisan::call('optimize:clear');
+        $ausgabe = Artisan::output();
         Artisan::call('migrate', ['--force' => true, '--seed' => true]);
+        $ausgabe .= Artisan::output();
     } catch (Throwable $e) {
         // Fehler lesbar machen statt nacktem 500 (Shared Hosting ohne Log-Zugriff).
         return response(
@@ -40,8 +46,9 @@ Route::get('/einrichtung/{token}', function (string $token) {
     }
 
     return response(
-        '<pre>'.e(Artisan::output()).'</pre>'
-        .'<p>Einrichtung abgeschlossen. Bitte SETUP_TOKEN jetzt aus der .env entfernen.</p>'
+        '<pre>'.e($ausgabe).'</pre>'
+        .'<p>Stand: Patch '.Version::PATCH.' · Einrichtung abgeschlossen.'
+        .' Bitte SETUP_TOKEN jetzt aus der .env entfernen.</p>'
     );
 })->name('einrichtung');
 

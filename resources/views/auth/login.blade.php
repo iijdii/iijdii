@@ -44,6 +44,9 @@
         </label>
 
         <button class="btn btn-primary btn-block" type="submit">Anmelden</button>
+
+        <p style="margin:14px 0 0;text-align:center;font-size:11px;color:#9aa7bb">
+            LEA CRM · Patch {{ \App\Support\Version::PATCH }}</p>
     </form>
 </main>
 </body>
