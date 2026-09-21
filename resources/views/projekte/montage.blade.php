@@ -59,8 +59,8 @@
             <div class="mm-kpis">
                 <div class="mm-kpi"><div class="kl">Breite</div><div class="kn">{{ $F($pcfg['width']) }}<span class="ku">mm</span></div></div>
                 <div class="mm-kpi"><div class="kl">Tiefe</div><div class="kn">{{ $F($pcfg['depth']) }}<span class="ku">mm</span></div></div>
-                <div class="mm-kpi"><div class="kl">Höhe hinten</div><div class="kn">{{ $F($pcfg['wallH']) }}<span class="ku">mm</span></div></div>
-                <div class="mm-kpi"><div class="kl">Höhe vorn</div><div class="kn">{{ $F($pcfg['gutterH']) }}<span class="ku">mm</span></div></div>
+                <div class="mm-kpi"><div class="kl">Höhe hinten</div><div class="kn">{{ $F($kalk['wallHEff']) }}<span class="ku">mm</span></div></div>
+                <div class="mm-kpi"><div class="kl">Höhe vorn</div><div class="kn">{{ $F($kalk['gutterHEff']) }}<span class="ku">mm</span></div></div>
                 <div class="mm-kpi"><div class="kl">Farbe</div><div class="kn" style="font-size:21px;line-height:1.2">{{ $farbe }}<span class="ku" style="display:block;margin-left:0;margin-top:5px">{{ $farbeRal }}</span></div></div>
             </div>
         </section>
@@ -82,24 +82,49 @@
         <section class="mm-card c6" id="s4">
             <div class="mm-h"><span class="n">4</span>Pfosten &amp; Verankerung</div>
             <div class="mm-row"><span class="rk">Anzahl</span><span class="rv mono">{{ $kalk['pn'] }} Stück</span></div>
-            <div class="mm-row"><span class="rk">Größe</span><span class="rv mono">90 × 90 × 3 mm</span></div>
-            <div class="mm-row"><span class="rk">Pfostenabstand</span><span class="rv mono">{{ $kalk['pn'] > 1 ? $F($pcfg['width'] / ($kalk['pn'] - 1)).' mm (Achse)' : '–' }}</span></div>
-            <div class="mm-row"><span class="rk">Anordnung</span><span class="rv">{{ $kalk['pn'] }} vorn (Rinne)</span></div>
+            <div class="mm-row"><span class="rk">Größe</span><span class="rv mono">110 × 110 mm (Profil 35722)</span></div>
+            <div class="mm-row"><span class="rk">Positionen<br><small class="hint">von links, Achse</small></span>
+                <span class="rv mono">{{ $kalk['postPositionen'] !== [] ? implode(' · ', array_map(fn ($x) => number_format($x, 0, ',', '.'), $kalk['postPositionen'])).' mm' : '–' }}</span></div>
+            <div class="mm-row"><span class="rk">Befestigung</span><span class="rv">
+                @if (($pcfg['postMontageJe'] ?? '') == 1 && ($pcfg['postMontageListe'] ?? []) !== [])
+                    {{ implode(' · ', array_map(fn ($m, $i) => ($i + 1).': '.$m, $pcfg['postMontageListe'], array_keys($pcfg['postMontageListe']))) }}
+                @else
+                    {{ $pcfg['postMontage'] ?? 'Beton' }}{{ ($pcfg['postMontage'] ?? '') === 'Pfostenhalter' ? ' (Konsole)' : '' }}
+                @endif
+            </span></div>
             <div class="mm-row"><span class="rk">Wasserablauf an</span><span class="rv">Pfosten {{ is_numeric($pcfg['drain']['post']) ? ($pcfg['drain']['post'] ?: 1).' von '.$kalk['pn'] : $pcfg['drain']['post'] }}</span></div>
             <div class="mm-row"><span class="rk">Ablauf Höhe</span><span class="rv mono">{{ $F($pcfg['drain']['height']) }} mm</span></div>
             <div class="mm-row"><span class="rk">Ablauf Blickrichtung</span><span class="rv">{{ $pcfg['drain']['dir'] }}</span></div>
-            <div class="mm-row"><span class="rk">Anker</span><span class="rv">U-Profil-Bodenhalter · M12 · 60 Nm</span></div>
+            <div class="mm-row"><span class="rk">Anker</span><span class="rv">M12 · 60 Nm</span></div>
             <div class="mm-note"><svg class="i"><use href="#ic-help"/></svg>Pfosten lot- &amp; fluchtrecht ausrichten, dann Anker anziehen. Ablaufpfosten vor dem Setzen ausrichten.</div>
         </section>
 
         {{-- 5 · Profile & Konstruktion --}}
         <section class="mm-card c6" id="s5">
             <div class="mm-h"><span class="n">5</span>Profile &amp; Konstruktion</div>
-            <div class="mm-row"><span class="rk">Unterzug</span><span class="rv mono">2 × 120 × 60 mm</span></div>
+            @php
+                $unterzugText = ($kalk['unterzug']['gewaehlt'] ?? false)
+                    ? $kalk['unterzug']['anzahl'].' × '.$kalk['unterzug']['groesse'].' mm'
+                        .($kalk['unterzug']['ueberstand'] > 0 ? ' · Überstand '.$F($kalk['unterzug']['ueberstand']).' mm' : '')
+                    : 'keiner';
+            @endphp
+            <div class="mm-row"><span class="rk">Unterzug</span><span class="rv mono">{{ $unterzugText }}</span></div>
             <div class="mm-row"><span class="rk">Dachsparren</span><span class="rv mono">{{ $kalk['rafters'] }} × 80 × 60 mm</span></div>
             <div class="mm-row"><span class="rk">Sparrenabstand<br><small class="hint">Achse Mitte–Mitte</small></span><span class="rv mono">{{ $kalk['sparText'] }}</span></div>
-            <div class="mm-row"><span class="rk">Gefälle</span><span class="rv mono">{{ (int) $pcfg['slope'] }}° ≈ {{ round(tan(deg2rad((int) $pcfg['slope'])) * 1000) }} mm/m</span></div>
+            <div class="mm-row"><span class="rk">Gefälle</span><span class="rv mono">{{ $kalk['slopeEff'] }}° ≈ {{ round(tan(deg2rad($kalk['slopeEff'])) * 1000) }} mm/m</span></div>
+            @if (count($kalk['profilSegmente']) > 1)
+                <div class="mm-row"><span class="rk">Profilsegmente<br><small class="hint">Stoß über Pfosten (Stoß − 55)</small></span>
+                    <span class="rv mono">{{ implode(' + ', array_map(fn ($s) => number_format($s, 0, ',', '.'), $kalk['profilSegmente'])) }} mm</span></div>
+            @endif
             <div class="mm-row"><span class="rk">Wandblende<br><small class="hint">Sparrenabstand {{ $kalk['sparText'] }} − 60 mm</small></span><span class="rv mono">{{ $kalk['blendeText'] }}</span></div>
+            @if (($pcfg['mounting'] ?? '') !== 'freistehend')
+                @php
+                    $wandText = ($pcfg['wand']['belag'] ?? 'Putz')
+                        .((($pcfg['wand']['isolierung'] ?? 'nein') === 'ja')
+                            ? ' · Isolierung '.((($pcfg['wand']['daemmstaerke'] ?? '') ?: '?')).' mm (Abstandsmontage)' : '');
+                @endphp
+                <div class="mm-row"><span class="rk">Wandanschluss</span><span class="rv">{{ $wandText }}</span></div>
+            @endif
             <div class="mm-row"><span class="rk">Dübel<br><small class="hint">Abstand {{ $F($pcfg['duebel']['abstand'] ?: 500) }} mm</small></span>
                 <span class="rv fx">{{ $pcfg['duebel']['typ'] }}
                     <input class="inp" style="width:120px" name="duebel_size" form="aufmass-form"

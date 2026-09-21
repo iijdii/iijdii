@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\MontageAufgabe;
 use App\Models\Projekt;
 use App\Models\User;
+use App\Support\KonfigurationSync;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -25,6 +26,37 @@ class MontagePageTest extends TestCase
     private function projekt(): Projekt
     {
         return Projekt::query()->where('nr', 'PRJ-2026-011')->firstOrFail();
+    }
+
+    public function test_montage_zeigt_die_konfigurator_eingaben(): void
+    {
+        // Die Dach-Position bekommt markante Konfigurator-Werte — der
+        // Montage-Modus muss GENAU diese zeigen (keine Prototyp-Reste).
+        $projekt = $this->projekt();
+        $dach = $projekt->positionen()->where('gruppe', 'dach')->firstOrFail();
+        $dach->update(['felder' => array_merge($dach->felder, [
+            'wallH' => 2500, 'gutterH' => 2100, 'depth' => 3000, 'width' => 8630,
+            'wand' => ['belag' => 'Klinker', 'isolierung' => 'ja', 'daemmstaerke' => 160],
+            'duebel' => ['typ' => 'Injektionsanker', 'size' => '12 × 260 mm (Abstandsmontage)', 'abstand' => 500],
+            'postMontage' => 'Pfostenhalter',
+            'unterzug' => ['on' => 'ja', 'anzahl' => 2, 'groesse' => '110×190', 'ueberstand' => 300],
+            'drain' => ['post' => 'rechts', 'height' => 1150, 'dir' => 'nach vorn'],
+            'profilManuell' => 1, 'profilSegmenteListe' => '4000, 4630',
+        ])]);
+        KonfigurationSync::spiegleDach($projekt);
+
+        $this->actingAs($this->monteur)->get('/projekte/PRJ-2026-011/montage')
+            ->assertOk()
+            ->assertSee('2.100')                               // Höhe vorn (effektiv)
+            ->assertSee('7.6°')                                // Neigung aus den Höhen, nicht Feld «slope»
+            ->assertSee('Klinker · Isolierung 160 mm (Abstandsmontage)')
+            ->assertSee('Injektionsanker')
+            ->assertSee('Pfostenhalter (Konsole)')
+            ->assertSee('2 × 110×190 mm · Überstand 300 mm')   // Unterzug aus dem Konfigurator
+            ->assertSee('4.000 + 4.630 mm')                    // manuelle Profilsegmente
+            ->assertSee('Pfosten rechts')                      // Ablauf-Seite
+            ->assertDontSee('90 × 90 × 3')                     // alter Prototyp-Rest
+            ->assertDontSee('U-Profil-Bodenhalter');
     }
 
     public function test_all_sections_render_with_derived_values(): void
