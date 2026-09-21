@@ -92,9 +92,11 @@ class ProjektePageTest extends TestCase
         // Kalkulation lebt jetzt IM Produktpass der Dach-Position (die
         // frühere kbox rechts ist entfernt; «Dach-Kalkulation» existiert
         // nur noch als Live-Block im Konfigurator-Fenster).
+        // Verglasung wie in der Bestellung: Skizze + «N Stück · B × T mm».
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011')
             ->assertSee('654 mm')            // Wandblende bei W=8630 (714−60)
-            ->assertSee('Glasmaß');
+            ->assertSee('Verglasung')
+            ->assertSee('12 Stück · 692 × 3.450 mm');
     }
 
     public function test_berechnen_previews_without_persisting(): void

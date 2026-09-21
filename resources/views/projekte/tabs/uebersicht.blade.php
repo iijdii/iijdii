@@ -59,14 +59,48 @@
                         <div class="spec-row"><span class="spec-k">Breite × Tiefe</span><span class="spec-v mono">{{ $mm($k['width']) }} × {{ $mm($k['depth']) }}</span></div>
                         <div class="spec-row"><span class="spec-k">Höhe Wand / Rinne</span><span class="spec-v mono">{{ $mm($kalk['wallHEff']) }} / {{ $mm($kalk['gutterHEff']) }}</span></div>
                         <div class="spec-row"><span class="spec-k">Form · Montage</span><span class="spec-v">{{ $k['shape'] === 'trapez' ? 'Trapez' : 'Rechteck' }} · {{ $k['mounting'] }} · {{ $kalk['slopeEff'] }}° ({{ $kalk['gefaelleProzent'] }} %)</span></div>
+                        <div class="specsec">Konstruktion</div>
+                        <div class="spec-row"><span class="spec-k">Farbe</span><span class="spec-v">{{ $k['color'] }}</span></div>
+                        <div class="spec-row"><span class="spec-k">Dach</span><span class="spec-v">{{ $k['covering'] }} {{ $k['thickness'] }} · {{ $k['glasTrans'] }}</span></div>
                         <div class="specsec">Kalkulation</div>
                         <div class="spec-row"><span class="spec-k">Pfosten · Sparren · Felder</span><span class="spec-v mono">{{ $kalk['pn'] ?: '–' }} · {{ $kalk['rafters'] ?: '–' }} · {{ $kalk['fields'] ?: '–' }}</span></div>
                         <div class="spec-row"><span class="spec-k">Sparrenabstand</span><span class="spec-v mono">{{ $kalk['sparText'] }}</span></div>
                         <div class="spec-row"><span class="spec-k">Wandblende</span><span class="spec-v mono">{{ $kalk['blendeText'] }}</span></div>
-                        <div class="spec-row"><span class="spec-k">Glasmaß</span><span class="spec-v mono">{{ $kalk['glasText'] }}</span></div>
-                        <div class="specsec">Konstruktion</div>
-                        <div class="spec-row"><span class="spec-k">Farbe</span><span class="spec-v">{{ $k['color'] }}</span></div>
-                        <div class="spec-row"><span class="spec-k">Dach</span><span class="spec-v">{{ $k['covering'] }} {{ $k['thickness'] }} · {{ $k['glasTrans'] }}</span></div>
+
+                        {{-- Verglasung wie in der Bestellung: Skizze + Menge/Maße --}}
+                        @if ($kalk['fields'] > 0 && $kalk['glasB'] > 0)
+                            <div class="specsec">Verglasung</div>
+                            @php
+                                $glasName = $k['covering'].' '.$k['thickness'].' · '.$k['glasTrans'];
+                                $glasFelder = [[
+                                    'menge' => $kalk['polyRestPlatte'] !== null && $kalk['fields'] > 1 ? $kalk['fields'] - 1 : $kalk['fields'],
+                                    'breite' => $kalk['glasB'],
+                                ]];
+                                if ($kalk['polyRestPlatte'] !== null && $kalk['fields'] > 1) {
+                                    $glasFelder[] = ['menge' => 1, 'breite' => $kalk['polyRestPlatte']];
+                                }
+                            @endphp
+                            <div class="fx gap8 wrap" style="align-items:flex-start;margin-top:6px">
+                                @foreach ($glasFelder as $feld)
+                                    @php
+                                        $skizzenPosition = (object) [
+                                            'breite_mm' => $feld['breite'], 'hoehe_mm' => $kalk['glasT'],
+                                            'details' => [], 'menge' => $feld['menge'],
+                                        ];
+                                    @endphp
+                                    <div style="width:200px;flex:0 0 auto">
+                                        @include('bestellungen.partials.glas-skizze', ['glas' => [
+                                            'skizze' => \App\Support\GlasSkizze::position($feld['breite'], $kalk['glasT'], $kalk['glasT'], false),
+                                            'position' => $skizzenPosition,
+                                        ]])
+                                        <div class="hint" style="text-align:center;margin-top:2px">
+                                            {{ $feld['menge'] }} Stück · {{ number_format($feld['breite'], 0, ',', '.') }} × {{ number_format($kalk['glasT'], 0, ',', '.') }} mm
+                                            @if ($loop->index === 1) · Zuschnitt @endif</div>
+                                    </div>
+                                @endforeach
+                                <div class="hint" style="flex:1;min-width:140px">{{ $glasName }}</div>
+                            </div>
+                        @endif
                         <div class="specsec">Ausstattung</div>
                         <div class="spec-row"><span class="spec-k">LED</span><span class="spec-v">{{ $kalk['ledTot'] > 0 ? $kalk['ledTot'].' Spots · '.$k['led']['color'] : 'Keine Beleuchtung' }}</span></div>
                         <div class="spec-row"><span class="spec-k">Entwässerung</span><span class="spec-v">Pfosten {{ $k['drain']['post'] }} · {{ $k['drain']['dir'] }}</span></div>
