@@ -25,6 +25,12 @@
                     </optgroup>
                 @endforeach
             </select></div>
+        <div class="fld" data-produkt-felder="dach"><label>Farbe Konstruktion</label>
+            <select class="inp" name="{{ $prefix }}[felder][color]">
+                @foreach (KonfiguratorRechner::FARBEN as $farbe)
+                    <option @selected($v('color', 'Weiß · RAL 9016') === $farbe)>{{ $farbe }}</option>
+                @endforeach
+            </select></div>
     </div>
 
     {{-- ——— Dachprodukte: pcfg-Basis, in Sinnabschnitte gegliedert.
@@ -87,12 +93,17 @@
         <div class="fld"><label>Anzahl Pfosten</label>
             <input class="inp" type="number" name="{{ $prefix }}[felder][postN]" value="{{ $v('postN') }}" placeholder="auto" data-kalk="postN">
             <span class="hint">berechnet: <b class="mono" data-kalk-out="pn">–</b> Stück — bei Bedarf ändern</span></div>
-        <div class="fld"><label>Positionen</label>
-            <input class="inp mono" type="text" name="{{ $prefix }}[felder][postManual]" value="{{ $v('postManual') }}" placeholder="automatisch symmetrisch" data-kalk="postManual">
-            <span class="hint">auto: <span class="mono" data-kalk-out="posten">–</span> mm</span></div>
-        <div class="fld"><label>Randabstand links (mm, max. 500)</label><input class="inp" type="number" max="500" name="{{ $prefix }}[felder][postLeftOffset]" value="{{ $v('postLeftOffset') }}" placeholder="0"></div>
-        <div class="fld"><label>Randabstand rechts (mm, max. 500)</label><input class="inp" type="number" max="500" name="{{ $prefix }}[felder][postRightOffset]" value="{{ $v('postRightOffset') }}" placeholder="0"></div>
-        <div class="fld"><label>Mittelpfosten-Position (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][postMiddle]" value="{{ $v('postMiddle') }}" placeholder="Mitte"></div>
+        <div class="fld"><label>Positionen (automatisch symmetrisch)</label>
+            <span class="hint" style="display:block;padding:9px 0"><span class="mono" data-kalk-out="posten">–</span> mm</span></div>
+        <label class="fx ac gap8" style="grid-column:1/-1;cursor:pointer">
+            <input type="checkbox" name="{{ $prefix }}[felder][postAdvanced]" value="1"
+                   data-dach-postadv @checked($v('postAdvanced') == 1 || $v('postManual') !== '' || $v('postLeftOffset') !== '' || $v('postRightOffset') !== '' || $v('postMiddle') !== '')>
+            Abstände &amp; Positionen anpassen</label>
+        <div class="fld" data-dach-nur="postadv"><label>Positionen manuell (CSV, mm)</label>
+            <input class="inp mono" type="text" name="{{ $prefix }}[felder][postManual]" value="{{ $v('postManual') }}" placeholder="z. B. 0, 3500, 7000" data-kalk="postManual"></div>
+        <div class="fld" data-dach-nur="postadv"><label>Randabstand links (mm, max. 500)</label><input class="inp" type="number" max="500" name="{{ $prefix }}[felder][postLeftOffset]" value="{{ $v('postLeftOffset') }}" placeholder="0"></div>
+        <div class="fld" data-dach-nur="postadv"><label>Randabstand rechts (mm, max. 500)</label><input class="inp" type="number" max="500" name="{{ $prefix }}[felder][postRightOffset]" value="{{ $v('postRightOffset') }}" placeholder="0"></div>
+        <div class="fld" data-dach-nur="postadv"><label>Mittelpfosten-Position (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][postMiddle]" value="{{ $v('postMiddle') }}" placeholder="Mitte"></div>
         <div class="fld"><label>Pfosten-Befestigung</label>
             <select class="inp" name="{{ $prefix }}[felder][postMontage]">
                 @foreach (['Beton', 'U-Profil', 'Pfostenhalter'] as $montage)
@@ -133,6 +144,18 @@
         <div class="fld" data-dach-nur="unterzug"><label>Dachüberstand Rinne (mm)</label>
             <input class="inp" type="number" name="{{ $prefix }}[felder][gutterOverhang]" value="{{ $v('gutterOverhang') }}" placeholder="0"></div>
 
+        <div class="fsec" style="grid-column:1/-1;margin:6px 0 0">Profile (Rinne / Wandprofil)</div>
+        <div class="fld" style="grid-column:1/-1"><label>Segmente automatisch (max. {{ number_format(KonfiguratorRechner::MAX_PROFIL, 0, ',', '.') }} mm je Profil)</label>
+            <span class="hint" style="display:block;padding:6px 0"><span class="mono" data-kalk-out="segmente">–</span></span></div>
+        <label class="fx ac gap8" style="grid-column:1/-1;cursor:pointer">
+            <input type="checkbox" name="{{ $prefix }}[felder][profilManuell]" value="1"
+                   data-dach-profilmanuell @checked($v('profilManuell') == 1)>
+            Segmente manuell festlegen (Anzahl &amp; Längen)</label>
+        <div class="fld" style="grid-column:1/-1" data-dach-nur="profil"><label>Segmentlängen (CSV, mm — Anzahl folgt den Einträgen)</label>
+            <input class="inp mono" type="text" name="{{ $prefix }}[felder][profilSegmenteListe]" value="{{ $v('profilSegmenteListe') }}"
+                   placeholder="z. B. 7500, 1130" data-kalk="profilListe">
+            <span class="hint">Der Stoß liegt am Ende jedes Segments — Pfosten unter dem Stoß empfohlen (Stoß − 55).</span></div>
+
         <div class="fsec" style="grid-column:1/-1;margin:6px 0 0">Dachdeckung</div>
         <div class="fld"><label>Deckung</label>
             <select class="inp" name="{{ $prefix }}[felder][covering]" data-kalk="covering">
@@ -149,12 +172,6 @@
             <select class="inp" name="{{ $prefix }}[felder][thickness]">
                 @foreach (KonfiguratorRechner::STAERKEN as $staerke)
                     <option @selected($v('thickness', '8 mm') === $staerke)>{{ $staerke }}</option>
-                @endforeach
-            </select></div>
-        <div class="fld"><label>Farbe Konstruktion</label>
-            <select class="inp" name="{{ $prefix }}[felder][color]">
-                @foreach (KonfiguratorRechner::FARBEN as $farbe)
-                    <option @selected($v('color', 'Weiß · RAL 9016') === $farbe)>{{ $farbe }}</option>
                 @endforeach
             </select></div>
         <div class="fld"><label>Glasfelder (Override)</label>

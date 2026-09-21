@@ -54,6 +54,10 @@ final class ProduktFelder
                 'postMontageJe' => ['nullable', Rule::in(['1', 1, 'ja'])],
                 'postMontageListe' => ['nullable', 'array', 'max:12'],
                 'postMontageListe.*' => [Rule::in(['Beton', 'U-Profil', 'Pfostenhalter'])],
+                // Pfosten-Abstände und Profilsegmente sind hinter Checkboxen.
+                'postAdvanced' => ['nullable', Rule::in(['1', 1, 'ja'])],
+                'profilManuell' => ['nullable', Rule::in(['1', 1, 'ja'])],
+                'profilSegmenteListe' => ['nullable', 'string', 'max:200', 'regex:/^[\d\s,]*$/'],
                 'trapez' => ['nullable', 'array'],
                 'trapez.wand' => $mm, 'trapez.rinne' => $mm,
                 'trapez.offsetL' => $mm, 'trapez.offsetR' => $mm,

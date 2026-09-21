@@ -117,13 +117,20 @@ class KonfiguratorRechnerTest extends TestCase
 
     public function test_pfosten_positionen_segmente_und_stoss(): void
     {
-        // Demo 8630, pn=4: gleichmäßig verteilt; Rinne > 7000 → 2 Segmente,
-        // der Stoß (7000 − 55) hat keinen Pfosten in ±100 → Empfehlung.
+        // Demo 8630, pn=4: gleichmäßig verteilt; Rinne > 7.500 → 2 Segmente,
+        // der Stoß (7500 − 55) hat keinen Pfosten in ±100 → Empfehlung.
         $e = KonfiguratorRechner::berechne([]);
         $this->assertSame([0, 2877, 5753, 8630], $e['postPositionen']);
-        $this->assertSame([7000, 1630], $e['profilSegmente']);
-        $this->assertSame([6945], $e['stossPfosten']);
+        $this->assertSame([7500, 1130], $e['profilSegmente']);
+        $this->assertSame([7445], $e['stossPfosten']);
         $this->assertFalse($e['spannZuGross']);
+
+        // Manuelle Segmente (Checkbox): eigene Anzahl und Längen gewinnen.
+        $e = KonfiguratorRechner::berechne([
+            'profilManuell' => 1, 'profilSegmenteListe' => '4000, 4630',
+        ]);
+        $this->assertSame([4000, 4630], $e['profilSegmente']);
+        $this->assertSame([3945], $e['stossPfosten']);
 
         // Randabstände und Mittelpfosten
         $e = KonfiguratorRechner::berechne([

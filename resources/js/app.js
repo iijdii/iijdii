@@ -159,12 +159,27 @@ function kalkUpdate(scope) {
         posten = liste.map(de).join(' · ');
     }
 
+    // Profilsegmente: manuelle CSV gewinnt, sonst Teilung bei max. 7.500 mm.
+    let segmente = '–';
+    if (w > 0) {
+        const manuellProfil = (scope.querySelector('[data-kalk="profilListe"]')?.value ?? '').trim();
+        const profilManuell = scope.querySelector('[data-dach-profilmanuell]')?.checked && manuellProfil !== '';
+        let teile;
+        if (profilManuell) {
+            teile = manuellProfil.split(',').map((s) => parseInt(s, 10)).filter((n) => n > 0);
+        } else {
+            const anzahl = Math.max(1, Math.ceil(w / 7500));
+            teile = Array.from({ length: anzahl }, (_, i) => (i < anzahl - 1 ? 7500 : w - (anzahl - 1) * 7500));
+        }
+        segmente = teile.length + ' × (' + teile.map(de).join(' + ') + ' mm)';
+    }
+
     const out = {
         pn: pn || '–', rafters: rafters || '–', fields: fields || '–', rec: rec || '–',
         spar: spar ? de(spar) + ' mm' : '–',
         blende: de(blende) + ' mm', blende2: de(blende) + ' mm',
         glas: spar ? de(glasB) + ' × ' + de(glasT) + ' mm' + restText : '–',
-        posten: posten,
+        posten: posten, segmente: segmente,
         ledTot: ledTot === 0 ? 'Keine' : ledTot, ledTot2: ledTot === 0 ? 'Keine' : ledTot,
     };
     scope.querySelectorAll('[data-kalk-out]').forEach((el) => {
@@ -272,6 +287,8 @@ document.querySelectorAll('[data-produkt-felder="dach"]').forEach((dach) => {
     const isolierung = feld('[data-dach-isolierung]');
     const unterzug = feld('[data-dach-unterzug]');
     const montageJe = feld('[data-dach-montageje]');
+    const postAdv = feld('[data-dach-postadv]');
+    const profilManuell = feld('[data-dach-profilmanuell]');
     if (!shape || !mounting) return;
 
     const sichtbar = () => {
@@ -282,6 +299,8 @@ document.querySelectorAll('[data-produkt-felder="dach"]').forEach((dach) => {
             isolierung: wand && isolierung && isolierung.value === 'ja',
             unterzug: unterzug && unterzug.value === 'ja',
             montageje: !!(montageJe && montageJe.checked),
+            postadv: !!(postAdv && postAdv.checked),
+            profil: !!(profilManuell && profilManuell.checked),
         };
         dach.querySelectorAll('[data-dach-nur]').forEach((block) => {
             const aktiv = !!zustand[block.dataset.dachNur];
@@ -353,6 +372,10 @@ document.querySelectorAll('[data-produkt-felder="dach"]').forEach((dach) => {
 
     [shape, mounting, isolierung, unterzug].forEach((el) => el && el.addEventListener('change', () => { sichtbar(); duebelVorschlag(); }));
     montageJe && montageJe.addEventListener('change', () => { sichtbar(); montageliste(); });
+    [postAdv, profilManuell].forEach((el) => el && el.addEventListener('change', () => {
+        sichtbar();
+        kalkUpdate(dach.closest('[data-kalk-scope]') ?? dach);
+    }));
     [feld('[data-dach-belag]'), feld('[data-dach-daemmung]')].forEach((el) => {
         el && el.addEventListener('change', duebelVorschlag);
         el && el.addEventListener('input', duebelVorschlag);

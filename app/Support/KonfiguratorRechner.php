@@ -73,6 +73,9 @@ final class KonfiguratorRechner
             'postMontage' => 'Beton',
             'postMontageJe' => '',
             'postMontageListe' => [],
+            'postAdvanced' => '',
+            'profilManuell' => '',
+            'profilSegmenteListe' => '',
             'postLeftOffset' => '',
             'postRightOffset' => '',
             'postMiddle' => '',
@@ -91,12 +94,15 @@ final class KonfiguratorRechner
     }
 
     /**
-     * Profilsegmente: Rinne/Wandprofil über 7.000 mm werden geteilt
-     * (Transport/Fertigung); der Stoß liegt später über einem Pfosten.
+     * Profilsegmente: Rinne/Wandprofil über die maximale Profillänge
+     * (7.500 mm) werden geteilt (Transport/Fertigung); der Stoß liegt
+     * später über einem Pfosten.
      *
      * @return list<int>
      */
-    public static function segmente(int $laenge, int $max = 7000): array
+    public const MAX_PROFIL = 7500;
+
+    public static function segmente(int $laenge, int $max = self::MAX_PROFIL): array
     {
         if ($laenge <= 0) {
             return [];
@@ -299,9 +305,21 @@ final class KonfiguratorRechner
             ];
         }
 
-        // Profilsegmente (max. 7.000 mm Transport-/Fertigungslänge) und
+        // Profilsegmente (max. 7.500 mm Transport-/Fertigungslänge) und
         // Stoß-Empfehlung: Pfosten mittig unter dem Stoß (Stoß − 55).
+        // Manuell (Checkbox im Konfigurator): eigene Anzahl und Längen.
         $segmente = self::segmente($W);
+        if (($p['profilManuell'] ?? '') == 1) {
+            $manuelleSegmente = [];
+            foreach (explode(',', (string) ($p['profilSegmenteListe'] ?? '')) as $wert) {
+                if ((int) trim($wert) > 0) {
+                    $manuelleSegmente[] = (int) trim($wert);
+                }
+            }
+            if ($manuelleSegmente !== []) {
+                $segmente = $manuelleSegmente;
+            }
+        }
         $stossPfosten = [];
         $x = 0;
         for ($i = 0; $i < count($segmente) - 1; $i++) {
