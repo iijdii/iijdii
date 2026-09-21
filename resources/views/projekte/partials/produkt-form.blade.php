@@ -27,52 +27,123 @@
             </select></div>
     </div>
 
-    {{-- ——— Dachprodukte: pcfg-Basis ——— --}}
+    {{-- ——— Dachprodukte: pcfg-Basis, in Sinnabschnitte gegliedert.
+         [data-dach-nur] blendet Teilbereiche nach den Steuer-Selects
+         (Form, Montageart, Isolierung, Unterzug, Einzel-Befestigung). --}}
     <div data-produkt-felder="dach" class="fgrid2" style="margin-top:10px">
+
+        <div class="fsec" style="grid-column:1/-1;margin:4px 0 0">Maße &amp; Form</div>
         <div class="fld"><label>Montageart</label>
-            <select class="inp" name="{{ $prefix }}[felder][mounting]">
+            <select class="inp" name="{{ $prefix }}[felder][mounting]" data-dach-mounting>
                 <option value="an der Wand" @selected($v('mounting', 'an der Wand') === 'an der Wand')>an der Wand</option>
                 <option value="freistehend" @selected($v('mounting') === 'freistehend')>freistehend</option>
             </select></div>
         <div class="fld"><label>Form</label>
-            <select class="inp" name="{{ $prefix }}[felder][shape]">
+            <select class="inp" name="{{ $prefix }}[felder][shape]" data-dach-shape>
                 <option value="rechteck" @selected($v('shape', 'rechteck') === 'rechteck')>Rechteck</option>
                 <option value="trapez" @selected($v('shape') === 'trapez')>Trapez</option>
             </select></div>
         <div class="fld"><label>Breite (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][width]" value="{{ $v('width') }}" data-kalk="width"></div>
         <div class="fld"><label>Tiefe / Ausladung (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][depth]" value="{{ $v('depth') }}" data-kalk="depth"></div>
-        <div class="fld"><label>Höhe Wandprofil (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][wallH]" value="{{ $v('wallH') }}"></div>
-        <div class="fld"><label>Höhe Rinne (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][gutterH]" value="{{ $v('gutterH') }}"></div>
-        <div class="fld"><label>Dachneigung (°)</label><input class="inp" type="number" name="{{ $prefix }}[felder][slope]" value="{{ $v('slope') }}"></div>
-        <div class="fld"><label>Pfosten (Override)</label><input class="inp" type="number" name="{{ $prefix }}[felder][postN]" value="{{ $v('postN') }}" placeholder="auto" data-kalk="postN"></div>
-        <div class="fld"><label>Glasfelder (Override)</label><input class="inp" type="number" name="{{ $prefix }}[felder][fieldN]" value="{{ $v('fieldN') }}" placeholder="auto" data-kalk="fieldN"></div>
-        <div class="fld"><label>Trapez: Länge Wandprofil (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][trapez][wand]" value="{{ $v('trapez.wand') }}" placeholder="= Breite"></div>
-        <div class="fld"><label>Trapez: Länge Rinne (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][trapez][rinne]" value="{{ $v('trapez.rinne') }}" placeholder="= Breite"></div>
-        <div class="fld"><label>Trapez-Offset links (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][trapez][offsetL]" value="{{ $v('trapez.offsetL') }}" placeholder="auto"></div>
-        <div class="fld"><label>Trapez-Offset rechts (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][trapez][offsetR]" value="{{ $v('trapez.offsetR') }}" placeholder="auto"></div>
-        <div class="fld"><label>Pfosten-Abstand links (mm, max. 500)</label><input class="inp" type="number" max="500" name="{{ $prefix }}[felder][postLeftOffset]" value="{{ $v('postLeftOffset') }}" placeholder="0"></div>
-        <div class="fld"><label>Pfosten-Abstand rechts (mm, max. 500)</label><input class="inp" type="number" max="500" name="{{ $prefix }}[felder][postRightOffset]" value="{{ $v('postRightOffset') }}" placeholder="0"></div>
+        <div class="fld" data-dach-nur="trapez"><label>Trapez: Länge Wandprofil (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][trapez][wand]" value="{{ $v('trapez.wand') }}" placeholder="= Breite"></div>
+        <div class="fld" data-dach-nur="trapez"><label>Trapez: Länge Rinne (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][trapez][rinne]" value="{{ $v('trapez.rinne') }}" placeholder="= Breite"></div>
+        <div class="fld" data-dach-nur="trapez"><label>Trapez-Offset links (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][trapez][offsetL]" value="{{ $v('trapez.offsetL') }}" placeholder="auto"></div>
+        <div class="fld" data-dach-nur="trapez"><label>Trapez-Offset rechts (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][trapez][offsetR]" value="{{ $v('trapez.offsetR') }}" placeholder="auto"></div>
+
+        <div class="fsec" style="grid-column:1/-1;margin:6px 0 0">Höhen &amp; Neigung</div>
+        <div class="fld"><label>Höhe Wandprofil (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][wallH]" value="{{ $v('wallH') }}" data-dach-hoehe="wand"></div>
+        <div class="fld"><label>Höhe Rinne (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][gutterH]" value="{{ $v('gutterH') }}" data-dach-hoehe="rinne"></div>
+        <div class="fld"><label>Dachneigung (°)</label>
+            <input class="inp" type="number" step="0.1" name="{{ $prefix }}[felder][slope]" value="{{ $v('slope') }}" data-dach-slope>
+            <span class="hint">errechnet sich automatisch aus beiden Höhen und der Tiefe</span></div>
+
+        <div class="fsec" style="grid-column:1/-1;margin:6px 0 0" data-dach-nur="wandmontage">Wandanschluss</div>
+        <div class="fld" data-dach-nur="wandmontage"><label>Wandbelag</label>
+            <select class="inp" name="{{ $prefix }}[felder][wand][belag]" data-dach-belag>
+                @foreach (['Putz', 'Klinker', 'Holz'] as $belag)
+                    <option @selected($v('wand.belag', 'Putz') === $belag)>{{ $belag }}</option>
+                @endforeach
+            </select></div>
+        <div class="fld" data-dach-nur="wandmontage"><label>Isolierung</label>
+            <select class="inp" name="{{ $prefix }}[felder][wand][isolierung]" data-dach-isolierung>
+                <option value="nein" @selected($v('wand.isolierung', 'nein') === 'nein')>keine</option>
+                <option value="ja" @selected($v('wand.isolierung') === 'ja')>vorhanden</option>
+            </select></div>
+        <div class="fld" data-dach-nur="isolierung"><label>Isolierstärke (mm)</label>
+            <input class="inp" type="number" name="{{ $prefix }}[felder][wand][daemmstaerke]" value="{{ $v('wand.daemmstaerke') }}" data-dach-daemmung placeholder="z. B. 160"></div>
+        <div class="fld" data-dach-nur="wandmontage"><label>Befestigung / Dübeltyp</label>
+            <select class="inp" name="{{ $prefix }}[felder][duebel][typ]" data-dach-duebeltyp>
+                @foreach (['Schlagdübel', 'Bolzenanker', 'Injektionsanker', 'Porenbetonanker', 'Stockschrauben'] as $typ)
+                    <option @selected($v('duebel.typ', 'Schlagdübel') === $typ)>{{ $typ }}</option>
+                @endforeach
+            </select>
+            <span class="hint">Vorschlag folgt Belag &amp; Isolierung — überschreibbar</span></div>
+        <div class="fld" data-dach-nur="wandmontage"><label>Dübellänge / -größe</label>
+            <input class="inp" type="text" name="{{ $prefix }}[felder][duebel][size]" value="{{ $v('duebel.size', '10 × 80 mm') }}" data-dach-duebelsize></div>
+        <div class="fld" data-dach-nur="wandmontage"><label>Dübelabstand (mm)</label>
+            <input class="inp" type="number" name="{{ $prefix }}[felder][duebel][abstand]" value="{{ $v('duebel.abstand', 500) }}"></div>
+
+        <div class="fsec" style="grid-column:1/-1;margin:6px 0 0">Pfosten</div>
+        <div class="fld"><label>Anzahl Pfosten</label>
+            <input class="inp" type="number" name="{{ $prefix }}[felder][postN]" value="{{ $v('postN') }}" placeholder="auto" data-kalk="postN">
+            <span class="hint">berechnet: <b class="mono" data-kalk-out="pn">–</b> Stück — bei Bedarf ändern</span></div>
+        <div class="fld"><label>Positionen</label>
+            <input class="inp mono" type="text" name="{{ $prefix }}[felder][postManual]" value="{{ $v('postManual') }}" placeholder="automatisch symmetrisch" data-kalk="postManual">
+            <span class="hint">auto: <span class="mono" data-kalk-out="posten">–</span> mm</span></div>
+        <div class="fld"><label>Randabstand links (mm, max. 500)</label><input class="inp" type="number" max="500" name="{{ $prefix }}[felder][postLeftOffset]" value="{{ $v('postLeftOffset') }}" placeholder="0"></div>
+        <div class="fld"><label>Randabstand rechts (mm, max. 500)</label><input class="inp" type="number" max="500" name="{{ $prefix }}[felder][postRightOffset]" value="{{ $v('postRightOffset') }}" placeholder="0"></div>
         <div class="fld"><label>Mittelpfosten-Position (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][postMiddle]" value="{{ $v('postMiddle') }}" placeholder="Mitte"></div>
-        <div class="fld"><label>Pfosten manuell (CSV, mm)</label><input class="inp mono" type="text" name="{{ $prefix }}[felder][postManual]" value="{{ $v('postManual') }}" placeholder="z. B. 0, 3500, 7000"></div>
-        <div class="fld"><label>Terrassentiefe / Pfostenlinie (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][terraceDepth]" value="{{ $v('terraceDepth') }}" placeholder="= Dachtiefe"></div>
-        <div class="fld"><label>Dachüberstand Rinne (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][gutterOverhang]" value="{{ $v('gutterOverhang') }}" placeholder="0"></div>
-        <div class="fld"><label>Unterzug-Größe</label>
+        <div class="fld"><label>Pfosten-Befestigung</label>
+            <select class="inp" name="{{ $prefix }}[felder][postMontage]">
+                @foreach (['Beton', 'U-Profil', 'Pfostenhalter'] as $montage)
+                    <option @selected($v('postMontage', 'Beton') === $montage)>{{ $montage === 'Pfostenhalter' ? 'Pfostenhalter (Konsole)' : $montage }}</option>
+                @endforeach
+            </select></div>
+        <label class="fx ac gap8" style="grid-column:1/-1;cursor:pointer">
+            <input type="checkbox" name="{{ $prefix }}[felder][postMontageJe]" value="1"
+                   data-dach-montageje @checked($v('postMontageJe') == 1)>
+            Befestigung je Pfosten einzeln festlegen</label>
+        <div class="fld" style="grid-column:1/-1" data-dach-nur="montageje" data-dach-montageliste
+             data-dach-montageliste-werte='@json((array) $v("postMontageListe", []))'
+             data-dach-montageliste-name="{{ $prefix }}[felder][postMontageListe]">
+            <span class="hint">Reihenfolge von links nach rechts.</span></div>
+
+        <div class="fsec" style="grid-column:1/-1;margin:6px 0 0">Unterzug</div>
+        <div class="fld"><label>Unterzug</label>
+            <select class="inp" name="{{ $prefix }}[felder][unterzug][on]" data-dach-unterzug>
+                <option value="nein" @selected($v('unterzug.on', 'nein') === 'nein')>keiner</option>
+                <option value="ja" @selected($v('unterzug.on') === 'ja')>vorhanden</option>
+            </select></div>
+        <div class="fld" data-dach-nur="unterzug"><label>Anzahl</label>
+            <select class="inp" name="{{ $prefix }}[felder][unterzug][anzahl]">
+                @foreach ([1, 2, 3] as $anzahl)
+                    <option value="{{ $anzahl }}" @selected((int) $v('unterzug.anzahl', 1) === $anzahl)>{{ $anzahl }}</option>
+                @endforeach
+            </select></div>
+        <div class="fld" data-dach-nur="unterzug"><label>Größe</label>
             <select class="inp" name="{{ $prefix }}[felder][unterzug][groesse]">
                 @foreach (['110×190', '110×110', 'manuell'] as $groesse)
                     <option @selected($v('unterzug.groesse', '110×190') === $groesse)>{{ $groesse }}</option>
                 @endforeach
             </select></div>
-        <div class="fld"><label>Farbe</label>
-            <select class="inp" name="{{ $prefix }}[felder][color]">
-                @foreach (KonfiguratorRechner::FARBEN as $farbe)
-                    <option @selected($v('color', 'Weiß · RAL 9016') === $farbe)>{{ $farbe }}</option>
-                @endforeach
-            </select></div>
-        <div class="fld"><label>Dachdeckung</label>
+        <div class="fld" data-dach-nur="unterzug"><label>Überstand (mm)</label>
+            <input class="inp" type="number" name="{{ $prefix }}[felder][unterzug][ueberstand]" value="{{ $v('unterzug.ueberstand') }}" placeholder="0"></div>
+        <div class="fld" data-dach-nur="unterzug"><label>Pfostenlinie / Terrassentiefe (mm)</label>
+            <input class="inp" type="number" name="{{ $prefix }}[felder][terraceDepth]" value="{{ $v('terraceDepth') }}" placeholder="= Dachtiefe"></div>
+        <div class="fld" data-dach-nur="unterzug"><label>Dachüberstand Rinne (mm)</label>
+            <input class="inp" type="number" name="{{ $prefix }}[felder][gutterOverhang]" value="{{ $v('gutterOverhang') }}" placeholder="0"></div>
+
+        <div class="fsec" style="grid-column:1/-1;margin:6px 0 0">Dachdeckung</div>
+        <div class="fld"><label>Deckung</label>
             <select class="inp" name="{{ $prefix }}[felder][covering]" data-kalk="covering">
                 @foreach (KonfiguratorRechner::DECKUNGEN as $deckung)
-                    <option @selected($v('covering', 'VSG-Glas') === $deckung)>{{ $deckung }}</option>
+                    <option @selected($v('covering', 'Glas') === $deckung || str_contains($v('covering', ''), $deckung === 'Glas' ? 'Glas' : 'Polycarbonat'))>{{ $deckung }}</option>
                 @endforeach
+            </select></div>
+        <div class="fld"><label>Ausführung</label>
+            <select class="inp" name="{{ $prefix }}[felder][glasTrans]">
+                <option value="Klar" @selected($v('glasTrans', 'Klar') === 'Klar')>Klar</option>
+                <option value="Milch" @selected($v('glasTrans') === 'Milch')>Milchig / Opal</option>
             </select></div>
         <div class="fld"><label>Stärke</label>
             <select class="inp" name="{{ $prefix }}[felder][thickness]">
@@ -80,28 +151,25 @@
                     <option @selected($v('thickness', '8 mm') === $staerke)>{{ $staerke }}</option>
                 @endforeach
             </select></div>
-        <div class="fld"><label>Glasfarbe</label>
-            <select class="inp" name="{{ $prefix }}[felder][glasTrans]">
-                <option value="Klar" @selected($v('glasTrans', 'Klar') === 'Klar')>Klar</option>
-                <option value="Milch" @selected($v('glasTrans') === 'Milch')>Milch</option>
-            </select></div>
-        <div class="fld"><label>Schneelastzone</label>
-            <select class="inp" name="{{ $prefix }}[felder][snow]">
-                @foreach (KonfiguratorRechner::SCHNEELAST as $zone)
-                    <option @selected($v('snow', 'SLZ 2 · 0,85 kN/m²') === $zone)>{{ $zone }}</option>
+        <div class="fld"><label>Farbe Konstruktion</label>
+            <select class="inp" name="{{ $prefix }}[felder][color]">
+                @foreach (KonfiguratorRechner::FARBEN as $farbe)
+                    <option @selected($v('color', 'Weiß · RAL 9016') === $farbe)>{{ $farbe }}</option>
                 @endforeach
             </select></div>
-        <div class="fld"><label>Windzone</label>
-            <select class="inp" name="{{ $prefix }}[felder][wind]">
-                @foreach (KonfiguratorRechner::WINDZONE as $zone)
-                    <option @selected($v('wind', 'WZ 2 · Binnenland') === $zone)>{{ $zone }}</option>
-                @endforeach
-            </select></div>
+        <div class="fld"><label>Glasfelder (Override)</label>
+            <input class="inp" type="number" name="{{ $prefix }}[felder][fieldN]" value="{{ $v('fieldN') }}" placeholder="auto" data-kalk="fieldN">
+            <span class="hint">Feldmaß: <span class="mono" data-kalk-out="glas">–</span></span></div>
+        <div class="kwarn" style="grid-column:1/-1" data-kalk-warn="glas" hidden>
+            Eindeckungsbreite über Plattenmaß (Glas {{ KonfiguratorRechner::MAX_GLAS_BREITE }} /
+            Stegplatte {{ KonfiguratorRechner::POLY_PLATTE }} mm) — Feldanzahl erhöhen.</div>
 
-        {{-- Entwässerung, Wandanschluss & Beleuchtung — pcfg-verschachtelt,
-             damit KonfigurationSync sie 1:1 spiegelt (Montage-Modus liest sie). --}}
-        <div class="fsec" style="grid-column:1/-1;margin:6px 0 0">Entwässerung, Wandanschluss &amp; Beleuchtung</div>
-        <div class="fld"><label>Ablauf an Pfosten Nr.</label><input class="inp" type="number" name="{{ $prefix }}[felder][drain][post]" value="{{ $v('drain.post', 1) }}"></div>
+        <div class="fsec" style="grid-column:1/-1;margin:6px 0 0">Entwässerung</div>
+        <div class="fld"><label>Ablauf-Pfosten (Seite)</label>
+            <select class="inp" name="{{ $prefix }}[felder][drain][post]">
+                <option value="links" @selected($v('drain.post', 'links') === 'links' || is_numeric($v('drain.post')))>links</option>
+                <option value="rechts" @selected($v('drain.post') === 'rechts')>rechts</option>
+            </select></div>
         <div class="fld"><label>Ablauf Höhe (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][drain][height]" value="{{ $v('drain.height', 1150) }}"></div>
         <div class="fld"><label>Ablauf Blickrichtung</label>
             <select class="inp" name="{{ $prefix }}[felder][drain][dir]">
@@ -109,14 +177,8 @@
                     <option @selected($v('drain.dir', 'nach vorn') === $richtung)>{{ $richtung }}</option>
                 @endforeach
             </select></div>
-        <div class="fld"><label>Dübeltyp</label>
-            <select class="inp" name="{{ $prefix }}[felder][duebel][typ]">
-                @foreach (['Schlagdübel', 'Bolzenanker', 'Injektionsanker', 'Porenbetonanker'] as $typ)
-                    <option @selected($v('duebel.typ', 'Schlagdübel') === $typ)>{{ $typ }}</option>
-                @endforeach
-            </select></div>
-        <div class="fld"><label>Dübelgröße</label><input class="inp" type="text" name="{{ $prefix }}[felder][duebel][size]" value="{{ $v('duebel.size', '10 × 80 mm') }}"></div>
-        <div class="fld"><label>Dübelabstand (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][duebel][abstand]" value="{{ $v('duebel.abstand', 500) }}"></div>
+
+        <div class="fsec" style="grid-column:1/-1;margin:6px 0 0">Beleuchtung</div>
         <div class="fld"><label>LED-Spots gesamt</label>
             <select class="inp" name="{{ $prefix }}[felder][led][total]" data-kalk="ledTotal">
                 <option value="0" @selected((int) $v('led.total', 12) === 0)>Keine Beleuchtung</option>
@@ -129,23 +191,6 @@
                     <option @selected($v('led.color', 'Warmweiß 3000K') === $farbe)>{{ $farbe }}</option>
                 @endforeach
             </select></div>
-
-        {{-- Live-Kalkulation im Konfigurator-Fenster --}}
-        <div class="kbox" style="grid-column:1/-1;margin-top:6px">
-            <div class="fsec">Dach-Kalkulation</div>
-            <div class="kgrid">
-                <div class="kcell"><span>Pfosten</span><b class="mono" data-kalk-out="pn">–</b></div>
-                <div class="kcell"><span>Sparren</span><b class="mono" data-kalk-out="rafters">–</b></div>
-                <div class="kcell"><span>Felder</span><b class="mono" data-kalk-out="fields">–</b></div>
-                <div class="kcell"><span>Sparrenabstand</span><b class="mono" data-kalk-out="spar">–</b></div>
-                <div class="kcell"><span>Wandblende</span><b class="mono" data-kalk-out="blende">–</b></div>
-                <div class="kcell"><span>Glasmaß</span><b class="mono" data-kalk-out="glas">–</b></div>
-                <div class="kcell"><span>LED-Spots</span><b class="mono" data-kalk-out="ledTot">12</b></div>
-            </div>
-            <div class="kwarn" data-kalk-warn="glas" hidden>
-                Eindeckungsbreite über Plattenmaß (Glas {{ KonfiguratorRechner::MAX_GLAS_BREITE }} /
-                Stegplatte {{ KonfiguratorRechner::POLY_PLATTE }} mm) — Feldanzahl erhöhen.</div>
-        </div>
     </div>
 
     {{-- ——— Extras ——— --}}

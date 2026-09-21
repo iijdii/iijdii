@@ -148,11 +148,23 @@ function kalkUpdate(scope) {
     const ledWahl = ledSel ? parseInt(ledSel.value, 10) : 12;
     const ledTot = [0, 6].includes(ledWahl) ? ledWahl : 12;
     const de = (n) => n.toLocaleString('de-DE');
+
+    // Pfosten-Positionen: manuelle CSV gewinnt, sonst symmetrisch verteilt.
+    let posten = '–';
+    if (w > 0 && pn > 1) {
+        const manuell = (scope.querySelector('[data-kalk="postManual"]')?.value ?? '').trim();
+        const liste = manuell
+            ? manuell.split(',').map((s) => parseInt(s, 10)).filter((n) => !Number.isNaN(n))
+            : Array.from({ length: pn }, (_, i) => Math.round(i * w / (pn - 1)));
+        posten = liste.map(de).join(' · ');
+    }
+
     const out = {
         pn: pn || '–', rafters: rafters || '–', fields: fields || '–', rec: rec || '–',
         spar: spar ? de(spar) + ' mm' : '–',
         blende: de(blende) + ' mm', blende2: de(blende) + ' mm',
         glas: spar ? de(glasB) + ' × ' + de(glasT) + ' mm' + restText : '–',
+        posten: posten,
         ledTot: ledTot === 0 ? 'Keine' : ledTot, ledTot2: ledTot === 0 ? 'Keine' : ledTot,
     };
     scope.querySelectorAll('[data-kalk-out]').forEach((el) => {
@@ -247,6 +259,112 @@ document.querySelectorAll('[data-kunde-form]').forEach((karte) => {
     });
     anzeige.addEventListener('input', () => { manuell = anzeige.value !== ''; });
     update();
+});
+
+// Dach-Feinlogik im Konfigurator: Teilbereiche folgen den Steuer-Selects
+// (Form, Montageart, Isolierung, Unterzug, Einzel-Befestigung), die
+// Neigung errechnet sich aus den Höhen, der Dübel-Vorschlag folgt Belag
+// und Isolierstärke, die Einzel-Befestigung rendert ein Select je Pfosten.
+document.querySelectorAll('[data-produkt-felder="dach"]').forEach((dach) => {
+    const feld = (sel) => dach.querySelector(sel);
+    const shape = feld('[data-dach-shape]');
+    const mounting = feld('[data-dach-mounting]');
+    const isolierung = feld('[data-dach-isolierung]');
+    const unterzug = feld('[data-dach-unterzug]');
+    const montageJe = feld('[data-dach-montageje]');
+    if (!shape || !mounting) return;
+
+    const sichtbar = () => {
+        const wand = mounting.value === 'an der Wand';
+        const zustand = {
+            trapez: shape.value === 'trapez',
+            wandmontage: wand,
+            isolierung: wand && isolierung && isolierung.value === 'ja',
+            unterzug: unterzug && unterzug.value === 'ja',
+            montageje: !!(montageJe && montageJe.checked),
+        };
+        dach.querySelectorAll('[data-dach-nur]').forEach((block) => {
+            const aktiv = !!zustand[block.dataset.dachNur];
+            block.hidden = !aktiv;
+            block.querySelectorAll('input,select').forEach((el) => { el.disabled = !aktiv; });
+        });
+    };
+
+    // Neigung aus beiden Höhen und der Tiefe (atan, wie der Rechenkern).
+    const slope = feld('[data-dach-slope]');
+    const neigung = () => {
+        const wallH = parseInt(feld('[data-dach-hoehe="wand"]')?.value, 10) || 0;
+        const gutterH = parseInt(feld('[data-dach-hoehe="rinne"]')?.value, 10) || 0;
+        const tiefe = parseInt(dach.querySelector('[data-kalk="depth"]')?.value, 10) || 0;
+        if (slope && wallH > 0 && gutterH > 0 && tiefe > 0) {
+            slope.value = Math.round(Math.atan(Math.abs(wallH - gutterH) / tiefe) * 180 / Math.PI * 10) / 10;
+        }
+    };
+
+    // Dübel-Vorschlag: Isolierung → Abstandsmontage mit längerem Anker,
+    // sonst nach Wandbelag. Der Vorschlag bleibt überschreibbar.
+    const duebelVorschlag = () => {
+        const typ = feld('[data-dach-duebeltyp]');
+        const groesse = feld('[data-dach-duebelsize]');
+        if (!typ || !groesse) return;
+        if (isolierung && isolierung.value === 'ja') {
+            const dicke = parseInt(feld('[data-dach-daemmung]')?.value, 10) || 0;
+            typ.value = 'Injektionsanker';
+            groesse.value = '12 × ' + (100 + dicke) + ' mm (Abstandsmontage)';
+            return;
+        }
+        const je = { Putz: ['Schlagdübel', '10 × 100 mm'], Klinker: ['Injektionsanker', '10 × 100 mm'], Holz: ['Stockschrauben', '12 × 120 mm'] };
+        const wahl = je[feld('[data-dach-belag]')?.value] ?? je.Putz;
+        [typ.value, groesse.value] = wahl;
+    };
+
+    // Einzel-Befestigung: ein Select je Pfosten (Anzahl folgt der Kalkulation).
+    const listeBox = feld('[data-dach-montageliste]');
+    const montageliste = () => {
+        if (!listeBox || listeBox.hidden) return;
+        const w = parseInt(dach.querySelector('[data-kalk="width"]')?.value, 10) || 0;
+        const postN = parseInt(dach.querySelector('[data-kalk="postN"]')?.value, 10) || 0;
+        const pn = Math.min(12, postN > 0 ? postN : (w > 0 ? Math.ceil(w / 4000) + 1 : 0));
+        const werte = [...listeBox.querySelectorAll('select')].map((s) => s.value);
+        if (werte.length === 0) werte.push(...JSON.parse(listeBox.dataset.dachMontagelisteWerte || '[]'));
+        listeBox.querySelectorAll('.pmrow').forEach((r) => r.remove());
+        for (let i = 0; i < pn; i++) {
+            const zeile = document.createElement('div');
+            zeile.className = 'pmrow fx ac gap8';
+            zeile.style.marginTop = '6px';
+            const label = document.createElement('span');
+            label.className = 'hint';
+            label.style.width = '90px';
+            label.textContent = 'Pfosten ' + (i + 1);
+            const select = document.createElement('select');
+            select.className = 'inp';
+            select.name = listeBox.dataset.dachMontagelisteName + '[]';
+            ['Beton', 'U-Profil', 'Pfostenhalter'].forEach((option) => {
+                const o = document.createElement('option');
+                o.value = option;
+                o.textContent = option === 'Pfostenhalter' ? 'Pfostenhalter (Konsole)' : option;
+                if ((werte[i] ?? 'Beton') === option) o.selected = true;
+                select.append(o);
+            });
+            zeile.append(label, select);
+            listeBox.append(zeile);
+        }
+    };
+
+    [shape, mounting, isolierung, unterzug].forEach((el) => el && el.addEventListener('change', () => { sichtbar(); duebelVorschlag(); }));
+    montageJe && montageJe.addEventListener('change', () => { sichtbar(); montageliste(); });
+    [feld('[data-dach-belag]'), feld('[data-dach-daemmung]')].forEach((el) => {
+        el && el.addEventListener('change', duebelVorschlag);
+        el && el.addEventListener('input', duebelVorschlag);
+    });
+    dach.querySelectorAll('[data-dach-hoehe], [data-kalk="depth"]').forEach((el) => el.addEventListener('input', neigung));
+    dach.querySelectorAll('[data-kalk="width"], [data-kalk="postN"]').forEach((el) => el.addEventListener('input', montageliste));
+    // Der Produkt-Umschalter aktiviert beim Wechsel ALLE Dach-Eingaben —
+    // danach die Teilbereich-Sichtbarkeit erneut anwenden.
+    dach.closest('[data-position-form]')?.querySelector('[data-pos-produkt]')
+        ?.addEventListener('change', () => setTimeout(sichtbar, 0));
+    sichtbar();
+    montageliste();
 });
 
 // Produkt-Positions-Formular (Einheitssystem): Feldblöcke folgen dem

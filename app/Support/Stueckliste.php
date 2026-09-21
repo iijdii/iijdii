@@ -79,8 +79,8 @@ final class Stueckliste
         $zeile('Laubfänger DN75', 1, 'Stück', ['such' => 'Laubfänger DN75']);
 
         // Unterzug bei Pflicht (freistehend, Tiefe > 4000, Überstand …).
-        if ($kalk['unterzug']['erforderlich'] ?? false) {
-            $zeile('Unterzug '.$kalk['unterzug']['groesse'], 1, 'Stück', ['laenge_mm' => $W]);
+        if ($kalk['unterzug']['gewaehlt'] ?? false) {
+            $zeile('Unterzug '.$kalk['unterzug']['groesse'], $kalk['unterzug']['anzahl'] ?? 1, 'Stück', ['laenge_mm' => $W]);
         }
 
         // Polycarbonat: Tropfkante je Feld (KD Kap. 7.1).

@@ -16,7 +16,11 @@ final class KonfiguratorRechner
         'DB703 · Eisenglimmer', 'RAL nach Wunsch',
     ];
 
-    public const DECKUNGEN = ['VSG-Glas', 'VSG-Glas mattiert', 'Polycarbonat klar', 'Polycarbonat opal'];
+    /** Deckung = Material; die Ausführung (klar/milchig) wählt «Glasfarbe». */
+    public const DECKUNGEN = ['Glas', 'Polycarbonat'];
+
+    /** Bestandswerte alter Konfigurationen bleiben gültig. */
+    public const DECKUNGEN_LEGACY = ['VSG-Glas', 'VSG-Glas mattiert', 'Polycarbonat klar', 'Polycarbonat opal'];
 
     public const STAERKEN = ['8 mm', '10 mm', '16 mm'];
 
@@ -64,7 +68,11 @@ final class KonfiguratorRechner
             'wind' => 'WZ 2 · Binnenland',
             'terraceDepth' => '',
             'gutterOverhang' => '',
-            'unterzug' => ['groesse' => '110×190'],
+            'unterzug' => ['on' => 'nein', 'anzahl' => 1, 'groesse' => '110×190', 'ueberstand' => ''],
+            'wand' => ['belag' => 'Putz', 'isolierung' => 'nein', 'daemmstaerke' => ''],
+            'postMontage' => 'Beton',
+            'postMontageJe' => '',
+            'postMontageListe' => [],
             'postLeftOffset' => '',
             'postRightOffset' => '',
             'postMiddle' => '',
@@ -206,11 +214,19 @@ final class KonfiguratorRechner
         if ($terrace > 0 && $terrace < $D) {
             $gruende[] = 'Pfostenlinie vor der Traufe';
         }
+        // Der Unterzug ist eine bewusste Wahl des Verkäufers (standardmäßig
+        // keiner, bis zu 3 Stück); die alte v3.2-Pflichtregel bleibt als
+        // Empfehlung («erforderlich») für die Warnung im Produktpass.
+        $unterzugUeberstand = $I($p['unterzug']['ueberstand'] ?? '');
         $unterzug = [
+            'gewaehlt' => ($p['unterzug']['on'] ?? 'nein') === 'ja',
+            'anzahl' => min(3, max(1, $I($p['unterzug']['anzahl'] ?? 1) ?: 1)),
             'erforderlich' => $gruende !== [],
             'gruende' => $gruende,
             'position' => ($terrace > 0 && $terrace < $D) ? $terrace : $D,
-            'ueberstand' => ($terrace > 0 && $terrace < $D) ? $D - $terrace : 0,
+            'ueberstand' => $unterzugUeberstand > 0
+                ? $unterzugUeberstand
+                : (($terrace > 0 && $terrace < $D) ? $D - $terrace : 0),
             'groesse' => $p['unterzug']['groesse'] ?? '110×190',
         ];
 

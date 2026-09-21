@@ -85,7 +85,7 @@
             <div class="mm-row"><span class="rk">Größe</span><span class="rv mono">90 × 90 × 3 mm</span></div>
             <div class="mm-row"><span class="rk">Pfostenabstand</span><span class="rv mono">{{ $kalk['pn'] > 1 ? $F($pcfg['width'] / ($kalk['pn'] - 1)).' mm (Achse)' : '–' }}</span></div>
             <div class="mm-row"><span class="rk">Anordnung</span><span class="rv">{{ $kalk['pn'] }} vorn (Rinne)</span></div>
-            <div class="mm-row"><span class="rk">Wasserablauf an</span><span class="rv">Pfosten {{ $pcfg['drain']['post'] ?: 1 }} von {{ $kalk['pn'] }}</span></div>
+            <div class="mm-row"><span class="rk">Wasserablauf an</span><span class="rv">Pfosten {{ is_numeric($pcfg['drain']['post']) ? ($pcfg['drain']['post'] ?: 1).' von '.$kalk['pn'] : $pcfg['drain']['post'] }}</span></div>
             <div class="mm-row"><span class="rk">Ablauf Höhe</span><span class="rv mono">{{ $F($pcfg['drain']['height']) }} mm</span></div>
             <div class="mm-row"><span class="rk">Ablauf Blickrichtung</span><span class="rv">{{ $pcfg['drain']['dir'] }}</span></div>
             <div class="mm-row"><span class="rk">Anker</span><span class="rv">U-Profil-Bodenhalter · M12 · 60 Nm</span></div>

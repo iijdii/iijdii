@@ -67,11 +67,24 @@
                         <div class="specsec">Konstruktion</div>
                         <div class="spec-row"><span class="spec-k">Farbe</span><span class="spec-v">{{ $k['color'] }}</span></div>
                         <div class="spec-row"><span class="spec-k">Dach</span><span class="spec-v">{{ $k['covering'] }} {{ $k['thickness'] }} · {{ $k['glasTrans'] }}</span></div>
-                        <div class="spec-row"><span class="spec-k">Statik</span><span class="spec-v">{{ $k['snow'] }} · {{ $k['wind'] }}</span></div>
                         <div class="specsec">Ausstattung</div>
                         <div class="spec-row"><span class="spec-k">LED</span><span class="spec-v">{{ $kalk['ledTot'] > 0 ? $kalk['ledTot'].' Spots · '.$k['led']['color'] : 'Keine Beleuchtung' }}</span></div>
                         <div class="spec-row"><span class="spec-k">Entwässerung</span><span class="spec-v">Pfosten {{ $k['drain']['post'] }} · {{ $k['drain']['dir'] }}</span></div>
-                        <div class="spec-row"><span class="spec-k">Dübel</span><span class="spec-v">{{ $k['duebel']['typ'] }} {{ $k['duebel']['size'] }}</span></div>
+                        @if (($k['mounting'] ?? '') !== 'freistehend')
+                            @php
+                                $wandInfo = ($k['wand']['belag'] ?? 'Putz')
+                                    .((($k['wand']['isolierung'] ?? 'nein') === 'ja') ? ' · Isolierung '.(($k['wand']['daemmstaerke'] ?? '') ?: '?').' mm' : '');
+                            @endphp
+                            <div class="spec-row"><span class="spec-k">Wandanschluss</span><span class="spec-v">{{ $wandInfo }}
+                                · {{ $k['duebel']['typ'] }} {{ $k['duebel']['size'] }}</span></div>
+                        @endif
+                        <div class="spec-row"><span class="spec-k">Pfosten-Befestigung</span><span class="spec-v">
+                            @if (($k['postMontageJe'] ?? '') == 1 && ($k['postMontageListe'] ?? []) !== [])
+                                {{ implode(' · ', array_map(fn ($m, $i) => ($i + 1).': '.$m, $k['postMontageListe'], array_keys($k['postMontageListe']))) }}
+                            @else
+                                {{ $k['postMontage'] ?? 'Beton' }}{{ ($k['postMontage'] ?? '') === 'Pfostenhalter' ? ' (Konsole)' : '' }}
+                            @endif
+                        </span></div>
                         @if ($kalk['trapez'])
                             <div class="spec-row"><span class="spec-k">Trapez</span><span class="spec-v">Wand {{ $mm($kalk['trapez']['wand']) }} · Rinne {{ $mm($kalk['trapez']['rinne']) }} · Offsets {{ $kalk['trapez']['offsetLinks'] }}/{{ $kalk['trapez']['offsetRechts'] }} mm · Winkel {{ $kalk['trapez']['winkelLinks'] }}°/{{ $kalk['trapez']['winkelRechts'] }}°</span></div>
                         @endif
@@ -80,18 +93,18 @@
                             <div class="spec-row"><span class="spec-k">Profilsegmente</span><span class="spec-v mono">{{ implode(' + ', array_map(fn ($s) => number_format($s, 0, ',', '.'), $kalk['profilSegmente'])) }} mm</span></div>
                         @endif
                         <div class="spec-row"><span class="spec-k">Unterzug</span><span class="spec-v">
-                            @if ($kalk['unterzug']['erforderlich'])
-                                {{ $kalk['unterzug']['groesse'] }} · Position {{ $mm($kalk['unterzug']['position']) }}@if ($kalk['unterzug']['ueberstand'] > 0) · Überstand {{ $mm($kalk['unterzug']['ueberstand']) }}@endif
+                            @if ($kalk['unterzug']['gewaehlt'] ?? false)
+                                {{ $kalk['unterzug']['anzahl'] }}× {{ $kalk['unterzug']['groesse'] }} · Position {{ $mm($kalk['unterzug']['position']) }}@if ($kalk['unterzug']['ueberstand'] > 0) · Überstand {{ $mm($kalk['unterzug']['ueberstand']) }}@endif
                             @else
-                                nicht erforderlich
+                                keiner
                             @endif
                         </span></div>
                         {{-- Warnungen der Kalkulation (früher eigene kbox rechts) --}}
                         @if ($kalk['glasZuBreit'])
                             <div class="kwarn">Eindeckungsbreite &gt; {{ number_format($kalk['maxPlatte'], 0, ',', '.') }} mm — Fertigungsgrenze überschritten (Feldanzahl erhöhen).</div>
                         @endif
-                        @if ($kalk['unterzug']['erforderlich'])
-                            <div class="kwarn">Unterzug erforderlich: {{ implode(', ', $kalk['unterzug']['gruende']) }}.</div>
+                        @if ($kalk['unterzug']['erforderlich'] && ! ($kalk['unterzug']['gewaehlt'] ?? false))
+                            <div class="kwarn">Unterzug empfohlen: {{ implode(', ', $kalk['unterzug']['gruende']) }}.</div>
                         @endif
                         @if ($kalk['spannZuGross'])
                             <div class="kwarn">Pfosten-Spannweite über 4.000 mm — Position prüfen.</div>

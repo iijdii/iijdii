@@ -58,7 +58,7 @@ final class AnfrageKonfigMapper
             'gutterH' => $mm($d['rinneH'] ?? null) ?: 2500,
             'slope' => (int) str_replace(',', '.', (string) ($d['neigung'] ?? ($anfrage->dachneigung_grad ?? 8))) ?: 8,
             'color' => $d['farbe'] ?? ($anfrage->profil_farbe_name ?? KonfiguratorRechner::defaults()['color']),
-            'covering' => in_array($d['dachMat'] ?? '', KonfiguratorRechner::DECKUNGEN, true)
+            'covering' => in_array($d['dachMat'] ?? '', array_merge(KonfiguratorRechner::DECKUNGEN, KonfiguratorRechner::DECKUNGEN_LEGACY), true)
                 ? $d['dachMat'] : 'VSG-Glas',
             'thickness' => in_array($d['dachStk'] ?? '', KonfiguratorRechner::STAERKEN, true)
                 ? $d['dachStk'] : '8 mm',

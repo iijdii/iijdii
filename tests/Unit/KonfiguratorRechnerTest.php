@@ -167,6 +167,23 @@ class KonfiguratorRechnerTest extends TestCase
         $this->assertSame(12, KonfiguratorRechner::berechne(['led' => ['total' => 8]])['ledTot']);
     }
 
+    public function test_unterzug_ist_wahl_des_verkaeufers(): void
+    {
+        // Standard: keiner — die alte Pflichtregel bleibt nur Empfehlung.
+        $kalk = KonfiguratorRechner::berechne(['mounting' => 'freistehend']);
+        $this->assertFalse($kalk['unterzug']['gewaehlt']);
+        $this->assertTrue($kalk['unterzug']['erforderlich']);
+        $this->assertFalse(collect(Stueckliste::dach($kalk))->pluck('name')
+            ->contains(fn (string $n) => str_starts_with($n, 'Unterzug')));
+
+        // Gewählt: Anzahl (bis 3) und Überstand gehen in die Stückliste.
+        $kalk = KonfiguratorRechner::berechne(['unterzug' => ['on' => 'ja', 'anzahl' => 2, 'ueberstand' => 300]]);
+        $this->assertTrue($kalk['unterzug']['gewaehlt']);
+        $this->assertSame(300, $kalk['unterzug']['ueberstand']);
+        $zeile = collect(Stueckliste::dach($kalk))->first(fn (array $z) => str_starts_with($z['name'], 'Unterzug'));
+        $this->assertSame(2, (int) $zeile['menge']);
+    }
+
     public function test_keine_beleuchtung(): void
     {
         $kalk = KonfiguratorRechner::berechne(['led' => ['total' => 0]]);

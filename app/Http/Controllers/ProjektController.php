@@ -389,7 +389,7 @@ class ProjektController extends Controller
             'gutterH' => (int) $request->input('gutterH', $d['gutterH']),
             'slope' => (int) $request->input('slope', $d['slope']),
             'color' => $enum($request->input('color'), KonfiguratorRechner::FARBEN, $d['color']),
-            'covering' => $enum($request->input('covering'), KonfiguratorRechner::DECKUNGEN, $d['covering']),
+            'covering' => $enum($request->input('covering'), array_merge(KonfiguratorRechner::DECKUNGEN, KonfiguratorRechner::DECKUNGEN_LEGACY), $d['covering']),
             'glasTrans' => $enum($request->input('glasTrans'), ['Klar', 'Milch'], $d['glasTrans']),
             'thickness' => $enum($request->input('thickness'), KonfiguratorRechner::STAERKEN, $d['thickness']),
             'postN' => ((int) $request->input('postN')) ?: '',
@@ -430,7 +430,8 @@ class ProjektController extends Controller
                 'color' => $enum($request->input('segel.color'), ['Sandbeige', 'Anthrazit', 'Weiß', 'Grau'], $d['segel']['color']),
             ],
             'drain' => [
-                'post' => (int) $request->input('drain.post', $d['drain']['post']),
+                // Seit v26 eine Seite (links/rechts); alte Zahlwerte bleiben erhalten.
+                'post' => $request->input('drain.post', $d['drain']['post']),
                 'height' => (int) $request->input('drain.height', $d['drain']['height']),
                 'dir' => $enum($request->input('drain.dir'), ['nach vorn', 'nach hinten', 'nach links', 'nach rechts'], $d['drain']['dir']),
             ],
