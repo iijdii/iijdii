@@ -2,6 +2,7 @@
 // Montage-Layout lädt app.js nicht). Progressive enhancement: alle
 // Aktionen funktionieren auch ohne JS über POST/Redirect.
 import './roof-lightbox.js';
+import { initLedPlan } from './led-plan.js';
 
 // ---------- Toasts ----------
 function showToast(text) {
@@ -24,72 +25,8 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// ---------- LED-Modal ----------
-// Lampen setzen OHNE Neuladen: der Klick sendet das Formular per fetch
-// im Hintergrund, das Fenster bleibt sicher offen. Erst beim Schließen
-// lädt die Seite einmal neu und zieht Zeichnung/Kennzahlen der Sektion
-// nach. Ohne JS greift weiter POST/Redirect (?led=offen).
-const ledModal = document.getElementById('ledModal');
-if (ledModal) {
-    let ledGeaendert = false;
-    const ledTotal = parseInt(ledModal.dataset.ledTotal, 10) || 0;
-
-    const zaehlerSync = () => {
-        const an = ledModal.querySelectorAll('.lampb.on').length;
-        ledModal.querySelectorAll('[data-led-count]').forEach((el) => { el.textContent = an; });
-        const voll = ledTotal > 0 && an >= ledTotal;
-        ledModal.querySelectorAll('.lampb:not(.on)').forEach((b) => b.classList.toggle('lock', voll));
-    };
-
-    document.addEventListener('click', (e) => {
-        if (e.target.closest('[data-led-modal-open]')) ledModal.hidden = false;
-        if (e.target.closest('[data-led-modal-close]') || e.target === ledModal) {
-            if (ledGeaendert) {
-                // Sektion 7 (Draufsicht, KPIs) mit dem neuen Stand rendern —
-                // ohne ?led=offen, damit das Fenster danach zu bleibt.
-                window.history.replaceState(null, '', window.location.pathname + '#s7');
-                window.location.reload();
-                return;
-            }
-            ledModal.hidden = true;
-            // ?led=offen aus der URL nehmen, sonst öffnet F5 das Fenster erneut.
-            if (new URLSearchParams(window.location.search).has('led')) {
-                window.history.replaceState(null, '', window.location.pathname + '#s7');
-            }
-        }
-    });
-
-    ledModal.addEventListener('submit', async (e) => {
-        const form = e.target;
-        const lampe = form.querySelector('.lampb');
-        if (!lampe) return; // Reset-Formular klassisch absenden
-        e.preventDefault();
-        if (!lampe.classList.contains('on') && ledTotal > 0
-            && ledModal.querySelectorAll('.lampb.on').length >= ledTotal) {
-            showToast('Laut Konfiguration sind nur ' + ledTotal + ' Spots vorgesehen');
-            return;
-        }
-        try {
-            const res = await fetch(form.action, {
-                method: 'POST',
-                body: new FormData(form),
-                headers: { 'X-Requested-With': 'fetch' },
-            });
-            if (!res.ok) throw new Error(String(res.status));
-            lampe.classList.toggle('on');
-            ledGeaendert = true;
-            zaehlerSync();
-        } catch {
-            form.submit(); // Fallback: klassischer POST mit Neuladen
-        }
-    });
-
-    // Fallback-Pfad (kein JS beim Klick / fetch fehlgeschlagen): nach dem
-    // Redirect mit ?led=offen das Fenster direkt wieder öffnen.
-    if (new URLSearchParams(window.location.search).get('led') === 'offen') {
-        ledModal.hidden = false;
-    }
-}
+// ---------- LED-Modal (geteilt mit der Projekt-Übersicht) ----------
+initLedPlan(showToast);
 
 // ---------- Radiopills (Notiz-Typ) ----------
 document.querySelectorAll('[data-radiopill] input').forEach((input) => {

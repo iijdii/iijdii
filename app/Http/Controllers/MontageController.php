@@ -162,9 +162,12 @@ class MontageController extends Controller
     public function toggleLed(Request $request, Projekt $projekt): RedirectResponse
     {
         // Die Lampen-Buttons liegen im Pickermodal; jeder Klick lädt die
-        // Seite neu. ?led=offen lässt das Fenster danach wieder öffnen,
-        // damit der Monteur nicht für jede Lampe neu einsteigen muss.
-        $zurueck = redirect()->to(route('projekte.montage', $projekt).'?led=offen#s7');
+        // Seite neu (No-JS-Fallback). ?led=offen lässt das Fenster danach
+        // wieder öffnen. Das Modal existiert auf der Projekt-Übersicht
+        // (Verkäufer) UND im Montage-Modus — «zurueck» wählt das Ziel.
+        $zurueck = redirect()->to($request->input('zurueck') === 'projekt'
+            ? route('projekte.show', ['projekt' => $projekt, 'tab' => 'uebersicht', 'led' => 'offen'])
+            : route('projekte.montage', $projekt).'?led=offen#s7');
 
         $projekt->refresh();
         $aufmass = $projekt->aufmass ?? [];

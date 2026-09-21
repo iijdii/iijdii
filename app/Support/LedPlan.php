@@ -147,6 +147,10 @@ final class LedPlan
                     'c' => '#2E8C5A'];
                 $lampen[] = ['cx' => round($x, 1), 'cy' => round($y, 1)];
             }
+            // Der Abstand steht direkt am Sparren (Mitte des ersten Stücks) —
+            // er gilt vom Rand und zwischen den Lampen gleichermaßen.
+            $texte[] = ['t' => $F($teilung), 'al' => 'center', 'led' => true,
+                'st' => self::pct($x, self::yAbs($sTop, $g['sparLen'], $teilung / 2))];
         }
 
         // Abstände je belegtem Sparren; bei einheitlicher Lampenzahl gibt es

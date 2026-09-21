@@ -37,6 +37,10 @@
             </div>
         </div>
 
+        @isset ($ledZeichnung)
+            @include('projekte.partials.led-plan')
+        @endisset
+
         @forelse ($projekt->positionen as $position)
             <div class="card p0">
                 <div class="card-h">

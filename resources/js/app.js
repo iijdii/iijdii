@@ -1,4 +1,5 @@
 import './roof-lightbox.js';
+import { initLedPlan } from './led-plan.js';
 
 // LEA CRM — Navigations-Shell.
 // >1200px klappt der Burger die Sidebar ein/aus; ≤1200px (Sidebar
@@ -174,6 +175,10 @@ kalkScopes.forEach((scope) => {
     });
     if (scope !== document) kalkUpdate(scope);
 });
+
+// LED-Plan der Projekt-Übersicht: gleiches Pickermodal wie im
+// Montage-Modus (der Verkäufer setzt die Lampen im Büro).
+initLedPlan(showToast);
 
 // Foto-Vorschau (Projekt-Tab «Fotos»): Klick auf eine Miniatur öffnet
 // das Bild groß im Fenster.

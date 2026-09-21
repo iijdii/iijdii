@@ -60,6 +60,25 @@ class ProjektePageTest extends TestCase
             ->assertSee('PRJ-2026-011 · DEMO Demo'); // Titelblock der Zeichnung
     }
 
+    public function test_verkaeufer_setzt_led_lampen_auf_der_uebersicht(): void
+    {
+        // Der LED-Plan (gleiche Zeichnung wie im Montage-Modus) liegt auf
+        // der Übersicht; der Verkäufer darf Lampen setzen.
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=uebersicht')
+            ->assertSee('LED-Plan')
+            ->assertSee('LED-Positionen festlegen');
+
+        $this->actingAs($this->benutzer)
+            ->post('/projekte/PRJ-2026-011/montage/led', ['pos' => 's2.0', 'zurueck' => 'projekt'])
+            ->assertRedirect(route('projekte.show', ['projekt' => 'PRJ-2026-011', 'tab' => 'uebersicht', 'led' => 'offen']));
+        $this->assertContains('s2.0', Projekt::query()->where('nr', 'PRJ-2026-011')->firstOrFail()->aufmass['led']);
+
+        // Abstand nach der Betreiber-Regel sichtbar (n Lampen → Länge ÷ (n+1)).
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=uebersicht')
+            ->assertSee('Sparren 2 —')
+            ->assertSee('(÷');
+    }
+
     public function test_konfigurator_shows_prototype_positions_and_kalkulation(): void
     {
         // KD-Stückliste (Vorbestellung) → Tab «Material + Bestellungen».

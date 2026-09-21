@@ -121,7 +121,7 @@ Route::middleware(['auth', 'lieferant.portal'])->group(function () {
     Route::get('/projekte/{projekt:nr}/montage', [MontageController::class, 'zeige'])->name('projekte.montage');
     Route::post('/projekte/{projekt:nr}/montage/aufmass', [MontageController::class, 'speichereAufmass'])->middleware('role:monteur,projektleiter')->name('projekte.montage.aufmass');
     Route::post('/projekte/{projekt:nr}/montage/endmasse', [MontageController::class, 'speichereEndmasse'])->middleware('role:monteur,projektleiter')->name('projekte.montage.endmasse');
-    Route::post('/projekte/{projekt:nr}/montage/led', [MontageController::class, 'toggleLed'])->middleware('role:monteur,projektleiter')->name('projekte.montage.led');
+    Route::post('/projekte/{projekt:nr}/montage/led', [MontageController::class, 'toggleLed'])->middleware('role:verkaeufer,monteur,projektleiter')->name('projekte.montage.led');
     Route::post('/projekte/{projekt:nr}/montage/notizen', [MontageController::class, 'speichereNotiz'])->middleware('role:monteur,projektleiter')->name('projekte.montage.notizen');
     Route::post('/projekte/{projekt:nr}/montage/notizen/{notiz}/loeschen', [MontageController::class, 'loescheNotiz'])->middleware('role:monteur,projektleiter')->name('projekte.montage.notizen.loeschen');
     Route::post('/projekte/{projekt:nr}/montage/material', [MontageController::class, 'speichereMaterial'])->middleware('role:monteur,projektleiter')->name('projekte.montage.material');

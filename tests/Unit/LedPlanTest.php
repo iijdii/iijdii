@@ -50,11 +50,14 @@ class LedPlanTest extends TestCase
         // mit Teilungstexten (nur die horizontale Sparren-Kette bleibt).
         $this->assertNull($z['kpis']['abstand']);
 
-        // Einheitlich 1 Lampe je Sparren → gemeinsamer Abstand L/2 samt Kette.
+        // Einheitlich 1 Lampe je Sparren → gemeinsamer Abstand L/2 samt Kette;
+        // der Wert steht außerdem direkt am Sparren auf der Zeichnung.
         $z = LedPlan::zeichnung($kalk, ['s1.0', 's3.1']);
         $this->assertSame('1.695', $z['kpis']['abstand']);
         $this->assertNotEmpty($z['ketten']);
-        $this->assertSame('1.695 mm', $z['texte'][0]['t']);
+        $this->assertSame('1.695', $z['texte'][0]['t']); // Label am Sparren
+        $this->assertTrue($z['texte'][0]['led'] ?? false);
+        $this->assertContains('1.695 mm', array_column($z['texte'], 't')); // Maßkette
     }
 
     public function test_voll_flag_at_total(): void

@@ -13,6 +13,7 @@ use App\Services\LagerService;
 use App\Support\Format;
 use App\Support\KonfigurationSync;
 use App\Support\KonfiguratorRechner;
+use App\Support\LedPlan;
 use App\Support\Nummern;
 use App\Support\PdfArchiv;
 use App\Support\RoofZeichnung;
@@ -83,6 +84,18 @@ class ProjektController extends Controller
             ]),
             'vorschau' => $request->session()->has('pcfg_preview.'.$projekt->nr),
         ];
+
+        // LED-Plan auf der Übersicht: gleiche Zeichnung und gleiches
+        // Pickermodal wie im Montage-Modus — der Verkäufer setzt die
+        // Lampen im Büro, der Monteur ändert sie vor Ort (eine Quelle).
+        if ($tab === 'uebersicht' && $pcfg !== null && $kalk['ledTot'] > 0) {
+            $ledGesetzt = $projekt->aufmass['led'] ?? [];
+            $daten += [
+                'ledZeichnung' => LedPlan::zeichnung($kalk, $ledGesetzt),
+                'ledKandidaten' => LedPlan::kandidaten($kalk),
+                'ledGesetzt' => $ledGesetzt,
+            ];
+        }
 
         $daten += match ($tab) {
             'material' => [
