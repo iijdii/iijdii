@@ -48,8 +48,9 @@ class KundeController extends Controller
     private function validiert(Request $request): array
     {
         $daten = $request->validate([
-            'anzeigename' => ['required', 'string', 'max:120'],
+            'anzeigename' => ['nullable', 'string', 'max:120'],
             'typ' => ['required', Rule::in(['privat', 'gewerbe'])],
+            'anrede' => ['nullable', Rule::in(['Herr', 'Frau', 'Familie', 'Andere'])],
             'status' => ['required', Rule::in(['Lead', 'Aktiv', 'Inaktiv'])],
             'vorname' => ['nullable', 'string', 'max:80'],
             'nachname' => ['nullable', 'string', 'max:80'],
@@ -73,7 +74,31 @@ class KundeController extends Controller
                 : null;
         }
 
+        // Anzeigename füllt sich automatisch, wenn er leer bleibt (das
+        // Formular pflegt ihn live per JS; hier die Server-Wahrheit).
+        if (($daten['anzeigename'] ?? '') === '' || $daten['anzeigename'] === null) {
+            $daten['anzeigename'] = self::anzeigenameAus($daten);
+        }
+
         return $daten;
+    }
+
+    /**
+     * Privat: «Familie Nachname» bzw. «Vorname Nachname»; Gewerbe: Firma.
+     *
+     * @param  array<string, mixed>  $daten
+     */
+    private static function anzeigenameAus(array $daten): string
+    {
+        if (($daten['typ'] ?? 'privat') === 'gewerbe') {
+            $name = trim((string) ($daten['firma'] ?? '')) ?: trim((string) ($daten['ansprechpartner'] ?? ''));
+        } elseif (($daten['anrede'] ?? '') === 'Familie') {
+            $name = trim('Familie '.trim((string) ($daten['nachname'] ?? '')));
+        } else {
+            $name = trim(trim((string) ($daten['vorname'] ?? '')).' '.trim((string) ($daten['nachname'] ?? '')));
+        }
+
+        return $name !== '' && $name !== 'Familie' ? $name : 'Neuer Kunde';
     }
 
     public function show(Kunde $kunde): View

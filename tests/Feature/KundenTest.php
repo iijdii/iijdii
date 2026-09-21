@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Kunde;
 use App\Models\User;
+use App\Support\Nummern;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -51,9 +53,10 @@ class KundenTest extends TestCase
             ->assertOk()
             ->assertSee('Keine Projekte vorhanden.');
     }
+
     public function test_kunde_anlegen_mit_laufender_nummer(): void
     {
-        $erwartet = \App\Support\Nummern::kunde();
+        $erwartet = Nummern::kunde();
 
         $this->actingAs($this->benutzer)->post('/kunden', [
             'anzeigename' => 'Gartenwelt Nord GmbH', 'typ' => 'gewerbe', 'status' => 'Lead',
@@ -62,17 +65,42 @@ class KundenTest extends TestCase
         ])->assertRedirect(route('kunden.show', $erwartet))
             ->assertSessionHas('toast', 'Kunde '.$erwartet.' angelegt');
 
-        $kunde = \App\Models\Kunde::query()->where('kunden_nr', $erwartet)->firstOrFail();
+        $kunde = Kunde::query()->where('kunden_nr', $erwartet)->firstOrFail();
         $this->assertSame(['Neukunde', 'Carport'], $kunde->tags);
 
-        // Validierung: ohne Anzeigename
-        $this->actingAs($this->benutzer)->post('/kunden', ['typ' => 'privat', 'status' => 'Lead'])
-            ->assertSessionHasErrors('anzeigename');
+    }
+
+    public function test_anzeigename_fuellt_sich_automatisch(): void
+    {
+        // Privat mit Anrede «Familie» → «Familie Nachname».
+        $this->actingAs($this->benutzer)->post('/kunden', [
+            'typ' => 'privat', 'anrede' => 'Familie', 'nachname' => 'Weber', 'status' => 'Lead',
+        ]);
+        $this->assertSame('Familie Weber', Kunde::query()->latest('id')->first()->anzeigename);
+
+        // Privat mit Herr/Frau → «Vorname Nachname»; Anrede wird gespeichert.
+        $this->actingAs($this->benutzer)->post('/kunden', [
+            'typ' => 'privat', 'anrede' => 'Frau', 'vorname' => 'Anna', 'nachname' => 'Klein', 'status' => 'Lead',
+        ]);
+        $kunde = Kunde::query()->latest('id')->first();
+        $this->assertSame('Anna Klein', $kunde->anzeigename);
+        $this->assertSame('Frau', $kunde->anrede);
+
+        // Gewerbe → Firma; manuell gesetzter Anzeigename gewinnt immer.
+        $this->actingAs($this->benutzer)->post('/kunden', [
+            'typ' => 'gewerbe', 'firma' => 'Terrassenbau Süd GmbH', 'status' => 'Lead',
+        ]);
+        $this->assertSame('Terrassenbau Süd GmbH', Kunde::query()->latest('id')->first()->anzeigename);
+
+        $this->actingAs($this->benutzer)->post('/kunden', [
+            'typ' => 'gewerbe', 'firma' => 'Egal GmbH', 'anzeigename' => 'Mein Name', 'status' => 'Lead',
+        ]);
+        $this->assertSame('Mein Name', Kunde::query()->latest('id')->first()->anzeigename);
     }
 
     public function test_kunde_bearbeiten(): void
     {
-        $kunde = \App\Models\Kunde::query()->where('kunden_nr', 'K-1071')->firstOrFail();
+        $kunde = Kunde::query()->where('kunden_nr', 'K-1071')->firstOrFail();
 
         $this->actingAs($this->benutzer)->put('/kunden/K-1071', [
             'anzeigename' => $kunde->anzeigename, 'typ' => $kunde->typ, 'status' => 'Aktiv',

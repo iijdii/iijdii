@@ -24,24 +24,33 @@
         <div class="kwarn">{{ $errors->first() }}</div>
     @endif
 
-    <div class="card">
+    <div class="card" data-kunde-form>
         <div class="mc-h"><svg class="i"><use href="#ic-kunden"/></svg>Stammdaten</div>
         <div class="cols-2">
-            <div class="fld"><label>Anzeigename *</label>
-                <input class="inp" name="anzeigename" value="{{ $wert('anzeigename') }}" required></div>
             <div class="fld"><label>Typ</label>
-                <select class="inp" name="typ">
+                <select class="inp" name="typ" data-kunde-typ>
                     <option value="privat" @selected($wert('typ', 'privat') === 'privat')>Privatkunde</option>
                     <option value="gewerbe" @selected($wert('typ') === 'gewerbe')>Gewerbe</option>
                 </select></div>
-            <div class="fld"><label>Vorname</label>
-                <input class="inp" name="vorname" value="{{ $wert('vorname') }}"></div>
-            <div class="fld"><label>Nachname</label>
-                <input class="inp" name="nachname" value="{{ $wert('nachname') }}"></div>
-            <div class="fld"><label>Firma</label>
-                <input class="inp" name="firma" value="{{ $wert('firma') }}"></div>
-            <div class="fld"><label>Ansprechpartner</label>
-                <input class="inp" name="ansprechpartner" value="{{ $wert('ansprechpartner') }}"></div>
+            <div class="fld" data-kunde-nur="privat"><label>Anrede</label>
+                <select class="inp" name="anrede" data-kunde-name>
+                    <option value="" @selected($wert('anrede') === '')>—</option>
+                    @foreach (['Herr', 'Frau', 'Familie', 'Andere'] as $anrede)
+                        <option value="{{ $anrede }}" @selected($wert('anrede') === $anrede)>{{ $anrede }}</option>
+                    @endforeach
+                </select></div>
+            <div class="fld" data-kunde-nur="privat"><label>Vorname</label>
+                <input class="inp" name="vorname" value="{{ $wert('vorname') }}" data-kunde-name></div>
+            <div class="fld" data-kunde-nur="privat"><label>Nachname</label>
+                <input class="inp" name="nachname" value="{{ $wert('nachname') }}" data-kunde-name></div>
+            <div class="fld" data-kunde-nur="gewerbe"><label>Firma</label>
+                <input class="inp" name="firma" value="{{ $wert('firma') }}" data-kunde-name></div>
+            <div class="fld" data-kunde-nur="gewerbe"><label>Ansprechpartner</label>
+                <input class="inp" name="ansprechpartner" value="{{ $wert('ansprechpartner') }}" data-kunde-name></div>
+            <div class="fld"><label>Anzeigename</label>
+                <input class="inp" name="anzeigename" value="{{ $wert('anzeigename') }}" data-kunde-anzeigename
+                       placeholder="füllt sich automatisch">
+                <span class="hint">Entsteht aus Anrede/Name bzw. Firma — bei Bedarf überschreiben.</span></div>
             <div class="fld"><label>Status</label>
                 <select class="inp" name="status">
                     @foreach (['Lead', 'Aktiv', 'Inaktiv'] as $status)

@@ -213,6 +213,42 @@ if (konfigModal) {
     update();
 }
 
+// Kunden-Formular: Felder folgen dem Typ (privat ↔ gewerbe), der
+// Anzeigename füllt sich automatisch aus Anrede/Name bzw. Firma —
+// bis der Benutzer ihn selbst überschreibt. Server rechnet dieselbe
+// Regel nach, falls das Feld leer bleibt.
+document.querySelectorAll('[data-kunde-form]').forEach((karte) => {
+    const typ = karte.querySelector('[data-kunde-typ]');
+    const anzeige = karte.querySelector('[data-kunde-anzeigename]');
+    if (!typ || !anzeige) return;
+    const feld = (name) => karte.querySelector(`[name="${name}"]`);
+    const autoName = () => {
+        if (typ.value === 'gewerbe') {
+            return (feld('firma').value || feld('ansprechpartner').value).trim();
+        }
+        const nachname = feld('nachname').value.trim();
+        if (feld('anrede').value === 'Familie') return nachname ? 'Familie ' + nachname : '';
+        return (feld('vorname').value.trim() + ' ' + nachname).trim();
+    };
+    let manuell = anzeige.value !== '' && anzeige.value !== autoName();
+
+    const update = () => {
+        karte.querySelectorAll('[data-kunde-nur]').forEach((f) => {
+            const aktiv = f.dataset.kundeNur === typ.value;
+            f.hidden = !aktiv;
+            f.querySelectorAll('input,select').forEach((el) => { el.disabled = !aktiv; });
+        });
+        if (!manuell) anzeige.value = autoName();
+    };
+    typ.addEventListener('change', update);
+    karte.querySelectorAll('[data-kunde-name]').forEach((el) => {
+        el.addEventListener('input', () => { if (!manuell) anzeige.value = autoName(); });
+        el.addEventListener('change', () => { if (!manuell) anzeige.value = autoName(); });
+    });
+    anzeige.addEventListener('input', () => { manuell = anzeige.value !== ''; });
+    update();
+});
+
 // Produkt-Positions-Formular (Einheitssystem): Feldblöcke folgen dem
 // Produkt-Select. Ohne JS bleiben alle Blöcke sichtbar.
 document.querySelectorAll('[data-position-form]').forEach((form) => {

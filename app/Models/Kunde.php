@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'kunden_nr', 'typ', 'anzeigename', 'vorname', 'nachname', 'firma',
+    'kunden_nr', 'typ', 'anrede', 'anzeigename', 'vorname', 'nachname', 'firma',
     'ansprechpartner', 'email', 'telefon', 'strasse', 'hausnummer',
     'plz', 'stadt', 'region', 'quelle', 'tags', 'notizen', 'status',
 ])]
