@@ -73,10 +73,11 @@ class ProjektePageTest extends TestCase
             ->assertRedirect(route('projekte.show', ['projekt' => 'PRJ-2026-011', 'tab' => 'uebersicht', 'led' => 'offen']));
         $this->assertContains('s2.0', Projekt::query()->where('nr', 'PRJ-2026-011')->firstOrFail()->aufmass['led']);
 
-        // Abstand nach der Betreiber-Regel sichtbar (n Lampen → Länge ÷ (n+1)).
+        // Der Abstand steht NUR auf der Zeichnung (grünes Label am Sparren:
+        // 1 Lampe → Sparrenlänge ÷ 2 = 1.695) — keine separate Auflistung.
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=uebersicht')
-            ->assertSee('Sparren 2 —')
-            ->assertSee('(÷');
+            ->assertSee('1.695')
+            ->assertDontSee('Sparren 2 —');
     }
 
     public function test_konfigurator_shows_prototype_positions_and_kalkulation(): void

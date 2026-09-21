@@ -28,23 +28,13 @@
         <div class="mm-note blue"><svg class="i"><use href="#ic-help"/></svg>Noch keine Lampen gesetzt — Positionen unten festlegen, dann erscheinen hier die Endmaße.</div>
     @endif
 
-    <div class="mm-kpis" style="grid-template-columns:repeat(4,1fr)">
+    {{-- Die Abstände stehen direkt auf der Zeichnung (grüne Labels am
+         Sparren) — keine separate Auflistung mehr. --}}
+    <div class="mm-kpis" style="grid-template-columns:repeat(3,1fr)">
         <div class="mm-kpi"><div class="kl">Sparrenlänge</div><div class="kn">{{ $ledKpi['sparLen'] }}<span class="ku">mm</span></div></div>
-        <div class="mm-kpi"><div class="kl">Abstand</div><div class="kn">{{ $ledKpi['abstand'] ?? 'je Sparren' }}@if ($ledKpi['abstand'])<span class="ku">mm</span>@endif</div></div>
         <div class="mm-kpi"><div class="kl">Sparren mit LED</div><div class="kn">{{ count($ledZeichnung['abstaende']) }}</div></div>
         <div class="mm-kpi"><div class="kl">Gesetzt</div><div class="kn">{{ $ledKpi['gesetzt'] }} / {{ $ledKpi['total'] }}</div></div>
     </div>
-
-    @if ($ledZeichnung['abstaende'] !== [])
-        <div class="mm-rows" style="margin-top:8px">
-            @foreach ($ledZeichnung['abstaende'] as $zeile)
-                <div class="mm-row"><span class="rk">Sparren {{ $zeile['sparren'] }}</span>
-                    <span class="rv">{{ $zeile['anzahl'] }} {{ $zeile['anzahl'] === 1 ? 'Lampe' : 'Lampen' }}
-                        · Abstand <b class="mono">{{ $zeile['abstand'] }} mm</b>
-                        (Sparrenlänge ÷ {{ $zeile['anzahl'] + 1 }})</span></div>
-            @endforeach
-        </div>
-    @endif
 
     <button class="btn btnp" style="width:100%;margin:10px 0" type="button" data-led-modal-open>
         <svg class="i"><use href="#ic-expand"/></svg>LED-Positionen festlegen &amp; abhaken</button>

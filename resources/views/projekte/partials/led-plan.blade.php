@@ -29,14 +29,7 @@
             @endforeach
         </div>
 
-        @if ($ledZeichnung['abstaende'] !== [])
-            <div class="anf-specs" style="margin-top:10px">
-                @foreach ($ledZeichnung['abstaende'] as $zeile)
-                    <span class="spec">Sparren {{ $zeile['sparren'] }} — {{ $zeile['anzahl'] }} {{ $zeile['anzahl'] === 1 ? 'Lampe' : 'Lampen' }}
-                        · <b class="mono">{{ $zeile['abstand'] }} mm</b> (÷ {{ $zeile['anzahl'] + 1 }})</span>
-                @endforeach
-            </div>
-        @else
+        @if ($ledZeichnung['abstaende'] === [])
             <p class="hint" style="margin-top:10px">Noch keine Lampen gesetzt — Positionen können schon
                 jetzt vom Verkäufer festgelegt werden, der Monteur passt sie vor Ort an.</p>
         @endif
