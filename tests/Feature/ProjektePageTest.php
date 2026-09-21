@@ -89,10 +89,12 @@ class ProjektePageTest extends TestCase
             ->assertSee('Alu-Pfosten 110×110 (Profil 35722) · Weiß · RAL 9016')
             ->assertSee('Endstopp / Stoppwinkel')
             ->assertSee('692 × 3.450 mm');
-        // Kalkulation lebt auf der Übersicht.
+        // Kalkulation lebt jetzt IM Produktpass der Dach-Position (die
+        // frühere kbox rechts ist entfernt; «Dach-Kalkulation» existiert
+        // nur noch als Live-Block im Konfigurator-Fenster).
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011')
             ->assertSee('654 mm')            // Wandblende bei W=8630 (714−60)
-            ->assertSee('Dach-Kalkulation');
+            ->assertSee('Glasmaß');
     }
 
     public function test_berechnen_previews_without_persisting(): void

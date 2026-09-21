@@ -37,10 +37,6 @@
             </div>
         </div>
 
-        @isset ($ledZeichnung)
-            @include('projekte.partials.led-plan')
-        @endisset
-
         @forelse ($projekt->positionen as $position)
             <div class="card p0">
                 <div class="card-h">
@@ -63,6 +59,11 @@
                         <div class="spec-row"><span class="spec-k">Breite × Tiefe</span><span class="spec-v mono">{{ $mm($k['width']) }} × {{ $mm($k['depth']) }}</span></div>
                         <div class="spec-row"><span class="spec-k">Höhe Wand / Rinne</span><span class="spec-v mono">{{ $mm($kalk['wallHEff']) }} / {{ $mm($kalk['gutterHEff']) }}</span></div>
                         <div class="spec-row"><span class="spec-k">Form · Montage</span><span class="spec-v">{{ $k['shape'] === 'trapez' ? 'Trapez' : 'Rechteck' }} · {{ $k['mounting'] }} · {{ $kalk['slopeEff'] }}° ({{ $kalk['gefaelleProzent'] }} %)</span></div>
+                        <div class="specsec">Kalkulation</div>
+                        <div class="spec-row"><span class="spec-k">Pfosten · Sparren · Felder</span><span class="spec-v mono">{{ $kalk['pn'] ?: '–' }} · {{ $kalk['rafters'] ?: '–' }} · {{ $kalk['fields'] ?: '–' }}</span></div>
+                        <div class="spec-row"><span class="spec-k">Sparrenabstand</span><span class="spec-v mono">{{ $kalk['sparText'] }}</span></div>
+                        <div class="spec-row"><span class="spec-k">Wandblende</span><span class="spec-v mono">{{ $kalk['blendeText'] }}</span></div>
+                        <div class="spec-row"><span class="spec-k">Glasmaß</span><span class="spec-v mono">{{ $kalk['glasText'] }}</span></div>
                         <div class="specsec">Konstruktion</div>
                         <div class="spec-row"><span class="spec-k">Farbe</span><span class="spec-v">{{ $k['color'] }}</span></div>
                         <div class="spec-row"><span class="spec-k">Dach</span><span class="spec-v">{{ $k['covering'] }} {{ $k['thickness'] }} · {{ $k['glasTrans'] }}</span></div>
@@ -85,6 +86,19 @@
                                 nicht erforderlich
                             @endif
                         </span></div>
+                        {{-- Warnungen der Kalkulation (früher eigene kbox rechts) --}}
+                        @if ($kalk['glasZuBreit'])
+                            <div class="kwarn">Eindeckungsbreite &gt; {{ number_format($kalk['maxPlatte'], 0, ',', '.') }} mm — Fertigungsgrenze überschritten (Feldanzahl erhöhen).</div>
+                        @endif
+                        @if ($kalk['unterzug']['erforderlich'])
+                            <div class="kwarn">Unterzug erforderlich: {{ implode(', ', $kalk['unterzug']['gruende']) }}.</div>
+                        @endif
+                        @if ($kalk['spannZuGross'])
+                            <div class="kwarn">Pfosten-Spannweite über 4.000 mm — Position prüfen.</div>
+                        @endif
+                        @if ($kalk['stossPfosten'] !== [])
+                            <div class="kwarn">Profilstoß bei {{ implode(' / ', array_map(fn ($x) => number_format($x, 0, ',', '.'), $kalk['stossPfosten'])) }} mm — Pfosten unter dem Stoß empfohlen (Stoß − 55).</div>
+                        @endif
                     @else
                         <div class="anf-specs">
                             @foreach ($position->felder ?? [] as $schluessel => $wert)
@@ -122,36 +136,17 @@
                 <svg class="i"><use href="#ic-plus"/></svg>Position hinzufügen
                 <span class="hint" style="margin-left:6px">Extras · Sonnenschutz{{ $dachPosition ? '' : ' · Dach' }}</span></button>
         </div>
+
+        {{-- LED-Plan unter dem Konfigurator (Wunsch des Betreibers) --}}
+        @isset ($ledZeichnung)
+            @include('projekte.partials.led-plan')
+        @endisset
     </div>
 
     <div class="colstack">
-        <div class="kbox">
-            <div class="fsec">Dach-Kalkulation</div>
-            <div class="kgrid">
-                <div class="kcell"><span>Pfosten</span><b class="mono">{{ $kalk['pn'] ?: '–' }}</b></div>
-                <div class="kcell"><span>Sparren</span><b class="mono">{{ $kalk['rafters'] ?: '–' }}</b></div>
-                <div class="kcell"><span>Felder</span><b class="mono">{{ $kalk['fields'] ?: '–' }}</b></div>
-                <div class="kcell"><span>Sparrenabstand</span><b class="mono">{{ $kalk['sparText'] }}</b></div>
-                <div class="kcell"><span>Wandblende</span><b class="mono">{{ $kalk['blendeText'] }}</b></div>
-                <div class="kcell"><span>Glasmaß</span><b class="mono">{{ $kalk['glasText'] }}</b></div>
-                <div class="kcell"><span>LED-Spots</span><b class="mono">{{ $kalk['ledTot'] > 0 ? $kalk['ledTot'] : 'Keine' }}</b></div>
-            </div>
-            @if ($kalk['glasZuBreit'])
-                <div class="kwarn">Eindeckungsbreite &gt; {{ number_format($kalk['maxPlatte'], 0, ',', '.') }} mm — Fertigungsgrenze überschritten (Feldanzahl erhöhen).</div>
-            @endif
-            @if ($kalk['unterzug']['erforderlich'])
-                <div class="kwarn">Unterzug erforderlich: {{ implode(', ', $kalk['unterzug']['gruende']) }}.</div>
-            @endif
-            @if ($kalk['spannZuGross'])
-                <div class="kwarn">Pfosten-Spannweite über 4.000 mm — Position prüfen.</div>
-            @endif
-            @if ($kalk['stossPfosten'] !== [])
-                <div class="kwarn">Profilstoß bei {{ implode(' / ', array_map(fn ($x) => number_format($x, 0, ',', '.'), $kalk['stossPfosten'])) }} mm — Pfosten unter dem Stoß empfohlen (Stoß − 55).</div>
-            @endif
-            @if ($vorschau)
-                <span class="hint">Vorschau — noch nicht gespeichert</span>
-            @endif
-        </div>
+        @if ($vorschau)
+            <div class="card"><span class="hint">Vorschau — noch nicht gespeichert</span></div>
+        @endif
 
         <div class="card">
             <div class="mc-h"><svg class="i"><use href="#ic-angebote"/></svg>Angebot</div>
