@@ -3,10 +3,12 @@
 namespace App\Support;
 
 /**
- * LED-Positionsplanung des Montage-Modus — Port der LED-Logik aus
- * _mmVals: 3 Kandidatenpositionen je innerem Sparren, Randabstand a
- * ist die halbe Teilung e; Maßketten des finalen Plans entstehen nur
- * aus tatsächlich gesetzten Positionen.
+ * LED-Positionsplanung des Montage-Modus. Der Monteur tippt je Sparren
+ * an, WIE VIELE Lampen dort sitzen (bis zu 3 Slots als Zähler); die
+ * endgültigen Abstände rechnet das System aus der Sparrenlänge:
+ * n Lampen teilen den Sparren in n+1 gleiche Stücke — eine Lampe sitzt
+ * in der Mitte (L/2), zwei auf den Dritteln (L/3), drei auf den
+ * Vierteln (L/4). Die Maßketten zeigen genau diese Abstände.
  */
 final class LedPlan
 {
@@ -86,7 +88,8 @@ final class LedPlan
      *
      * @return array{viewBox:string, sTop:float, rafterLines:array, ticks:array,
      *               lampen:array, ketten:array, texte:array,
-     *               kpis:array{sparLen:string, edge:string, pitch:string, frei:int, gesetzt:int, total:int, voll:bool}}
+     *               abstaende:list<array{sparren:int, anzahl:int, abstand:string}>,
+     *               kpis:array{sparLen:string, abstand:?string, frei:int, gesetzt:int, total:int, voll:bool}}
      */
     public static function zeichnung(array $kalk, array $gesetzt): array
     {
@@ -94,75 +97,95 @@ final class LedPlan
         $F = fn ($n) => number_format(round($n), 0, ',', '.');
         $done = array_flip($gesetzt);
         $picks = range(1, max(1, $g['rafters'] - 2));
-        $hatSet = function (int $i) use ($done): bool {
+
+        // Je Sparren zählt nur die ANZAHL gesetzter Slots — daraus folgt
+        // die gleichmäßige Teilung: n Lampen → Abstand = Sparrenlänge/(n+1)
+        // (eine Lampe in der Mitte, zwei auf den Dritteln usw.).
+        $proSparren = [];
+        foreach ($picks as $i) {
+            $n = 0;
             for ($k = 0; $k < 3; $k++) {
                 if (isset($done['s'.$i.'.'.$k])) {
-                    return true;
+                    $n++;
                 }
             }
-
-            return false;
-        };
+            if ($n > 0) {
+                $proSparren[$i] = $n;
+            }
+        }
 
         $sTop = self::RT + 110 / max(1, $g['D']) * (self::RB - self::RT);
-        $rafterLines = []; $ticks = []; $lampen = []; $ketten = []; $texte = [];
+        $rafterLines = [];
+        $ticks = [];
+        $lampen = [];
+        $ketten = [];
+        $texte = [];
 
         for ($i = 0; $i < $g['rafters']; $i++) {
             $x = self::x($g['W'], $i * $g['spar']);
-            $st = $hatSet($i);
+            $st = isset($proSparren[$i]);
             $rafterLines[] = ['x' => round($x, 1), 'y1' => round($sTop, 1), 'y2' => self::RB,
                 'w' => $st ? 3.2 : 1.6, 'c' => $st ? '#33507d' : '#c9d2de'];
         }
 
+        // Graue Slot-Markierungen (Tippziele) + grüne Lampen an den
+        // BERECHNETEN Positionen der gleichmäßigen Teilung.
         foreach ($picks as $i) {
             $x = self::x($g['W'], $i * $g['spar']);
             for ($k = 0; $k < 3; $k++) {
                 $y = self::yAbs($sTop, $g['sparLen'], $g['edge'] + $k * $g['pitch']);
-                $set = isset($done['s'.$i.'.'.$k]);
                 $ticks[] = ['x1' => round($x - 9, 1), 'x2' => round($x + 9, 1), 'y' => round($y, 1),
-                    'c' => $set ? '#2E8C5A' : '#d3dae4'];
-                if ($set) {
-                    $lampen[] = ['cx' => round($x, 1), 'cy' => round($y, 1)];
-                }
+                    'c' => '#d3dae4'];
+            }
+        }
+        foreach ($proSparren as $i => $n) {
+            $x = self::x($g['W'], $i * $g['spar']);
+            $teilung = $g['sparLen'] / ($n + 1);
+            for ($k = 1; $k <= $n; $k++) {
+                $y = self::yAbs($sTop, $g['sparLen'], $k * $teilung);
+                $ticks[] = ['x1' => round($x - 9, 1), 'x2' => round($x + 9, 1), 'y' => round($y, 1),
+                    'c' => '#2E8C5A'];
+                $lampen[] = ['cx' => round($x, 1), 'cy' => round($y, 1)];
             }
         }
 
-        // Vertikale Kette (belegte Slots) links, horizontale (belegte Sparren) unten.
-        $setRows = [];
-        for ($k = 0; $k < 3; $k++) {
-            foreach ($picks as $i) {
-                if (isset($done['s'.$i.'.'.$k])) {
-                    $setRows[] = $k;
-                    break;
-                }
-            }
+        // Abstände je belegtem Sparren; bei einheitlicher Lampenzahl gibt es
+        // links eine gemeinsame Maßkette, sonst trägt die Tabelle die Werte.
+        $abstaende = [];
+        foreach ($proSparren as $i => $n) {
+            $abstaende[] = ['sparren' => $i, 'anzahl' => $n,
+                'abstand' => $F($g['sparLen'] / ($n + 1))];
         }
-        $setCols = array_values(array_filter($picks, $hatSet));
+        $einheitlich = count(array_unique($proSparren)) === 1 ? reset($proSparren) : null;
+        $setCols = array_keys($proSparren);
 
-        if ($setRows !== []) {
+        if ($einheitlich !== null) {
             $VX = self::RL - 56;
+            $teilung = $g['sparLen'] / ($einheitlich + 1);
             $ketten[] = ['x1' => $VX, 'y1' => round($sTop, 1), 'x2' => $VX, 'y2' => self::RB];
-            $prev = 0.0; $prevY = $sTop;
-            foreach ($setRows as $k) {
-                $mmv = $g['edge'] + $k * $g['pitch'];
-                $y = self::yAbs($sTop, $g['sparLen'], $mmv);
-                $ketten[] = ['x1' => $VX - 6, 'y1' => round($y, 1), 'x2' => $VX + 6, 'y2' => round($y, 1)];
-                $texte[] = ['t' => $F($mmv - $prev).' mm', 'st' => self::pct($VX - 11, ($prevY + $y) / 2), 'al' => 'end'];
-                $prev = $mmv; $prevY = $y;
+            $prevY = $sTop;
+            for ($k = 1; $k <= $einheitlich + 1; $k++) {
+                $y = self::yAbs($sTop, $g['sparLen'], min($k * $teilung, $g['sparLen']));
+                if ($k <= $einheitlich) {
+                    $ketten[] = ['x1' => $VX - 6, 'y1' => round($y, 1), 'x2' => $VX + 6, 'y2' => round($y, 1)];
+                }
+                $texte[] = ['t' => $F($teilung).' mm', 'st' => self::pct($VX - 11, ($prevY + $y) / 2), 'al' => 'end'];
+                $prevY = $y;
             }
-            $texte[] = ['t' => $F($g['sparLen'] - $prev).' mm', 'st' => self::pct($VX - 11, ($prevY + self::RB) / 2), 'al' => 'end'];
         }
 
         if ($setCols !== []) {
             $HY = self::RB + 34;
             $ketten[] = ['x1' => self::RL, 'y1' => $HY, 'x2' => self::RR, 'y2' => $HY];
-            $px = 0.0; $pxx = (float) self::RL;
+            $px = 0.0;
+            $pxx = (float) self::RL;
             foreach ($setCols as $i) {
                 $mmv = $i * $g['spar'];
                 $x = self::x($g['W'], $mmv);
                 $ketten[] = ['x1' => round($x, 1), 'y1' => $HY - 6, 'x2' => round($x, 1), 'y2' => $HY + 6];
                 $texte[] = ['t' => $F($mmv - $px), 'st' => self::pct(($pxx + $x) / 2, $HY - 13), 'al' => 'center'];
-                $px = $mmv; $pxx = $x;
+                $px = $mmv;
+                $pxx = $x;
             }
             $texte[] = ['t' => $F($g['W'] - $px), 'st' => self::pct(($pxx + self::RR) / 2, $HY - 13), 'al' => 'center'];
         }
@@ -175,10 +198,10 @@ final class LedPlan
             'lampen' => $lampen,
             'ketten' => $ketten,
             'texte' => $texte,
+            'abstaende' => $abstaende,
             'kpis' => [
                 'sparLen' => $F($g['sparLen']),
-                'edge' => $F($g['edge']),
-                'pitch' => $F($g['pitch']),
+                'abstand' => $einheitlich !== null ? $F($g['sparLen'] / ($einheitlich + 1)) : null,
                 'frei' => count($picks),
                 'gesetzt' => count($gesetzt),
                 'total' => $g['total'],

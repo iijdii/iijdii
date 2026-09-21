@@ -30,10 +30,21 @@
 
     <div class="mm-kpis" style="grid-template-columns:repeat(4,1fr)">
         <div class="mm-kpi"><div class="kl">Sparrenlänge</div><div class="kn">{{ $ledKpi['sparLen'] }}<span class="ku">mm</span></div></div>
-        <div class="mm-kpi"><div class="kl">Randabstand a</div><div class="kn">{{ $ledKpi['edge'] }}<span class="ku">mm</span></div></div>
-        <div class="mm-kpi"><div class="kl">Achsabstand e</div><div class="kn">{{ $ledKpi['pitch'] }}<span class="ku">mm</span></div></div>
+        <div class="mm-kpi"><div class="kl">Abstand</div><div class="kn">{{ $ledKpi['abstand'] ?? 'je Sparren' }}@if ($ledKpi['abstand'])<span class="ku">mm</span>@endif</div></div>
+        <div class="mm-kpi"><div class="kl">Sparren mit LED</div><div class="kn">{{ count($ledZeichnung['abstaende']) }}</div></div>
         <div class="mm-kpi"><div class="kl">Gesetzt</div><div class="kn">{{ $ledKpi['gesetzt'] }} / {{ $ledKpi['total'] }}</div></div>
     </div>
+
+    @if ($ledZeichnung['abstaende'] !== [])
+        <div class="mm-rows" style="margin-top:8px">
+            @foreach ($ledZeichnung['abstaende'] as $zeile)
+                <div class="mm-row"><span class="rk">Sparren {{ $zeile['sparren'] }}</span>
+                    <span class="rv">{{ $zeile['anzahl'] }} {{ $zeile['anzahl'] === 1 ? 'Lampe' : 'Lampen' }}
+                        · Abstand <b class="mono">{{ $zeile['abstand'] }} mm</b>
+                        (Sparrenlänge ÷ {{ $zeile['anzahl'] + 1 }})</span></div>
+            @endforeach
+        </div>
+    @endif
 
     <button class="btn btnp" style="width:100%;margin:10px 0" type="button" data-led-modal-open>
         <svg class="i"><use href="#ic-expand"/></svg>LED-Positionen festlegen &amp; abhaken</button>
@@ -61,7 +72,8 @@
         <div class="mbody">
             <div class="jb" style="margin-bottom:10px">
                 <span class="fx"><span class="badge b-green"><span data-led-count>{{ $ledKpi['gesetzt'] }}</span>&nbsp;von {{ $ledKpi['total'] }} gesetzt</span>
-                    <span class="hint">Je Sparren stehen 3 Positionen zur Wahl — antippen setzt eine Lampe. Weniger als {{ $ledKpi['total'] }} ist erlaubt, mehr nicht.</span></span>
+                    <span class="hint">Antippen legt fest, wie viele Lampen auf dem Sparren sitzen — die Abstände
+                        rechnet das System (1 → Mitte, 2 → Drittel, 3 → Viertel). Weniger als {{ $ledKpi['total'] }} ist erlaubt, mehr nicht.</span></span>
                 <form method="POST" action="{{ route('projekte.montage.led', $projekt) }}">
                     @csrf
                     <input type="hidden" name="aktion" value="reset">
@@ -91,7 +103,9 @@
                 @endforeach
             </div>
             <div class="mm-note blue" style="margin-top:10px"><svg class="i"><use href="#ic-help"/></svg>
-                Randabstand a ist immer die Hälfte des Achsabstands e — dadurch sitzt die Reihe symmetrisch auf dem Sparren. Spot antippen = montiert.</div>
+                Angetippt wird nur die ANZAHL je Sparren — die Abstände rechnet das System aus der
+                Sparrenlänge: 1 Lampe sitzt in der Mitte (÷2), 2 Lampen auf den Dritteln (÷3),
+                3 auf den Vierteln (÷4). Die grünen Markierungen zeigen die endgültigen Positionen.</div>
         </div>
         <div class="mfoot">
             <span></span>

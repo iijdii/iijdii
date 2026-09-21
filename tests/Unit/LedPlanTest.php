@@ -24,26 +24,37 @@ class LedPlanTest extends TestCase
         $kalk = KonfiguratorRechner::berechne([]);
         $z = LedPlan::zeichnung($kalk, []);
 
-        // sparLen = 3500-110 = 3390; pitch 1130; edge 565.
+        // sparLen = 3500-110 = 3390; ohne Lampen kein Abstand.
         $this->assertSame('3.390', $z['kpis']['sparLen']);
-        $this->assertSame('1.130', $z['kpis']['pitch']);
-        $this->assertSame('565', $z['kpis']['edge']);
+        $this->assertNull($z['kpis']['abstand']);
+        $this->assertSame([], $z['abstaende']);
         $this->assertSame(11, $z['kpis']['frei']);
         $this->assertSame(12, $z['kpis']['total']);
         $this->assertSame([], $z['lampen']);
     }
 
-    public function test_drawing_contains_only_set_lamps_and_their_chains(): void
+    public function test_abstand_folgt_der_lampenzahl_je_sparren(): void
     {
+        // Regel des Betreibers: n Lampen teilen den Sparren in n+1 Stücke —
+        // 1 Lampe → L/2, 2 Lampen → L/3 (sparLen 3390).
         $kalk = KonfiguratorRechner::berechne([]);
-        $z = LedPlan::zeichnung($kalk, ['s1.0', 's3.1']);
+        $z = LedPlan::zeichnung($kalk, ['s1.0', 's3.0', 's3.2']);
 
-        $this->assertCount(2, $z['lampen']);
-        $this->assertSame(2, $z['kpis']['gesetzt']);
-        $this->assertFalse($z['kpis']['voll']);
+        $this->assertCount(3, $z['lampen']);
+        $this->assertSame(
+            [['sparren' => 1, 'anzahl' => 1, 'abstand' => '1.695'],
+                ['sparren' => 3, 'anzahl' => 2, 'abstand' => '1.130']],
+            $z['abstaende'],
+        );
+        // Gemischte Anzahl → kein gemeinsamer Abstand, keine linke Maßkette
+        // mit Teilungstexten (nur die horizontale Sparren-Kette bleibt).
+        $this->assertNull($z['kpis']['abstand']);
+
+        // Einheitlich 1 Lampe je Sparren → gemeinsamer Abstand L/2 samt Kette.
+        $z = LedPlan::zeichnung($kalk, ['s1.0', 's3.1']);
+        $this->assertSame('1.695', $z['kpis']['abstand']);
         $this->assertNotEmpty($z['ketten']);
-        // Kettentexte enthalten mm-Segmente
-        $this->assertStringContainsString('mm', $z['texte'][0]['t']);
+        $this->assertSame('1.695 mm', $z['texte'][0]['t']);
     }
 
     public function test_voll_flag_at_total(): void
