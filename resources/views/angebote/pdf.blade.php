@@ -3,32 +3,47 @@
 <head>@include('partials.pdf-stil')</head>
 @php use App\Support\Format; @endphp
 <body>
-    <h1>Angebot</h1>
-    <div class="sub">{{ $angebot->nr }} · {{ Format::datum($angebot->datum) }} · {{ $angebot->status->label() }}</div>
+    @include('partials.pdf-fuss')
+    @include('partials.pdf-kopf', [
+        'titel' => 'Angebot '.$angebot->nr,
+        'badges' => array_filter([
+            'Status: '.$angebot->status->label(),
+            Format::datum($angebot->datum),
+            $angebot->projekt?->nr,
+        ]),
+    ])
 
-    <h2>1 · Parteien</h2>
-    <table class="kv"><tr>
-        <td style="width:50%">
-            <table class="kv">
-                <tr><td class="k">Anbieter</td><td>{{ config('lea.firma') }}</td></tr>
-                <tr><td class="k">Anschrift</td><td>{{ config('lea.anschrift') }}</td></tr>
-            </table>
+    <h2>Objekt &amp; Kunde</h2>
+    <table class="box-paar"><tr>
+        <td class="haelfte">
+            <div class="box">
+                <div class="box-titel">Kunde</div>
+                <table class="kv">
+                    <tr><td class="k">Name</td><td>{{ $angebot->kunde->anzeigename }}</td></tr>
+                    <tr><td class="k">Anschrift</td><td>{{ trim(($angebot->kunde->strasse ?? '').', '.($angebot->kunde->plz ?? '').' '.($angebot->kunde->stadt ?? ''), ', ') ?: '–' }}</td></tr>
+                    <tr><td class="k">Projekt</td><td>{{ $angebot->projekt?->nr ?? '–' }}</td></tr>
+                </table>
+            </div>
         </td>
-        <td>
-            <table class="kv">
-                <tr><td class="k">Kunde</td><td>{{ $angebot->kunde->anzeigename }}</td></tr>
-                <tr><td class="k">Anschrift</td><td>{{ trim(($angebot->kunde->strasse ?? '').', '.($angebot->kunde->plz ?? '').' '.($angebot->kunde->stadt ?? ''), ', ') ?: '–' }}</td></tr>
-                <tr><td class="k">Projekt</td><td>{{ $angebot->projekt?->nr ?? '–' }}</td></tr>
-            </table>
+        <td class="spalte"></td>
+        <td class="haelfte">
+            <div class="box">
+                <div class="box-titel">Anbieter</div>
+                <table class="kv">
+                    <tr><td class="k">Firma</td><td>{{ config('lea.firma') }}</td></tr>
+                    <tr><td class="k">Anschrift</td><td>{{ config('lea.anschrift') }}</td></tr>
+                    <tr><td class="k">Kontakt</td><td>{{ config('lea.telefon') }}</td></tr>
+                </table>
+            </div>
         </td>
     </tr></table>
 
-    <h2>2 · Leistungspositionen</h2>
+    <h2>Leistungspositionen</h2>
     @if ($positionen === [])
         <p class="legal">Noch keine Konfiguration hinterlegt — Positionen folgen aus dem Projekt-Konfigurator.</p>
     @else
-        <table class="pos-tabelle">
-            <thead><tr><th>Pos</th><th>Bezeichnung</th><th class="num">Menge</th></tr></thead>
+        <table class="positions">
+            <thead><tr><th style="width:34px">Pos</th><th>Bezeichnung</th><th class="num" style="width:70px">Menge</th></tr></thead>
             <tbody>
             @foreach ($positionen as $position)
                 <tr><td>{{ $position['pos'] }}</td><td>{{ $position['name'] }}</td><td class="num">{{ $position['menge'] }}</td></tr>
@@ -37,7 +52,7 @@
         </table>
     @endif
 
-    <h2>3 · Summe</h2>
+    <h2>Summe</h2>
     @if ($angebot->summe !== null)
         @php $brutto = (float) $angebot->summe; $netto = $brutto / 1.19; @endphp
         <table class="summen" style="width:46%;margin-left:54%">
@@ -49,7 +64,14 @@
         <p class="legal">Summe folgt.</p>
     @endif
 
-    <p class="legal">Angebot freibleibend, gültig 30 Tage ab Ausstellungsdatum. Zahlung gemäß Zahlungsplan
-        30&nbsp;/&nbsp;40&nbsp;/&nbsp;30 (Anzahlung · Materiallieferung · Abnahme).</p>
+    <p class="legal">Dieses Angebot ist freibleibend (§&nbsp;145 BGB) und gültig 30 Tage ab Ausstellungsdatum.
+        Zahlung gemäß Zahlungsplan 30&nbsp;/&nbsp;40&nbsp;/&nbsp;30 (Anzahlung · Materiallieferung · Abnahme).
+        Es gelten unsere Allgemeinen Geschäftsbedingungen.</p>
+
+    <table class="unterschriften"><tr>
+        <td><div class="signatur-linie">Ort, Datum</div></td>
+        <td class="spalte-leer"></td>
+        <td><div class="signatur-linie">Auftrag erteilt — Unterschrift Auftraggeber</div></td>
+    </tr></table>
 </body>
 </html>

@@ -1,33 +1,47 @@
 <!DOCTYPE html>
 <html lang="de">
-<head>@include('partials.pdf-stil')</head>
+<head>@include('partials.pdf-stil', ['palette' => 'blau'])</head>
 @php use App\Support\Format; @endphp
 <body>
-    <h1>Bestellung</h1>
-    <div class="sub">{{ $bestellung->nr }} · {{ $bestellung->kategorieLabel() }} · {{ $bestellung->status->label() }}</div>
+    @include('partials.pdf-fuss')
+    @include('partials.pdf-kopf', [
+        'titel' => 'Bestellung '.$bestellung->nr,
+        'badges' => array_filter([
+            $bestellung->kategorieLabel(),
+            'Status: '.$bestellung->status->label(),
+            $bestellung->liefertermin ? 'Liefertermin '.Format::datum($bestellung->liefertermin) : null,
+        ]),
+    ])
 
-    <h2>1 · Kopf</h2>
-    <table class="kv"><tr>
-        <td style="width:50%">
-            <table class="kv">
-                <tr><td class="k">Besteller</td><td>{{ config('lea.firma') }}</td></tr>
-                <tr><td class="k">Anschrift</td><td>{{ config('lea.anschrift') }}</td></tr>
-                <tr><td class="k">Projekt</td><td>{{ $bestellung->projekt?->nr ?? '–' }} · {{ $bestellung->kunde?->anzeigename ?? '–' }}</td></tr>
-            </table>
+    <h2>Besteller &amp; Lieferant</h2>
+    <table class="box-paar"><tr>
+        <td class="haelfte">
+            <div class="box">
+                <div class="box-titel">Besteller</div>
+                <table class="kv">
+                    <tr><td class="k">Firma</td><td>{{ config('lea.firma') }}</td></tr>
+                    <tr><td class="k">Anschrift</td><td>{{ config('lea.anschrift') }}</td></tr>
+                    <tr><td class="k">Projekt</td><td>{{ $bestellung->projekt?->nr ?? '–' }} · {{ $bestellung->kunde?->anzeigename ?? '–' }}</td></tr>
+                </table>
+            </div>
         </td>
-        <td>
-            <table class="kv">
-                <tr><td class="k">Lieferant</td><td>{{ $bestellung->lieferant?->name ?? '–' }}</td></tr>
-                <tr><td class="k">Anschrift</td><td>{{ trim(($bestellung->lieferant?->strasse ?? '').', '.($bestellung->lieferant?->plz ?? '').' '.($bestellung->lieferant?->stadt ?? ''), ', ') ?: '–' }}</td></tr>
-                <tr><td class="k">Liefertermin</td><td>{{ Format::datum($bestellung->liefertermin) }}</td></tr>
-            </table>
+        <td class="spalte"></td>
+        <td class="haelfte">
+            <div class="box">
+                <div class="box-titel">Lieferant</div>
+                <table class="kv">
+                    <tr><td class="k">Name</td><td>{{ $bestellung->lieferant?->name ?? '–' }}</td></tr>
+                    <tr><td class="k">Anschrift</td><td>{{ trim(($bestellung->lieferant?->strasse ?? '').', '.($bestellung->lieferant?->plz ?? '').' '.($bestellung->lieferant?->stadt ?? ''), ', ') ?: '–' }}</td></tr>
+                    <tr><td class="k">Liefertermin</td><td>{{ Format::datum($bestellung->liefertermin) }}</td></tr>
+                </table>
+            </div>
         </td>
     </tr></table>
 
     @if ($glasPositionen->isNotEmpty())
-        <h2>2 · Glas-Positionen</h2>
-        <table class="pos-tabelle">
-            <thead><tr><th>#</th><th>Bezeichnung</th><th>Form</th><th class="num">Breite</th><th class="num">Höhe L/R</th><th>Glas</th><th class="num">Menge</th></tr></thead>
+        <h2>Glas-Positionen</h2>
+        <table class="positions">
+            <thead><tr><th style="width:24px">#</th><th>Bezeichnung</th><th>Form</th><th class="num">Breite</th><th class="num">Höhe L/R</th><th>Glas</th><th class="num">Menge</th></tr></thead>
             <tbody>
             @foreach ($glasPositionen as $g)
                 @php $d = $g['position']->details ?? []; @endphp
@@ -46,8 +60,8 @@
     @endif
 
     @if ($schiebePositionen->isNotEmpty())
-        <h2>3 · Schiebe-Elemente</h2>
-        <table class="pos-tabelle">
+        <h2>Schiebe-Elemente</h2>
+        <table class="positions">
             <thead><tr><th>Bezeichnung</th><th class="num">Breite × Höhe</th><th class="num">Elemente</th><th>Glas</th></tr></thead>
             <tbody>
             @foreach ($schiebePositionen as $s)
@@ -64,8 +78,8 @@
     @endif
 
     @if ($materialPositionen->isNotEmpty())
-        <h2>4 · Material-Positionen</h2>
-        <table class="pos-tabelle">
+        <h2>Material-Positionen</h2>
+        <table class="positions">
             <thead><tr><th>Bezeichnung</th><th>Art.-Nr.</th><th class="num">Menge</th></tr></thead>
             <tbody>
             @foreach ($materialPositionen as $position)
@@ -81,7 +95,7 @@
 
     @if ($bestellung->notizen)
         <h2>Hinweise</h2>
-        <p class="legal">{{ $bestellung->notizen }}</p>
+        <div class="box">{{ $bestellung->notizen }}</div>
     @endif
 </body>
 </html>
