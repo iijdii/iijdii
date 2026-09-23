@@ -13,7 +13,8 @@
         </span>
     </div>
     <div class="card-b">
-        <div style="position:relative">
+        {{-- Kompakt auf der Übersicht — das große Fenster öffnet der Knopf oben. --}}
+        <div style="position:relative;max-width:560px;margin:0 auto">
             <svg viewBox="{{ $ledZeichnung['viewBox'] }}" style="width:100%;height:auto;display:block;aspect-ratio:720/470" preserveAspectRatio="xMidYMid meet">
                 <rect x="152" y="74" width="512" height="248" fill="rgba(74,111,165,.05)" stroke="#33507d" stroke-width="1.6"/>
                 <rect x="152" y="74" width="512" height="13" fill="rgba(51,80,125,.16)"/>
