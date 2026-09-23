@@ -58,19 +58,32 @@
         </div>
     </div>
 
-    <div class="anf-tools prj-tabs">
+    @php
+        $bereiche = [
+            'uebersicht' => 'Übersicht', 'kunde' => 'Kunde & Termine',
+            'material' => 'Material + Bestellungen', 'fotos' => 'Fotos',
+            'dokumente' => 'Dokumente', 'zahlungen' => 'Zahlungen', 'aktivitaet' => 'Aktivität',
+        ];
+    @endphp
+    {{-- Alle Bereiche auf einer Seite — die Tabs springen als Anker
+         (Scrollspy in app.js hebt den aktiven Bereich hervor). --}}
+    <div class="anf-tools prj-tabs" data-prj-tabs data-start="{{ $tab }}">
         <div class="seg" style="flex-wrap:wrap">
-            @foreach ([
-                'uebersicht' => 'Übersicht', 'kunde' => 'Kunde & Termine',
-                'material' => 'Material + Bestellungen', 'fotos' => 'Fotos',
-                'dokumente' => 'Dokumente', 'zahlungen' => 'Zahlungen', 'aktivitaet' => 'Aktivität',
-            ] as $key => $label)
-                <a class="{{ $tab === $key ? 'on' : '' }}" href="{{ route('projekte.show', [$projekt, 'tab' => $key]) }}">{{ $label }}</a>
+            @foreach ($bereiche as $key => $label)
+                <a class="{{ $key === 'uebersicht' ? 'on' : '' }}" data-sek="sek-{{ $key }}"
+                   href="#sek-{{ $key }}">{{ $label }}</a>
             @endforeach
         </div>
     </div>
 
-    @include('projekte.tabs.'.$tab)
+    @foreach ($bereiche as $key => $label)
+        <section class="prj-sek" id="sek-{{ $key }}">
+            @if ($key !== 'uebersicht')
+                <h2 class="sek-t">{{ $label }}</h2>
+            @endif
+            @include('projekte.tabs.'.$key)
+        </section>
+    @endforeach
 
     @include('partials.roof-lightbox')
 

@@ -110,6 +110,45 @@ document.addEventListener('keydown', (e) => {
     closeModal();
 });
 
+// ---------- Projektkarte: Tabs als Anker mit Scrollspy ----------
+// Alle Bereiche stehen untereinander; die fixierten Tabs springen zur
+// Sektion und markieren beim Scrollen den sichtbaren Bereich.
+const prjTabs = document.querySelector('[data-prj-tabs]');
+if (prjTabs) {
+    const links = [...prjTabs.querySelectorAll('a[data-sek]')];
+    const scroller = document.querySelector('main.content');
+    const sektionen = links
+        .map((a) => document.getElementById(a.dataset.sek))
+        .filter(Boolean);
+
+    const springe = (id, weich = true) => {
+        const ziel = document.getElementById(id);
+        if (ziel) ziel.scrollIntoView({ behavior: weich ? 'smooth' : 'auto', block: 'start' });
+    };
+    links.forEach((a) => a.addEventListener('click', (e) => {
+        e.preventDefault();
+        history.replaceState(null, '', '#' + a.dataset.sek);
+        springe(a.dataset.sek);
+    }));
+
+    const markiere = () => {
+        if (!scroller) return;
+        const oben = scroller.getBoundingClientRect().top;
+        let aktiv = sektionen[0];
+        sektionen.forEach((s) => {
+            if (s.getBoundingClientRect().top - oben <= 110) aktiv = s;
+        });
+        links.forEach((a) => a.classList.toggle('on', a.dataset.sek === aktiv?.id));
+    };
+    scroller?.addEventListener('scroll', markiere, { passive: true });
+    markiere();
+
+    // Einstieg über #sek-… oder alte ?tab=…-Links
+    const start = (location.hash || '').replace('#', '')
+        || (prjTabs.dataset.start !== 'uebersicht' ? 'sek-' + prjTabs.dataset.start : '');
+    if (start && start !== 'sek-uebersicht') setTimeout(() => springe(start, false), 60);
+}
+
 // ---------- PDF-Vorschau ----------
 // Links mit [data-pdf] öffnen das Dokument zuerst im Fenster (iframe,
 // Server liefert mit ?ansicht=1 inline); Herunterladen/Drucken aus der

@@ -838,6 +838,8 @@ form:has(.lgpick input:checked) .lgbulk{display:flex}
 .prj-tabs{position:sticky;top:-18px;z-index:40;background:var(--bg2);padding:24px 0 8px;margin:-24px 0 -6px;
           box-shadow:0 8px 14px -12px rgba(16,24,40,.35)}
 @media (max-width:900px){.prj-tabs{top:-14px;padding-top:20px;margin-top:-20px}}
+.prj-sek{scroll-margin-top:64px;margin-bottom:26px}
+.sek-t{font-size:17px;margin:6px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--bd)}
 .card-akt{display:flex;align-items:center;gap:8px;flex:none;flex-wrap:nowrap;white-space:nowrap}
 .card-akt form{display:contents}
 .dtile .rd text.vlabel{display:none}

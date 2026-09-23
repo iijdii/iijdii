@@ -85,10 +85,10 @@ class ProjektController extends Controller
             'vorschau' => $request->session()->has('pcfg_preview.'.$projekt->nr),
         ];
 
-        // LED-Plan auf der Übersicht: gleiche Zeichnung und gleiches
-        // Pickermodal wie im Montage-Modus — der Verkäufer setzt die
-        // Lampen im Büro, der Monteur ändert sie vor Ort (eine Quelle).
-        if ($tab === 'uebersicht' && $pcfg !== null && $kalk['ledTot'] > 0) {
+        // Alle Bereiche stehen auf EINER Seite untereinander (die Tabs
+        // springen als Anker) — daher werden die Daten aller Bereiche
+        // immer mitgeladen.
+        if ($pcfg !== null && $kalk['ledTot'] > 0) {
             $ledGesetzt = $projekt->aufmass['led'] ?? [];
             $daten += [
                 'ledZeichnung' => LedPlan::zeichnung($kalk, $ledGesetzt),
@@ -97,15 +97,12 @@ class ProjektController extends Controller
             ];
         }
 
-        $daten += match ($tab) {
-            'material' => [
-                'materialListe' => $this->lager->materialListe($projekt),
-                'alleArtikel' => Artikel::query()->orderBy('name')->get(['id', 'name', 'art_nr']),
-                'bestellungen' => $projekt->bestellungen()->with(['lieferant', 'positionen'])->orderByDesc('nr')->get(),
-            ],
-            'zahlungen' => ['zahlung' => $this->zahlungsplan($projekt)],
-            default => [],
-        };
+        $daten += [
+            'materialListe' => $this->lager->materialListe($projekt),
+            'alleArtikel' => Artikel::query()->orderBy('name')->get(['id', 'name', 'art_nr']),
+            'bestellungen' => $projekt->bestellungen()->with(['lieferant', 'positionen'])->orderByDesc('nr')->get(),
+            'zahlung' => $this->zahlungsplan($projekt),
+        ];
 
         return view('projekte.show', $daten);
     }

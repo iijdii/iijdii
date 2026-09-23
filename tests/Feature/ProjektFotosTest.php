@@ -48,9 +48,11 @@ class ProjektFotosTest extends TestCase
         // Inline-Auslieferung für <img src>
         $this->actingAs($this->monteur)->get(route('dokumente.ansicht', $foto))->assertOk();
 
-        // Fotos erscheinen NICHT im Dokumente-Tab (eigener Tab)
+        // Fotos erscheinen NICHT in der Dokumente-Liste (eigener Bereich):
+        // Dokumente rendern eine Download-Zeile, Fotos nur die Inline-Ansicht.
         $this->actingAs($this->monteur)->get('/projekte/PRJ-2026-011?tab=dokumente')
-            ->assertDontSee('baustelle.jpg');
+            ->assertDontSee('href="'.route('dokumente.download', $foto).'"', false)
+            ->assertSee(route('dokumente.ansicht', $foto), false);
     }
 
     public function test_nur_bilder_erlaubt(): void
