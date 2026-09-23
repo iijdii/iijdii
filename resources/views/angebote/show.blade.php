@@ -75,6 +75,18 @@
                 @if ($angebot->summe === null)
                     <p class="hint">Noch keine Summe erfasst — «in Konfiguration».</p>
                 @endif
+                @if ($listenpreis !== null)
+                    <p class="hint" style="margin-top:6px">Listenpreis laut Preisliste:
+                        <b>{{ Format::eur($listenpreis) }}</b> (Maße auf Raster aufgerundet,
+                        zzgl. Montagekosten)</p>
+                    @if ((float) $angebot->summe !== (float) $listenpreis)
+                        <form method="POST" action="{{ route('angebote.summe', $angebot) }}" style="margin-top:6px">
+                            @csrf
+                            <input type="hidden" name="summe" value="{{ $listenpreis }}">
+                            <button class="btn btns" type="submit">Listenpreis übernehmen</button>
+                        </form>
+                    @endif
+                @endif
                 <form method="POST" action="{{ route('angebote.summe', $angebot) }}"
                       class="fx ac gap8" style="margin-top:10px">
                     @csrf

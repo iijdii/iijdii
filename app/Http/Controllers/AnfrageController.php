@@ -11,6 +11,7 @@ use App\Support\AnfrageKonfigMapper;
 use App\Support\KonfigurationSync;
 use App\Support\KonfiguratorRechner;
 use App\Support\Nummern;
+use App\Support\Preisliste;
 use App\Support\ProduktFelder;
 use App\Support\RoofZeichnung;
 use Illuminate\Http\RedirectResponse;
@@ -120,6 +121,7 @@ class AnfrageController extends Controller
             ]);
             $projekt->positionen()->create($position + ['pos' => 1]);
             KonfigurationSync::spiegleDach($projekt);
+            $konfiguration = $projekt->fresh()->konfiguration;
 
             $angebot = $kunde->angebote()->create([
                 'nr' => Nummern::angebot(),
@@ -127,7 +129,8 @@ class AnfrageController extends Controller
                 'anfrage_id' => $anfrage->id,
                 'status' => AngebotStatus::Entwurf,
                 'datum' => now()->toDateString(),
-                'konfiguration' => $projekt->fresh()->konfiguration,
+                'konfiguration' => $konfiguration,
+                'summe' => Preisliste::ausKonfiguration($konfiguration),
             ]);
             $projekt->update(['angebot_id' => $angebot->id]);
 

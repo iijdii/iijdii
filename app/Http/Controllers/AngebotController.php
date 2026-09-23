@@ -6,6 +6,7 @@ use App\Enums\AngebotStatus;
 use App\Models\Angebot;
 use App\Support\KonfiguratorRechner;
 use App\Support\PdfArchiv;
+use App\Support\Preisliste;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -40,6 +41,9 @@ class AngebotController extends Controller
             'angebot' => $angebot,
             'positionen' => $this->angebotsPositionen($angebot),
             'naechsteStatus' => self::UEBERGAENGE[$angebot->status->value] ?? [],
+            'listenpreis' => Preisliste::ausKonfiguration(
+                $angebot->projekt?->konfiguration ?? $angebot->konfiguration,
+            ),
         ]);
     }
 

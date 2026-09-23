@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\AngebotStatus;
 use App\Enums\ProjektProdukt;
 use App\Models\Projekt;
 
@@ -24,6 +25,16 @@ final class KonfigurationSync
         $pcfg = ($dach->felder ?? []) + ['product' => $dach->produkt->konfiguratorProdukt()];
 
         $projekt->forceFill(['konfiguration' => KonfiguratorRechner::merge($pcfg)])->saveQuietly();
+
+        // Der Listenpreis folgt der Konfiguration, solange das Angebot noch
+        // Entwurf ist — versendete/angenommene Summen bleiben unangetastet.
+        $angebot = $projekt->angebot()->first();
+        if ($angebot !== null && $angebot->status === AngebotStatus::Entwurf) {
+            $preis = Preisliste::ausKonfiguration($projekt->konfiguration);
+            if ($preis !== null) {
+                $angebot->update(['summe' => $preis]);
+            }
+        }
     }
 
     /**
