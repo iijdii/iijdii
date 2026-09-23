@@ -6,7 +6,11 @@
 <div class="card p0">
     <div class="card-h">
         <span class="card-t">LED-Plan</span>
-        <span class="pill">{{ $ledKpi['gesetzt'] }} / {{ $ledKpi['total'] }} Spots</span>
+        <span class="card-akt">
+            <span class="pill">{{ $ledKpi['gesetzt'] }} / {{ $ledKpi['total'] }} Spots</span>
+            <button class="btn btns btnp" type="button" data-led-modal-open>
+                <svg class="i"><use href="#ic-expand"/></svg>LED-Positionen festlegen</button>
+        </span>
     </div>
     <div class="card-b">
         <div style="position:relative">
@@ -30,12 +34,9 @@
         </div>
 
         @if ($ledZeichnung['abstaende'] === [])
-            <p class="hint" style="margin-top:10px">Noch keine Lampen gesetzt — Positionen können schon
-                jetzt vom Verkäufer festgelegt werden, der Monteur passt sie vor Ort an.</p>
+            <p class="hint">Noch keine Lampen gesetzt — Positionen können schon jetzt vom Verkäufer
+                festgelegt werden, der Monteur passt sie vor Ort an.</p>
         @endif
-
-        <button class="btn btns btnp" style="margin-top:10px" type="button" data-led-modal-open>
-            <svg class="i"><use href="#ic-expand"/></svg>LED-Positionen festlegen</button>
     </div>
 </div>
 

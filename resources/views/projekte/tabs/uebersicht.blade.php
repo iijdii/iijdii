@@ -16,7 +16,7 @@
     $mm = fn ($wert) => is_numeric($wert) ? number_format((int) $wert, 0, ',', '.').' mm' : '–';
 @endphp
 
-<div class="cols-2" style="grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);align-items:start">
+<div class="prj-cols">
     <div class="colstack">
         <div class="card p0">
             <div class="card-h">
@@ -40,8 +40,8 @@
         @forelse ($projekt->positionen as $position)
             <div class="card p0">
                 <div class="card-h">
-                    <span class="card-t">Technische Daten — Position {{ $position->pos }} · {{ $position->produkt->label() }}</span>
-                    <span class="fx ac gap8 wrap">
+                    <span class="card-t" style="min-width:0">Technische Daten — Position {{ $position->pos }} · {{ $position->produkt->label() }}</span>
+                    <span class="card-akt">
                         <span class="badge {{ $position->phase === 2 ? 'b-yellow' : 'b-gray' }}">
                             Phase {{ $position->phase }}{{ $position->phase === 2 ? ' · Endmaße nach Dachmontage' : '' }}</span>
                         <button class="btn btns" type="button" data-modal-target="posmodal-{{ $position->id }}">
@@ -55,6 +55,8 @@
                 </div>
                 <div class="card-b">
                     @if ($position->produkt->istDach())
+                        <div class="spec-cols">
+                        <div>
                         <div class="specsec">Maße</div>
                         <div class="spec-row"><span class="spec-k">Breite × Tiefe</span><span class="spec-v mono">{{ $mm($k['width']) }} × {{ $mm($k['depth']) }}</span></div>
                         <div class="spec-row"><span class="spec-k">Höhe Wand / Rinne</span><span class="spec-v mono">{{ $mm($kalk['wallHEff']) }} / {{ $mm($kalk['gutterHEff']) }}</span></div>
@@ -66,9 +68,10 @@
                         <div class="spec-row"><span class="spec-k">Pfosten · Sparren · Felder</span><span class="spec-v mono">{{ $kalk['pn'] ?: '–' }} · {{ $kalk['rafters'] ?: '–' }} · {{ $kalk['fields'] ?: '–' }}</span></div>
                         <div class="spec-row"><span class="spec-k">Sparrenabstand</span><span class="spec-v mono">{{ $kalk['sparText'] }}</span></div>
                         <div class="spec-row"><span class="spec-k">Wandblende</span><span class="spec-v mono">{{ $kalk['blendeText'] }}</span></div>
-
-                        {{-- Verglasung wie in der Bestellung: Skizze + Menge/Maße --}}
+                        </div>
+                        {{-- Verglasung wie in der Bestellung (volle Breite) --}}
                         @if ($kalk['fields'] > 0 && $kalk['glasB'] > 0)
+                            <div class="spec-voll" style="order:3">
                             <div class="specsec">Verglasung</div>
                             @php
                                 $glasName = $k['covering'].' '.$k['thickness'].' · '.$k['glasTrans'];
@@ -100,7 +103,9 @@
                                 @endforeach
                                 <div class="hint" style="flex:1;min-width:140px">{{ $glasName }}</div>
                             </div>
+                            </div>
                         @endif
+                        <div style="order:2">
                         <div class="specsec">Ausstattung</div>
                         <div class="spec-row"><span class="spec-k">LED</span><span class="spec-v">{{ $kalk['ledTot'] > 0 ? $kalk['ledTot'].' Spots · '.$k['led']['color'] : 'Keine Beleuchtung' }}</span></div>
                         <div class="spec-row"><span class="spec-k">Entwässerung</span><span class="spec-v">Pfosten {{ $k['drain']['post'] }} · {{ $k['drain']['dir'] }}</span></div>
@@ -133,7 +138,9 @@
                                 keiner
                             @endif
                         </span></div>
+                        </div>
                         {{-- Warnungen der Kalkulation (früher eigene kbox rechts) --}}
+                        <div class="spec-voll" style="order:4">
                         @if ($kalk['glasZuBreit'])
                             <div class="kwarn">Eindeckungsbreite &gt; {{ number_format($kalk['maxPlatte'], 0, ',', '.') }} mm — Fertigungsgrenze überschritten (Feldanzahl erhöhen).</div>
                         @endif
@@ -146,6 +153,8 @@
                         @if ($kalk['stossPfosten'] !== [])
                             <div class="kwarn">Profilstoß bei {{ implode(' / ', array_map(fn ($x) => number_format($x, 0, ',', '.'), $kalk['stossPfosten'])) }} mm — Pfosten unter dem Stoß empfohlen (Stoß − 55).</div>
                         @endif
+                        </div>
+                        </div>
                     @else
                         <div class="anf-specs">
                             @foreach ($position->felder ?? [] as $schluessel => $wert)
@@ -190,9 +199,23 @@
         @endisset
     </div>
 
-    <div class="colstack">
+    <div class="colstack prj-side">
         @if ($vorschau)
             <div class="card"><span class="hint">Vorschau — noch nicht gespeichert</span></div>
+        @endif
+
+        @if ($dachPosition)
+            <div class="kbox">
+                <div class="kt">Listenpreis</div>
+                <div class="spec-row"><span class="spec-k">Maße</span><span class="spec-v mono">{{ $mm($k['width']) }} × {{ $mm($k['depth']) }}</span></div>
+                <div class="spec-row"><span class="spec-k">Dach</span><span class="spec-v">{{ $k['covering'] }} {{ $k['thickness'] }}</span></div>
+                @php $listenpreis = \App\Support\Preisliste::ausKonfiguration($projekt->konfiguration); @endphp
+                <div class="spec-row"><span class="spec-k">Preis laut Preisliste</span>
+                    <span class="spec-v mono">{{ $listenpreis !== null ? Format::eur($listenpreis) : '– (außerhalb)' }}</span></div>
+                @if ($listenpreis !== null)
+                    <p class="hint" style="margin-top:6px">zzgl. Montage · Maße auf das Raster der Preisliste aufgerundet</p>
+                @endif
+            </div>
         @endif
 
         <div class="card">

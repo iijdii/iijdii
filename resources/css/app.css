@@ -814,3 +814,15 @@ form:has(.lgpick input:checked) .lgbulk{display:flex}
 .cal-lg .d.b-blue{background:var(--blue)}.cal-lg .d.b-green{background:var(--green)}.cal-lg .d.b-gray{background:var(--ink3)}.cal-lg .d.b-yellow{background:var(--gold)}
 @media(max-width:1024px){.cal-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:760px){.cal-grid{grid-template-columns:1fr}}
+
+/* ——— Projekt-Übersicht: Desktop-Feinschliff ——— */
+.prj-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,340px);gap:14px;align-items:start}
+.prj-side{position:sticky;top:14px}
+@media (max-width:1100px){.prj-cols{grid-template-columns:1fr}.prj-side{position:static}}
+.spec-cols{display:grid;grid-template-columns:1fr 1fr;gap:0 36px;align-items:start}
+.spec-cols .spec-voll{grid-column:1/-1}
+@media (max-width:920px){.spec-cols{grid-template-columns:1fr}}
+.card-akt{display:flex;align-items:center;gap:8px;flex:none;flex-wrap:nowrap;white-space:nowrap}
+.card-akt form{display:contents}
+.dtile .rd text.vlabel{display:none}
+.dtile .rd text.vlabel+text.anno{display:none}
