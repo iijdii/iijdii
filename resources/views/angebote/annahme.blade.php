@@ -25,14 +25,12 @@
         <thead><tr><th>Pos</th><th>Bezeichnung</th><th class="num">Menge</th><th class="num">Gesamt</th></tr></thead>
         <tbody>
         @foreach ($rechnung['positionen'] as $position)
-            @if ($position['gesamt'] !== null || $position['key'] !== 'montage')
-                <tr>
-                    <td>{{ $position['pos'] }}</td>
-                    <td class="b">{{ $position['titel'] }}</td>
-                    <td class="num mono">{{ $position['menge'] }}</td>
-                    <td class="num mono">{{ $position['gesamt'] !== null ? Format::eur($position['gesamt']) : '–' }}</td>
-                </tr>
-            @endif
+            <tr>
+                <td>{{ $position['pos'] }}</td>
+                <td class="b">{{ $position['titel'] }}</td>
+                <td class="num mono">{{ $position['menge'] }}</td>
+                <td class="num mono">{{ $position['gesamt'] !== null ? Format::eur($position['gesamt']) : '–' }}</td>
+            </tr>
         @endforeach
         @if ($rechnung['rabattBetrag'] > 0)
             <tr><td colspan="3" class="num">Rabatt</td>
@@ -42,6 +40,8 @@
             <td class="num mono b">{{ Format::eur($rechnung['gesamt']) }}</td></tr>
         </tbody>
     </table>
+    <p class="hint" style="margin-top:6px">Alle Preise zuzüglich Montage — Montage- und Lieferkosten
+        werden, soweit nicht als eigene Position aufgeführt, gesondert berechnet.</p>
 
     @if ($angebot->status === \App\Enums\AngebotStatus::Angenommen)
         <div class="kbox" style="margin-top:14px">

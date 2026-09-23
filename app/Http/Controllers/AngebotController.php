@@ -15,12 +15,16 @@ use Illuminate\View\View;
 
 class AngebotController extends Controller
 {
-    /** Erlaubte Status-Übergänge: entwurf→versendet→angenommen|abgelehnt; abgelehnt→entwurf. */
+    /**
+     * Erlaubte Status-Übergänge — inklusive Rückwege: ein angenommenes
+     * Angebot kann zurück auf Entwurf gesetzt werden (hebt den Freeze auf),
+     * ein abgelehntes erneut versendet werden.
+     */
     private const UEBERGAENGE = [
-        'entwurf' => ['versendet'],
-        'versendet' => ['angenommen', 'abgelehnt'],
-        'angenommen' => [],
-        'abgelehnt' => ['entwurf'],
+        'entwurf' => ['versendet', 'abgelehnt'],
+        'versendet' => ['angenommen', 'abgelehnt', 'entwurf'],
+        'angenommen' => ['entwurf'],
+        'abgelehnt' => ['entwurf', 'versendet'],
     ];
 
     public function index(): View
@@ -85,6 +89,74 @@ class AngebotController extends Controller
         AngebotsRechnung::aktualisiereSumme($angebot);
 
         return redirect()->route('angebote.show', $angebot)->with('toast', 'Preise gespeichert');
+    }
+
+    /** Freie Zusatzposition des Verkäufers (Titel, Menge, Preis, Rabatt). */
+    public function positionHinzufuegen(Request $request, Angebot $angebot): RedirectResponse
+    {
+        if ($angebot->status === AngebotStatus::Angenommen) {
+            return redirect()->route('angebote.show', $angebot)
+                ->with('toast', 'Angenommene Angebote sind eingefroren');
+        }
+
+        $daten = $request->validate([
+            'titel' => ['required', 'string', 'max:200'],
+            'menge' => ['nullable', 'integer', 'min:1', 'max:999'],
+            'preis' => ['nullable', 'numeric', 'min:0'],
+            'rabatt' => ['nullable', 'numeric', 'min:0', 'max:100'],
+        ]);
+
+        $angebot->update(['freie_positionen' => [...$angebot->freie_positionen ?? [], [
+            'id' => uniqid(),
+            'titel' => $daten['titel'],
+            'menge' => (int) ($daten['menge'] ?? 1),
+            'preis' => $daten['preis'] !== null && $daten['preis'] !== '' ? round((float) $daten['preis'], 2) : null,
+            'rabatt' => (float) ($daten['rabatt'] ?? 0),
+        ]]]);
+        AngebotsRechnung::aktualisiereSumme($angebot);
+
+        return redirect()->route('angebote.show', $angebot)->with('toast', 'Position hinzugefügt');
+    }
+
+    /** Entfernt eine Position: freie werden gelöscht, generierte ausgeblendet. */
+    public function positionEntfernen(Request $request, Angebot $angebot): RedirectResponse
+    {
+        if ($angebot->status === AngebotStatus::Angenommen) {
+            return redirect()->route('angebote.show', $angebot)
+                ->with('toast', 'Angenommene Angebote sind eingefroren');
+        }
+
+        $key = (string) $request->input('key');
+        if ($key === 'dach') {
+            return redirect()->route('angebote.show', $angebot)
+                ->with('toast', 'Die Dach-Position folgt dem Konfigurator und bleibt im Angebot');
+        }
+
+        if (str_starts_with($key, 'f')) {
+            $angebot->update(['freie_positionen' => array_values(array_filter(
+                $angebot->freie_positionen ?? [],
+                fn (array $frei) => 'f'.($frei['id'] ?? '') !== $key,
+            ))]);
+        } else {
+            $angebot->update(['ausgeblendet' => array_values(array_unique([...$angebot->ausgeblendet ?? [], $key]))]);
+        }
+        AngebotsRechnung::aktualisiereSumme($angebot);
+
+        return redirect()->route('angebote.show', $angebot)->with('toast', 'Position entfernt');
+    }
+
+    /** Holt alle ausgeblendeten generierten Positionen zurück. */
+    public function positionenWiederherstellen(Angebot $angebot): RedirectResponse
+    {
+        if ($angebot->status === AngebotStatus::Angenommen) {
+            return redirect()->route('angebote.show', $angebot)
+                ->with('toast', 'Angenommene Angebote sind eingefroren');
+        }
+
+        $angebot->update(['ausgeblendet' => null]);
+        AngebotsRechnung::aktualisiereSumme($angebot);
+
+        return redirect()->route('angebote.show', $angebot)->with('toast', 'Positionen wiederhergestellt');
     }
 
     public function setzeStatus(Request $request, Angebot $angebot): RedirectResponse

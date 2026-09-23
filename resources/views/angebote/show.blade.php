@@ -50,7 +50,7 @@
                 <span class="pill">{{ count($rechnung['positionen']) }}</span>
             </div>
             <div class="card-b" style="padding:6px 17px 14px">
-                @if (count($rechnung['positionen']) === 1)
+                @if ($rechnung['positionen'] === [])
                     <p class="hint" style="padding:8px 0 0">Keine Konfiguration hinterlegt —
                         Positionen folgen aus dem Projekt-Konfigurator.</p>
                 @endif
@@ -58,7 +58,7 @@
                     @csrf
                     <table class="tbl">
                         <thead><tr><th>Pos</th><th>Bezeichnung</th><th class="num">Menge</th>
-                            <th class="num">Einzelpreis €</th><th class="num">Rabatt %</th><th class="num">Gesamt</th></tr></thead>
+                            <th class="num">Einzelpreis €</th><th class="num">Rabatt %</th><th class="num">Gesamt</th><th></th></tr></thead>
                         <tbody>
                         @foreach ($rechnung['positionen'] as $position)
                             <tr>
@@ -89,6 +89,13 @@
                                            @disabled($eingefroren)>
                                 </td>
                                 <td class="num mono">{{ $position['gesamt'] !== null ? Format::eur($position['gesamt']) : '–' }}</td>
+                                <td class="num" style="width:34px">
+                                    @if ($position['key'] !== 'dach' && ! $eingefroren)
+                                        <button class="btn btns" type="submit" name="key" value="{{ $position['key'] }}"
+                                                formaction="{{ route('angebote.position.entfernen', $angebot) }}"
+                                                title="Position entfernen" aria-label="Position entfernen">✕</button>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                         </tbody>
@@ -101,6 +108,30 @@
                         <button class="btn btns btnp" type="submit" @disabled($eingefroren)>Preise speichern</button>
                     </div>
                 </form>
+                @unless ($eingefroren)
+                    <form method="POST" action="{{ route('angebote.position.hinzufuegen', $angebot) }}"
+                          class="fx ac gap8" style="margin-top:12px;flex-wrap:wrap">
+                        @csrf
+                        <input class="inp" name="titel" placeholder="Neue Position (z. B. Montage, Fundamente …)"
+                               required style="flex:2;min-width:180px">
+                        <input class="inp mono num" type="number" name="menge" min="1" value="1"
+                               title="Menge" style="width:70px">
+                        <input class="inp mono num" type="number" name="preis" step="0.01" min="0"
+                               placeholder="Preis €" style="width:110px">
+                        <input class="inp mono num" type="number" name="rabatt" step="0.01" min="0" max="100"
+                               placeholder="Rabatt %" style="width:90px">
+                        <button class="btn btns" type="submit">Position hinzufügen</button>
+                    </form>
+                    @error('titel')<p class="hint" style="color:var(--red)">{{ $message }}</p>@enderror
+                    @if (($angebot->ausgeblendet ?? []) !== [])
+                        <form method="POST" action="{{ route('angebote.position.wiederherstellen', $angebot) }}"
+                              style="margin-top:8px">
+                            @csrf
+                            <button class="btn btns" type="submit">
+                                {{ count($angebot->ausgeblendet) }} entfernte Position(en) wiederherstellen</button>
+                        </form>
+                    @endif
+                @endunless
                 <table class="tbl" style="margin-top:8px">
                     <tbody>
                     <tr><td class="num" style="border:0">Zwischensumme</td>
@@ -156,8 +187,8 @@
                 <div class="mc-h"><svg class="i"><use href="#ic-angebote"/></svg>Status</div>
                 <div class="kv"><div class="k">Aktuell</div>
                     <div class="v"><span class="badge {{ $angebot->status->badgeClass() }}">{{ $angebot->status->label() }}</span></div></div>
-                @if ($naechsteStatus === [])
-                    <p class="hint">Keine weiteren Übergänge — Angebot ist angenommen.</p>
+                @if ($angebot->status === \App\Enums\AngebotStatus::Angenommen)
+                    <p class="hint">Angenommen — «Zurück zu Entwurf» hebt den Freeze wieder auf.</p>
                 @endif
                 <div class="colstack" style="gap:8px;margin-top:8px">
                     @foreach ($naechsteStatus as $wert)
@@ -170,7 +201,7 @@
                                     'versendet' => 'Versenden',
                                     'angenommen' => 'Annehmen',
                                     'abgelehnt' => 'Ablehnen',
-                                    'entwurf' => 'Erneut bearbeiten',
+                                    'entwurf' => 'Zurück zu Entwurf',
                                 } }}
                             </button>
                         </form>

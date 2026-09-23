@@ -35,7 +35,7 @@ final class AngebotsRechnung
         $konfiguration = $angebot->projekt?->konfiguration ?? $angebot->konfiguration;
 
         $positionen = [];
-        $zeile = function (string $key, string $titel, array $details, int $menge, ?int $listenpreis = null) use ($preise, $rabatte): array {
+        $zeile = function (string $key, string $titel, array $details, int $menge, int|float|null $listenpreis = null) use ($preise, $rabatte): array {
             $einzelpreis = isset($preise[$key]) && $preise[$key] !== ''
                 ? round((float) $preise[$key], 2)
                 : ($listenpreis !== null ? (float) $listenpreis : null);
@@ -59,12 +59,13 @@ final class AngebotsRechnung
 
         if ($konfiguration !== null) {
             $kalk = KonfiguratorRechner::berechne($konfiguration);
+            $p = $kalk['pcfg'];
             // Das Dach trägt nur seine eigenen Bauteile (Pfosten, Sparren,
             // Dachfelder) als Beschreibung; Extras aus Alt-Konfigurationen
             // (Keile, Festelemente, Schiebe, Markisen, Segel) werden je als
             // eigene Position geführt — wie die Element-Positionen unten.
             $dachDetails = array_map(
-                fn (array $p) => $p['name'].((int) $p['menge'] > 1 ? ' — '.$p['menge'].' Stück' : ''),
+                fn (array $z) => $z['name'].((int) $z['menge'] > 1 ? ' — '.$z['menge'].' Stück' : ''),
                 array_slice($kalk['positionen'], 1, 3),
             );
             $positionen[] = $zeile(
@@ -74,6 +75,39 @@ final class AngebotsRechnung
                 1,
                 Preisliste::ausKonfiguration($konfiguration),
             );
+
+            // Zuschläge zum Standard der Preisliste — jeweils eigene Position:
+            // freistehend → Unterzug + zusätzliche Pfosten (hintere Reihe),
+            // Pfostenhalter (Konsole) → je Stück, Milchglas → Aufpreis
+            // (Polycarbonat ausgenommen).
+            $freistehend = ($p['mounting'] ?? '') === 'freistehend';
+            if ($freistehend) {
+                $positionen[] = $zeile('zpfosten', 'Zusätzliche Pfosten (freistehend)', [], (int) $kalk['pn']);
+            }
+            if ($freistehend || ($kalk['unterzug']['gewaehlt'] ?? false)) {
+                $positionen[] = $zeile(
+                    'unterzug',
+                    'Unterzug '.($kalk['unterzug']['groesse'] ?? '110×190').' mm',
+                    [],
+                    max(1, (int) ($kalk['unterzug']['anzahl'] ?? 1)),
+                );
+            }
+            $istKonsole = fn ($montage) => str_starts_with((string) $montage, 'Pfostenhalter');
+            $proPfosten = ($p['postMontageJe'] ?? '') == 1
+                ? array_filter((array) ($p['postMontageListe'] ?? []), $istKonsole)
+                : null;
+            $konsolen = $proPfosten !== null
+                ? count($proPfosten)
+                : ($istKonsole($p['postMontage'] ?? '') ? (int) $kalk['pn'] * ($freistehend ? 2 : 1) : 0);
+            if ($konsolen > 0) {
+                $positionen[] = $zeile('konsolen', 'Montage auf Pfostenhalter (Konsole)', [], $konsolen);
+            }
+            $milchglas = ! str_starts_with((string) $p['covering'], 'Polycarbonat')
+                && (($p['glasTrans'] ?? '') === 'Milch' || str_contains((string) $p['covering'], 'mattiert'));
+            if ($milchglas) {
+                $positionen[] = $zeile('milchglas', 'Aufpreis Milchglas (VSG matt)', [], (int) $kalk['fields']);
+            }
+
             foreach (array_slice($kalk['positionen'], 4) as $index => $extra) {
                 $positionen[] = $zeile('k'.$index, $extra['name'], [], (int) $extra['menge']);
             }
@@ -99,9 +133,39 @@ final class AngebotsRechnung
             );
         }
 
-        $positionen[] = $zeile('montage', 'Montage & Lieferung', [], 1);
+        // Freie Positionen des Verkäufers: Preis/Rabatt liegen in der
+        // Position selbst, ein Override in preise/rabatte gewinnt.
+        foreach ($angebot->freie_positionen ?? [] as $frei) {
+            $key = 'f'.($frei['id'] ?? '');
+            $positionen[] = $zeile(
+                $key,
+                (string) ($frei['titel'] ?? 'Position'),
+                [],
+                (int) ($frei['menge'] ?? 1),
+                isset($frei['preis']) && $frei['preis'] !== '' && ! isset($preise[$key])
+                    ? round((float) $frei['preis'], 2)
+                    : null,
+            );
+            if (! isset($rabatte[$key]) && (float) ($frei['rabatt'] ?? 0) > 0) {
+                $letzte = array_key_last($positionen);
+                $rabatt = min(100.0, max(0.0, (float) $frei['rabatt']));
+                $positionen[$letzte]['rabatt'] = $rabatt;
+                if ($positionen[$letzte]['einzelpreis'] !== null) {
+                    $positionen[$letzte]['gesamt'] = round(
+                        $positionen[$letzte]['einzelpreis'] * $positionen[$letzte]['menge'] * (1 - $rabatt / 100), 2,
+                    );
+                }
+            }
+        }
 
-        foreach ($positionen as $i => $p) {
+        // Vom Verkäufer entfernte (ausgeblendete) generierte Positionen
+        $ausgeblendet = $angebot->ausgeblendet ?? [];
+        $positionen = array_values(array_filter(
+            $positionen,
+            fn (array $zeileDaten) => ! in_array($zeileDaten['key'], $ausgeblendet, true),
+        ));
+
+        foreach ($positionen as $i => $zeileDaten) {
             $positionen[$i]['pos'] = $i + 1;
         }
 

@@ -60,21 +60,19 @@
             <th class="num" style="width:48px">Rabatt</th><th class="num" style="width:80px">Gesamt</th></tr></thead>
         <tbody>
         @foreach ($rechnung['positionen'] as $position)
-            @if ($position['gesamt'] !== null || $position['key'] !== 'montage')
-                <tr>
-                    <td>{{ $position['pos'] }}</td>
-                    <td>
-                        <b>{{ $position['titel'] }}</b>
-                        @foreach ($position['details'] as $detail)
-                            <div class="pos-detail">– {{ $detail }}</div>
-                        @endforeach
-                    </td>
-                    <td class="num">{{ $position['menge'] }} {{ $position['einheit'] }}</td>
-                    <td class="num">{{ $position['einzelpreis'] !== null ? Format::eur($position['einzelpreis']) : '–' }}</td>
-                    <td class="num">{{ $position['rabatt'] > 0 ? rtrim(rtrim(number_format($position['rabatt'], 2, ',', '.'), '0'), ',').' %' : '–' }}</td>
-                    <td class="num">{{ $position['gesamt'] !== null ? Format::eur($position['gesamt']) : '–' }}</td>
-                </tr>
-            @endif
+            <tr>
+                <td>{{ $position['pos'] }}</td>
+                <td>
+                    <b>{{ $position['titel'] }}</b>
+                    @foreach ($position['details'] as $detail)
+                        <div class="pos-detail">– {{ $detail }}</div>
+                    @endforeach
+                </td>
+                <td class="num">{{ $position['menge'] }} {{ $position['einheit'] }}</td>
+                <td class="num">{{ $position['einzelpreis'] !== null ? Format::eur($position['einzelpreis']) : '–' }}</td>
+                <td class="num">{{ $position['rabatt'] > 0 ? rtrim(rtrim(number_format($position['rabatt'], 2, ',', '.'), '0'), ',').' %' : '–' }}</td>
+                <td class="num">{{ $position['gesamt'] !== null ? Format::eur($position['gesamt']) : '–' }}</td>
+            </tr>
         @endforeach
         </tbody>
     </table>
@@ -91,12 +89,11 @@
     </table>
 
     <div class="hinweis">
-        Die endgültige Ausführung erfolgt nach verbindlichem Aufmaß vor Ort — geringfügige
-        Maßabweichungen bleiben vorbehalten. Zahlung gemäß Zahlungsplan
-        30&nbsp;/&nbsp;40&nbsp;/&nbsp;30 (Anzahlung · Materiallieferung · Abnahme).
-        @if (($rechnung['positionen'][array_key_last($rechnung['positionen'])]['gesamt'] ?? null) === null)
-            Montagekosten werden nach Aufwand gesondert berechnet.
-        @endif
+        Alle Preise verstehen sich <b>zuzüglich Montage</b> — Montage- und Lieferkosten werden,
+        soweit nicht als eigene Position aufgeführt, gesondert berechnet. Die endgültige
+        Ausführung erfolgt nach verbindlichem Aufmaß vor Ort — geringfügige Maßabweichungen
+        bleiben vorbehalten. Zahlung gemäß Zahlungsplan 30&nbsp;/&nbsp;40&nbsp;/&nbsp;30
+        (Anzahlung · Materiallieferung · Abnahme).
     </div>
 
     {{-- ═══ Seite 2 · Technische Ausführung ═══ --}}

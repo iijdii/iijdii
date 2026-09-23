@@ -91,6 +91,9 @@ Route::middleware(['auth', 'lieferant.portal'])->group(function () {
     Route::post('/angebote/{angebot:nr}/status', [AngebotController::class, 'setzeStatus'])->middleware('role:verkaeufer,projektleiter')->name('angebote.status');
     Route::post('/angebote/{angebot:nr}/summe', [AngebotController::class, 'speichereSumme'])->middleware('role:verkaeufer,projektleiter')->name('angebote.summe');
     Route::post('/angebote/{angebot:nr}/preise', [AngebotController::class, 'speicherePreise'])->middleware('role:verkaeufer,projektleiter')->name('angebote.preise');
+    Route::post('/angebote/{angebot:nr}/positionen', [AngebotController::class, 'positionHinzufuegen'])->middleware('role:verkaeufer,projektleiter')->name('angebote.position.hinzufuegen');
+    Route::post('/angebote/{angebot:nr}/positionen/entfernen', [AngebotController::class, 'positionEntfernen'])->middleware('role:verkaeufer,projektleiter')->name('angebote.position.entfernen');
+    Route::post('/angebote/{angebot:nr}/positionen/wiederherstellen', [AngebotController::class, 'positionenWiederherstellen'])->middleware('role:verkaeufer,projektleiter')->name('angebote.position.wiederherstellen');
     Route::get('/angebote/{angebot:nr}/pdf', [AngebotController::class, 'pdf'])->name('angebote.pdf');
 
     Route::get('/anfragen', [AnfrageController::class, 'index'])->name('anfragen');

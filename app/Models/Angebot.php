@@ -10,7 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable(['nr', 'kunde_id', 'anfrage_id', 'titel', 'status', 'datum', 'summe', 'konfiguration',
-    'gueltig_bis', 'rabatt_prozent', 'preise', 'rabatte', 'accept_token', 'angenommen_am', 'angenommen_ip'])]
+    'gueltig_bis', 'rabatt_prozent', 'preise', 'rabatte', 'freie_positionen', 'ausgeblendet',
+    'accept_token', 'angenommen_am', 'angenommen_ip'])]
 class Angebot extends Model
 {
     use HasFactory;
@@ -28,6 +29,8 @@ class Angebot extends Model
             'rabatt_prozent' => 'decimal:2',
             'preise' => 'array',
             'rabatte' => 'array',
+            'freie_positionen' => 'array',
+            'ausgeblendet' => 'array',
             'angenommen_am' => 'datetime',
         ];
     }
