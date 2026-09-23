@@ -1,4 +1,6 @@
-{{-- Fixe 3-Spalten-Fußzeile + Seitenzahl — wiederholt sich auf jeder Seite. --}}
+{{-- Fixe 3-Spalten-Fußzeile + Seitenzahl — wiederholt sich auf jeder Seite.
+     Mittlere Spalte: Bankverbindung, sobald in config/lea.php hinterlegt,
+     sonst die Registerangaben. --}}
 <div class="fuss">
     <table><tr>
         <td style="width:38%">
@@ -7,9 +9,15 @@
             {{ config('lea.web') }}
         </td>
         <td style="width:31%">
-            <b>Bankverbindung</b><br>
-            {{ config('lea.bank') }}<br>
-            IBAN {{ config('lea.iban') }}
+            @if (config('lea.iban'))
+                <b>Bankverbindung</b><br>
+                {{ config('lea.bank') }}<br>
+                IBAN {{ config('lea.iban') }}
+            @else
+                <b>Geschäftsführung: {{ config('lea.geschaeftsfuehrer') }}</b><br>
+                {{ config('lea.register') }}<br>
+                USt-IdNr. {{ config('lea.ustid') }}
+            @endif
         </td>
         <td style="width:31%">
             <b>Kontakt</b><br>

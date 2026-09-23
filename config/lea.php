@@ -2,18 +2,22 @@
 
 /*
  * Firmenstammdaten des Auftragnehmers — erscheinen in allen PDF-Dokumenten
- * (Briefkopf, Fußzeile) sowie im Abnahmeprotokoll. Bank/IBAN/USt-IdNr. sind
- * Platzhalter und vor dem Echtbetrieb mit den realen Daten zu ersetzen.
+ * (Briefkopf, Fußzeile) sowie im Abnahmeprotokoll. Quelle: Impressum
+ * lea-ueberdachung.de. Bank/IBAN sind nicht veröffentlicht — sobald sie
+ * hier eingetragen sind, zeigt die PDF-Fußzeile die Bankverbindung statt
+ * der Registerangaben.
  */
 return [
-    'firma' => 'LEA Überdachungen GmbH',
-    'anschrift' => 'Gewerbering 8, 15366 Hoppegarten',
-    'telefon' => '+49 3342 000 000',
-    'email' => 'info@lea-ueberdachungen.de',
-    'web' => 'www.lea-ueberdachungen.de',
-    'bank' => 'Sparkasse Märkisch-Oderland',
-    'iban' => 'DE00 0000 0000 0000 0000 00',
-    'ustid' => 'DE000000000',
+    'firma' => 'LEA Solar GmbH',
+    'anschrift' => 'Innstraße 46, 12045 Berlin',
+    'telefon' => '+49 171 5105962',
+    'email' => 'vertrieb@leasolar.de',
+    'web' => 'www.lea-ueberdachung.de',
+    'geschaeftsfuehrer' => 'Mischa Raiser',
+    'register' => 'Amtsgericht Berlin · HRB 28340',
+    'ustid' => 'DE298167084',
+    'bank' => null,
+    'iban' => null,
     'bauleitung' => 'M. Schneider',
     'montageteam' => 'Team Berlin K1 · T. Wagner, R. Sobek',
     'monteur' => 'T. Wagner · Team Berlin K1',
