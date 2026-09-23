@@ -56,8 +56,8 @@
 
     <table class="positions">
         <thead><tr><th style="width:30px">Pos</th><th>Beschreibung</th>
-            <th class="num" style="width:52px">Menge</th><th class="num" style="width:78px">Einzelpreis</th>
-            <th class="num" style="width:82px">Gesamt</th></tr></thead>
+            <th class="num" style="width:50px">Menge</th><th class="num" style="width:74px">Einzelpreis</th>
+            <th class="num" style="width:48px">Rabatt</th><th class="num" style="width:80px">Gesamt</th></tr></thead>
         <tbody>
         @foreach ($rechnung['positionen'] as $position)
             @if ($position['gesamt'] !== null || $position['key'] !== 'montage')
@@ -71,6 +71,7 @@
                     </td>
                     <td class="num">{{ $position['menge'] }} {{ $position['einheit'] }}</td>
                     <td class="num">{{ $position['einzelpreis'] !== null ? Format::eur($position['einzelpreis']) : '–' }}</td>
+                    <td class="num">{{ $position['rabatt'] > 0 ? rtrim(rtrim(number_format($position['rabatt'], 2, ',', '.'), '0'), ',').' %' : '–' }}</td>
                     <td class="num">{{ $position['gesamt'] !== null ? Format::eur($position['gesamt']) : '–' }}</td>
                 </tr>
             @endif

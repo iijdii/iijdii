@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Enums\AngebotStatus;
+use App\Models\Angebot;
 use App\Models\Projekt;
 use App\Models\User;
+use App\Support\AngebotsRechnung;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -88,6 +90,37 @@ class AngebotPreisTest extends TestCase
             'rabatt_prozent' => 0,
         ]);
         $this->assertSame('8500.00', $angebot->fresh()->summe);
+    }
+
+    public function test_rabatt_je_position(): void
+    {
+        $projekt = $this->projektMitDach();
+        $angebot = $projekt->angebot;
+
+        // 10 % nur auf das Dach: 7.070 × 0,9 + Montage 500 = 6.863 €
+        $this->actingAs($this->verkauf)->post('/angebote/'.$angebot->nr.'/preise', [
+            'preise' => ['montage' => 500],
+            'rabatte' => ['dach' => 10],
+        ])->assertSessionHas('toast', 'Preise gespeichert');
+        $this->assertSame('6863.00', $angebot->fresh()->summe);
+    }
+
+    public function test_extras_sind_eigene_positionen_statt_dach_beschreibung(): void
+    {
+        // Das Seed-Angebot trägt einen Keil als Extra in der Alt-Konfiguration.
+        $angebot = Angebot::query()->where('nr', 'ANG-2026-010')
+            ->firstOrFail()->load('projekt.positionen');
+        $rechnung = AngebotsRechnung::fuer($angebot);
+
+        // Dach beschreibt nur die eigenen Bauteile (Pfosten, Sparren, Dachfelder)
+        $dach = $rechnung['positionen'][0];
+        $this->assertSame('dach', $dach['key']);
+        $this->assertCount(3, $dach['details']);
+        $this->assertStringNotContainsString('Keil', implode(' · ', $dach['details']));
+
+        // Das Extra (Keil) steht als eigene Position in der Liste
+        $titel = array_column($rechnung['positionen'], 'titel');
+        $this->assertTrue(collect($titel)->contains(fn (string $t) => str_starts_with($t, 'Keil')));
     }
 
     public function test_online_annahme_per_token_friert_das_angebot_ein(): void

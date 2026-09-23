@@ -58,7 +58,7 @@
                     @csrf
                     <table class="tbl">
                         <thead><tr><th>Pos</th><th>Bezeichnung</th><th class="num">Menge</th>
-                            <th class="num">Einzelpreis €</th><th class="num">Gesamt</th></tr></thead>
+                            <th class="num">Einzelpreis €</th><th class="num">Rabatt %</th><th class="num">Gesamt</th></tr></thead>
                         <tbody>
                         @foreach ($rechnung['positionen'] as $position)
                             <tr>
@@ -74,11 +74,18 @@
                                     @endif
                                 </td>
                                 <td class="num mono">{{ $position['menge'] }}</td>
-                                <td class="num" style="width:120px">
+                                <td class="num" style="width:110px">
                                     <input class="inp mono num" type="number" step="0.01" min="0"
                                            name="preise[{{ $position['key'] }}]"
                                            value="{{ old('preise.'.$position['key'], ($angebot->preise[$position['key']] ?? null)) }}"
                                            placeholder="{{ $position['listenpreis'] !== null ? number_format($position['listenpreis'], 2, '.', '') : '–' }}"
+                                           @disabled($eingefroren)>
+                                </td>
+                                <td class="num" style="width:76px">
+                                    <input class="inp mono num" type="number" step="0.01" min="0" max="100"
+                                           name="rabatte[{{ $position['key'] }}]"
+                                           value="{{ old('rabatte.'.$position['key'], ($angebot->rabatte[$position['key']] ?? null)) }}"
+                                           placeholder="0"
                                            @disabled($eingefroren)>
                                 </td>
                                 <td class="num mono">{{ $position['gesamt'] !== null ? Format::eur($position['gesamt']) : '–' }}</td>
@@ -87,7 +94,7 @@
                         </tbody>
                     </table>
                     <div class="fx ac gap8" style="margin-top:10px;flex-wrap:wrap;justify-content:flex-end">
-                        <label class="hint" for="rabatt">Rabatt %</label>
+                        <label class="hint" for="rabatt">Gesamtrabatt %</label>
                         <input class="inp mono num" id="rabatt" type="number" step="0.01" min="0" max="100"
                                name="rabatt_prozent" value="{{ old('rabatt_prozent', (float) $angebot->rabatt_prozent ?: '') }}"
                                style="width:90px" @disabled($eingefroren)>

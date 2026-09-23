@@ -29,15 +29,17 @@ final class AngebotsRechnung
     public static function fuer(Angebot $angebot): array
     {
         $preise = $angebot->preise ?? [];
+        $rabatte = $angebot->rabatte ?? [];
         // Das Projekt ist die Quelle (Einheitssystem); die Kopie auf dem
         // Angebot trägt nur projektlose Alt-Angebote.
         $konfiguration = $angebot->projekt?->konfiguration ?? $angebot->konfiguration;
 
         $positionen = [];
-        $zeile = function (string $key, string $titel, array $details, int $menge, ?int $listenpreis = null) use ($preise): array {
+        $zeile = function (string $key, string $titel, array $details, int $menge, ?int $listenpreis = null) use ($preise, $rabatte): array {
             $einzelpreis = isset($preise[$key]) && $preise[$key] !== ''
                 ? round((float) $preise[$key], 2)
                 : ($listenpreis !== null ? (float) $listenpreis : null);
+            $rabatt = isset($rabatte[$key]) ? min(100.0, max(0.0, (float) $rabatte[$key])) : 0.0;
 
             return [
                 'key' => $key,
@@ -48,23 +50,33 @@ final class AngebotsRechnung
                 'einheit' => 'Stk.',
                 'listenpreis' => $listenpreis,
                 'einzelpreis' => $einzelpreis,
-                'gesamt' => $einzelpreis !== null ? round($einzelpreis * max(1, $menge), 2) : null,
+                'rabatt' => $rabatt,
+                'gesamt' => $einzelpreis !== null
+                    ? round($einzelpreis * max(1, $menge) * (1 - $rabatt / 100), 2)
+                    : null,
             ];
         };
 
         if ($konfiguration !== null) {
             $kalk = KonfiguratorRechner::berechne($konfiguration);
-            $details = array_map(
+            // Das Dach trägt nur seine eigenen Bauteile (Pfosten, Sparren,
+            // Dachfelder) als Beschreibung; Extras aus Alt-Konfigurationen
+            // (Keile, Festelemente, Schiebe, Markisen, Segel) werden je als
+            // eigene Position geführt — wie die Element-Positionen unten.
+            $dachDetails = array_map(
                 fn (array $p) => $p['name'].((int) $p['menge'] > 1 ? ' — '.$p['menge'].' Stück' : ''),
-                array_slice($kalk['positionen'], 1),
+                array_slice($kalk['positionen'], 1, 3),
             );
             $positionen[] = $zeile(
                 'dach',
                 $kalk['positionen'][0]['name'] ?? 'Überdachung',
-                $details,
+                $dachDetails,
                 1,
                 Preisliste::ausKonfiguration($konfiguration),
             );
+            foreach (array_slice($kalk['positionen'], 4) as $index => $extra) {
+                $positionen[] = $zeile('k'.$index, $extra['name'], [], (int) $extra['menge']);
+            }
         }
 
         foreach ($angebot->projekt?->positionen ?? [] as $position) {

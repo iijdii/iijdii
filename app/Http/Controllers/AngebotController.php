@@ -69,15 +69,17 @@ class AngebotController extends Controller
         $daten = $request->validate([
             'preise' => ['array'],
             'preise.*' => ['nullable', 'numeric', 'min:0'],
+            'rabatte' => ['array'],
+            'rabatte.*' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'rabatt_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
-        $preise = array_filter(
-            $daten['preise'] ?? [],
-            fn ($wert) => $wert !== null && $wert !== '',
-        );
+        $gefuellt = fn (array $werte) => array_filter($werte, fn ($wert) => $wert !== null && $wert !== '');
+        $preise = $gefuellt($daten['preise'] ?? []);
+        $rabatte = $gefuellt($daten['rabatte'] ?? []);
         $angebot->update([
             'preise' => $preise === [] ? null : array_map(fn ($w) => round((float) $w, 2), $preise),
+            'rabatte' => $rabatte === [] ? null : array_map(fn ($w) => round((float) $w, 2), $rabatte),
             'rabatt_prozent' => (float) ($daten['rabatt_prozent'] ?? 0),
         ]);
         AngebotsRechnung::aktualisiereSumme($angebot);
