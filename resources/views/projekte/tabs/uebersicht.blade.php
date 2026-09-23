@@ -37,7 +37,8 @@
             </div>
         </div>
 
-        @forelse ($projekt->positionen as $position)
+        {{-- Links nur das Dach — die Extra-Positionen stehen kompakt rechts. --}}
+        @forelse ($projekt->positionen->filter(fn ($p) => $p->produkt->istDach()) as $position)
             <div class="card p0">
                 <div class="card-h">
                     <span class="card-t" style="min-width:0">Technische Daten — Position {{ $position->pos }} · {{ $position->produkt->label() }}</span>
@@ -155,43 +156,12 @@
                         @endif
                         </div>
                         </div>
-                    @else
-                        <div class="anf-specs">
-                            @foreach ($position->felder ?? [] as $schluessel => $wert)
-                                @continue(is_array($wert))
-                                <span class="spec">{{ $posLabels[$schluessel] ?? $schluessel }}
-                                    <b>{{ str_contains($schluessel, '_mm') && is_numeric($wert) ? number_format((int) $wert, 0, ',', '.').' mm' : $wert }}</b></span>
-                            @endforeach
-                        </div>
-                        @php
-                            $f = $position->felder ?? [];
-                            $wandPanels = $position->produkt === \App\Enums\ProjektProdukt::Wand
-                                && (int) ($f['breite_mm'] ?? 0) > 0 && (int) ($f['h_links_mm'] ?? 0) > 0
-                                ? \App\Support\SeitenwandRechner::panels(
-                                    (int) $f['breite_mm'], (int) $f['h_links_mm'],
-                                    (int) ($f['h_rechts_mm'] ?? $f['h_links_mm']), (int) ($f['anzahl'] ?? 1),
-                                )
-                                : [];
-                        @endphp
-                        @if ($wandPanels !== [])
-                            <div class="specsec" style="margin-top:10px">Glaszuschnitt (Fuge 30 mm)</div>
-                            @foreach ($wandPanels as $panel)
-                                <div class="spec-row"><span class="spec-k">Panel {{ $panel['nr'] }} · {{ $panel['form'] }}</span>
-                                    <span class="spec-v mono">{{ number_format($panel['breite'], 0, ',', '.') }} × {{ number_format($panel['hLinks'], 0, ',', '.') }}/{{ number_format($panel['hRechts'], 0, ',', '.') }} mm</span></div>
-                            @endforeach
-                        @endif
                     @endif
                 </div>
             </div>
         @empty
-            <div class="card"><p class="hint">Noch keine Positionen — über «Position hinzufügen» starten.</p></div>
+            <div class="card"><p class="hint">Noch keine Dach-Position — über «Position hinzufügen» starten.</p></div>
         @endforelse
-
-        <div class="card">
-            <button class="btn btns" type="button" data-modal-target="posmodal-neu">
-                <svg class="i"><use href="#ic-plus"/></svg>Position hinzufügen
-                <span class="hint" style="margin-left:6px">Extras · Sonnenschutz{{ $dachPosition ? '' : ' · Dach' }}</span></button>
-        </div>
 
         {{-- LED-Plan unter dem Konfigurator (Wunsch des Betreibers) --}}
         @isset ($ledZeichnung)
@@ -234,6 +204,58 @@
                         <svg class="i"><use href="#ic-angebote"/></svg>Als Angebot übergeben</button>
                 </form>
             @endif
+        </div>
+
+        {{-- Extra-Positionen (Wände, Schiebe, Keile, Sonnenschutz) kompakt rechts --}}
+        @foreach ($projekt->positionen->filter(fn ($p) => ! $p->produkt->istDach()) as $position)
+            <div class="card p0">
+                <div class="card-h" style="flex-wrap:wrap;row-gap:6px">
+                    <span class="card-t" style="min-width:0">Pos. {{ $position->pos }} · {{ $position->produkt->label() }}</span>
+                    <span class="card-akt">
+                        <span class="badge {{ $position->phase === 2 ? 'b-yellow' : 'b-gray' }}"
+                              title="{{ $position->phase === 2 ? 'Endmaße nach Dachmontage' : '' }}">Phase {{ $position->phase }}</span>
+                        <button class="btn btns" type="button" data-modal-target="posmodal-{{ $position->id }}">
+                            <svg class="i"><use href="#ic-edit"/></svg></button>
+                        <form method="POST" action="{{ route('projekte.positionen.loeschen', [$projekt, $position]) }}"
+                              onsubmit="return confirm('Position {{ $position->pos }} entfernen?')">
+                            @csrf
+                            <button class="btn btns" type="submit" title="Position entfernen">✕</button>
+                        </form>
+                    </span>
+                </div>
+                <div class="card-b">
+                    <div class="anf-specs">
+                        @foreach ($position->felder ?? [] as $schluessel => $wert)
+                            @continue(is_array($wert))
+                            <span class="spec">{{ $posLabels[$schluessel] ?? $schluessel }}
+                                <b>{{ str_contains($schluessel, '_mm') && is_numeric($wert) ? number_format((int) $wert, 0, ',', '.').' mm' : $wert }}</b></span>
+                        @endforeach
+                    </div>
+                    @php
+                        $f = $position->felder ?? [];
+                        $wandPanels = $position->produkt === \App\Enums\ProjektProdukt::Wand
+                            && (int) ($f['breite_mm'] ?? 0) > 0 && (int) ($f['h_links_mm'] ?? 0) > 0
+                            ? \App\Support\SeitenwandRechner::panels(
+                                (int) $f['breite_mm'], (int) $f['h_links_mm'],
+                                (int) ($f['h_rechts_mm'] ?? $f['h_links_mm']), (int) ($f['anzahl'] ?? 1),
+                            )
+                            : [];
+                    @endphp
+                    @if ($wandPanels !== [])
+                        <div class="specsec" style="margin-top:10px">Glaszuschnitt (Fuge 30 mm)</div>
+                        @foreach ($wandPanels as $panel)
+                            <div class="spec-row"><span class="spec-k">Panel {{ $panel['nr'] }} · {{ $panel['form'] }}</span>
+                                <span class="spec-v mono">{{ number_format($panel['breite'], 0, ',', '.') }} × {{ number_format($panel['hLinks'], 0, ',', '.') }}/{{ number_format($panel['hRechts'], 0, ',', '.') }} mm</span></div>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+        @endforeach
+
+        <div class="card">
+            <button class="btn btns btn-block" type="button" data-modal-target="posmodal-neu">
+                <svg class="i"><use href="#ic-plus"/></svg>Position hinzufügen
+                <span class="hint" style="margin-left:6px">Extras · Sonnenschutz{{ $dachPosition ? '' : ' · Dach' }}</span></button>
         </div>
     </div>
 </div>

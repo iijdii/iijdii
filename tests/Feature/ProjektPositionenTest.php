@@ -125,8 +125,8 @@ class ProjektPositionenTest extends TestCase
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-038')
             ->assertOk()
             ->assertSee('Technische Daten — Position 1 · Überdachung')
-            ->assertSee('Technische Daten — Position 2 · Markise')
-            ->assertSee('Phase 2 · Endmaße nach Dachmontage')
+            ->assertSee('Pos. 2 · Markise')      // Extra-Positionen kompakt in der Seitenleiste
+            ->assertSee('Endmaße nach Dachmontage')
             ->assertSee('Position hinzufügen');
 
         // Großer Konfigurator speichert → Dachposition wird mitgeschrieben
