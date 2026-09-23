@@ -81,6 +81,20 @@ class PdfExportTest extends TestCase
         $this->assertSame(1, Dokument::query()->where('dateiname', 'Projektmappe_PRJ-2026-011.pdf')->count());
     }
 
+    public function test_pdf_vorschau_liefert_inline_statt_download(): void
+    {
+        // ?ansicht=1 → inline (iframe-Vorschau im Fenster), Standard bleibt Download
+        $this->actingAs($this->benutzer)->get('/angebote/ANG-2026-010/pdf?ansicht=1')
+            ->assertOk()
+            ->assertHeader('Content-Disposition', 'inline; filename="Angebot_ANG-2026-010.pdf"');
+
+        // Die PDF-Knöpfe tragen das Vorschau-Attribut
+        $this->actingAs($this->benutzer)->get('/angebote/ANG-2026-010')
+            ->assertSee('data-pdf ', false);
+        $this->actingAs($this->benutzer)->get('/bestellungen/BST-2026-112')
+            ->assertSee('data-pdf ', false);
+    }
+
     public function test_stub_toasts_der_pdf_buttons_sind_ersetzt(): void
     {
         $this->actingAs($this->benutzer)->get('/bestellungen/BST-2026-112')

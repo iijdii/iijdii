@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Dokument;
+use App\Models\Projekt;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
@@ -19,7 +20,7 @@ final class PdfArchiv
         string $view,
         array $daten,
         string $dateiname,
-        ?\App\Models\Projekt $projekt,
+        ?Projekt $projekt,
         string $typ,
         ?string $badge = null,
     ): Response {
@@ -40,9 +41,13 @@ final class PdfArchiv
             );
         }
 
+        // ?ansicht=1 → inline für die Vorschau im Fenster (iframe),
+        // sonst wie bisher als Download.
+        $disposition = request()->boolean('ansicht') ? 'inline' : 'attachment';
+
         return response($bytes, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$dateiname.'"',
+            'Content-Disposition' => $disposition.'; filename="'.$dateiname.'"',
         ]);
     }
 }

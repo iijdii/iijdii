@@ -22,7 +22,8 @@
                     <a class="btn btns" href="{{ route('bestellungen.edit', $bestellung) }}">
                         <svg class="i"><use href="#ic-edit"/></svg>Bearbeiten</a>
                 @endif
-                <a class="btn btns btnp" href="{{ route('bestellungen.pdf', $bestellung) }}">
+                <a class="btn btns btnp" href="{{ route('bestellungen.pdf', $bestellung) }}"
+                   data-pdf data-pdf-titel="Bestellung {{ $bestellung->nr }}">
                     <svg class="i"><use href="#ic-doc"/></svg>PDF drucken</a>
             </span>
         </div>
@@ -208,7 +209,8 @@
             <div class="mc-h"><svg class="i"><use href="#ic-doc"/></svg>PDF-Vorschau</div>
             <div class="jb">
                 <span class="hint">{{ $bestellung->kategorieLabel() }}<br>{{ $bestellung->nr }}.pdf</span>
-                <a class="btn btns" href="{{ route('bestellungen.pdf', $bestellung) }}">Öffnen</a>
+                <a class="btn btns" href="{{ route('bestellungen.pdf', $bestellung) }}"
+                   data-pdf data-pdf-titel="Bestellung {{ $bestellung->nr }}">Öffnen</a>
             </div>
         </div>
     </div>

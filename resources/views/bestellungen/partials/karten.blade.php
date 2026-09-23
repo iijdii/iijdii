@@ -54,7 +54,8 @@
                     <span><b>{{ $karte['posCount'] }}</b> Positionen</span>
                     <span>Liefertermin <b class="mono">{{ Format::datumKurz($b->liefertermin) }}</b></span>
                 </span>
-                <a class="btn btns" href="{{ route('bestellungen.pdf', $b) }}" onclick="event.stopPropagation()">PDF</a>
+                <a class="btn btns" href="{{ route('bestellungen.pdf', $b) }}"
+                   data-pdf data-pdf-titel="Bestellung {{ $b->nr }}">PDF</a>
             </div>
         </div>
     @endforeach

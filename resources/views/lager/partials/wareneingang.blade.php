@@ -57,7 +57,8 @@
                         {{ Format::menge($we->positionen->sum('menge')) }} Stück auf {{ $we->positionen->count() }} Artikeln</b>
                 </span>
                 <span class="ctas">
-                    <a class="btn btns" href="{{ route('lager.lieferschein', $b) }}">
+                    <a class="btn btns" href="{{ route('lager.lieferschein', $b) }}"
+                       data-pdf data-pdf-titel="Lieferschein {{ $we->lieferschein_nr }}">
                         <svg class="i"><use href="#ic-doc"/></svg>Lieferschein {{ $we->lieferschein_nr }}</a>
                     <a class="btn btns" href="{{ route('bestellungen.show', $b) }}">Zur Bestellung</a>
                 </span>

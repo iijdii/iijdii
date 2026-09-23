@@ -110,6 +110,45 @@ document.addEventListener('keydown', (e) => {
     closeModal();
 });
 
+// ---------- PDF-Vorschau ----------
+// Links mit [data-pdf] öffnen das Dokument zuerst im Fenster (iframe,
+// Server liefert mit ?ansicht=1 inline); Herunterladen/Drucken aus der
+// Kopfleiste. href bleibt der Download-Link (Fallback ohne JS),
+// data-pdf-ansicht kann eine eigene Inline-URL vorgeben (Dokumente-Tab).
+document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[data-pdf]');
+    if (!link || !modal) return;
+    e.preventDefault();
+    const download = link.getAttribute('href');
+    const ansicht = link.dataset.pdfAnsicht
+        || download + (download.includes('?') ? '&' : '?') + 'ansicht=1';
+
+    modalContent.innerHTML = `
+        <div class="jb" style="padding:10px 14px;border-bottom:1px solid var(--line,#e2e5ea);gap:10px;flex-wrap:wrap">
+            <b class="pdfv-titel" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></b>
+            <span class="fx ac gap8">
+                <button class="btn btns" type="button" data-pdf-drucken>Drucken</button>
+                <a class="btn btns" href="${download}" download>Herunterladen</a>
+                <button class="btn btns" type="button" data-modal-close aria-label="Schließen">✕</button>
+            </span>
+        </div>
+        <iframe title="PDF-Vorschau" style="display:block;width:100%;height:min(78vh,900px);border:0;background:#525659"></iframe>`;
+    modalContent.querySelector('.pdfv-titel').textContent = link.dataset.pdfTitel || 'PDF-Vorschau';
+    modalContent.querySelector('iframe').src = ansicht;
+    modal.hidden = false;
+});
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('[data-pdf-drucken]') || !modal) return;
+    const frame = modal.querySelector('iframe');
+    if (!frame) return;
+    try {
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+    } catch {
+        window.open(frame.src, '_blank');
+    }
+});
+
 // ---------- Live-Dach-Kalkulation (Konfigurator / Anfrage-Formular) ----------
 // Progressive enhancement: die Formeln des Rechenkerns spiegeln, damit
 // die kbox ohne Server-Roundtrip aktualisiert. Der POST bleibt Quelle

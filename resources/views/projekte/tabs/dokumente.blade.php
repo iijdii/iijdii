@@ -33,7 +33,9 @@
                         <div class="dm">{{ number_format($dokument->groesse / 1024, 0, ',', '.') }} KB · {{ Format::datumKurz($dokument->datum) }}</div>
                     </span>
                     @if ($dokument->pfad)
-                        <a class="dlb btn btns" href="{{ route('dokumente.download', $dokument) }}">
+                        <a class="dlb btn btns" href="{{ route('dokumente.download', $dokument) }}"
+                           @if ($ext === 'pdf') data-pdf data-pdf-titel="{{ $dokument->dateiname }}"
+                               data-pdf-ansicht="{{ route('dokumente.ansicht', $dokument) }}" @endif>
                             <svg class="i"><use href="#ic-download"/></svg></a>
                     @else
                         <button class="dlb btn btns" type="button" data-toast="Demo-Dokument ohne Datei">
@@ -49,7 +51,8 @@
         <div class="mc-h"><svg class="i"><use href="#ic-download"/></svg>Projektmappe</div>
         <p class="note">Alle Projektdaten (Kopf, Kunde, Technik, Positionen, Materialliste) als PDF —
             wird zugleich hier als Dokument archiviert.</p>
-        <a class="btn btns" style="margin-top:10px" href="{{ route('projekte.pdf', $projekt) }}">
+        <a class="btn btns" style="margin-top:10px" href="{{ route('projekte.pdf', $projekt) }}"
+           data-pdf data-pdf-titel="Projektmappe {{ $projekt->nr }}">
             <svg class="i"><use href="#ic-download"/></svg>PDF exportieren</a>
     </div>
     <div class="card">
