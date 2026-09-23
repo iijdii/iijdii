@@ -59,6 +59,12 @@
 
     .legal { font-size: 8.5px; color: {{ $cMuted }}; margin: 8px 0 0; line-height: 1.4; }
 
+    .seitenumbruch { page-break-before: always; }
+    .hinweis { border: 1px solid {{ $cLine }}; background: {{ $cSoft }}; padding: 9px 11px;
+               font-size: 9.5px; color: {{ $cText }}; margin-top: 12px; line-height: 1.45; }
+    .check { margin: 4px 0; font-size: 10.5px; }
+    .pos-detail { font-size: 9px; color: {{ $cMuted }}; line-height: 1.4; }
+
     /* Unterschriftenzeile */
     .unterschriften { width: 100%; border-collapse: collapse; margin-top: 34px; }
     .unterschriften td { width: 44%; padding: 0; }

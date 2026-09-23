@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Enums\AngebotStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['nr', 'kunde_id', 'anfrage_id', 'titel', 'status', 'datum', 'summe', 'konfiguration'])]
+#[Fillable(['nr', 'kunde_id', 'anfrage_id', 'titel', 'status', 'datum', 'summe', 'konfiguration',
+    'gueltig_bis', 'rabatt_prozent', 'preise', 'accept_token', 'angenommen_am', 'angenommen_ip'])]
 class Angebot extends Model
 {
     use HasFactory;
@@ -18,11 +20,28 @@ class Angebot extends Model
     protected function casts(): array
     {
         return [
-            'status' => \App\Enums\AngebotStatus::class,
+            'status' => AngebotStatus::class,
             'datum' => 'date',
             'summe' => 'decimal:2',
             'konfiguration' => 'array',
+            'gueltig_bis' => 'date',
+            'rabatt_prozent' => 'decimal:2',
+            'preise' => 'array',
+            'angenommen_am' => 'datetime',
         ];
+    }
+
+    /**
+     * Permanenter Token der Online-Annahme (Spez. v3.2: einmal erzeugt,
+     * bleibt konstant). Bestandsangebote erhalten ihn nachträglich.
+     */
+    public function stelleAnnahmeTokenSicher(): string
+    {
+        if (! $this->accept_token) {
+            $this->forceFill(['accept_token' => bin2hex(random_bytes(16))])->saveQuietly();
+        }
+
+        return $this->accept_token;
     }
 
     public function kunde(): BelongsTo

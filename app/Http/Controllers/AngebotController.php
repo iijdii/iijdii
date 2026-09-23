@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Enums\AngebotStatus;
 use App\Models\Angebot;
+use App\Support\AngebotsRechnung;
 use App\Support\KonfiguratorRechner;
 use App\Support\PdfArchiv;
-use App\Support\Preisliste;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -39,57 +39,50 @@ class AngebotController extends Controller
 
         return view('angebote.show', [
             'angebot' => $angebot,
-            'positionen' => $this->angebotsPositionen($angebot),
+            'rechnung' => AngebotsRechnung::fuer($angebot),
             'naechsteStatus' => self::UEBERGAENGE[$angebot->status->value] ?? [],
-            'listenpreis' => Preisliste::ausKonfiguration(
-                $angebot->projekt?->konfiguration ?? $angebot->konfiguration,
-            ),
+            'annahmeUrl' => route('angebote.annahme', $angebot->stelleAnnahmeTokenSicher()),
         ]);
     }
 
     public function pdf(Angebot $angebot): Response
     {
         $angebot->load(['kunde', 'projekt.positionen']);
+        $konfiguration = $angebot->projekt?->konfiguration ?? $angebot->konfiguration;
 
         return PdfArchiv::liefere('angebote.pdf', [
             'angebot' => $angebot,
-            'positionen' => $this->angebotsPositionen($angebot),
+            'rechnung' => AngebotsRechnung::fuer($angebot),
+            'kalk' => $konfiguration !== null ? KonfiguratorRechner::berechne($konfiguration) : null,
+            'annahmeUrl' => route('angebote.annahme', $angebot->stelleAnnahmeTokenSicher()),
         ], 'Angebot_'.$angebot->nr.'.pdf', $angebot->projekt, 'angebot', $angebot->status->label());
     }
 
-    /**
-     * Angebotspositionen = Dach-Rechenkern + Element-Positionen des
-     * Projekts (Einheitssystem: alles fließt aus dem Konfigurator).
-     */
-    private function angebotsPositionen(Angebot $angebot): array
+    /** Preise je Position + globaler Rabatt; die Summe folgt den Positionen. */
+    public function speicherePreise(Request $request, Angebot $angebot): RedirectResponse
     {
-        // Konfiguration des Angebots, sonst die des verknüpften Projekts
-        // (Seed-Angebote tragen keine eigene Kopie).
-        $konfiguration = $angebot->konfiguration ?? $angebot->projekt?->konfiguration;
-        $positionen = $konfiguration !== null
-            ? KonfiguratorRechner::berechne($konfiguration)['positionen']
-            : [];
-
-        foreach ($angebot->projekt?->positionen ?? [] as $position) {
-            if ($position->produkt->istDach()) {
-                continue;
-            }
-            $f = $position->felder ?? [];
-            $masse = array_filter([
-                $f['breite_mm'] ?? $f['laenge_mm'] ?? null,
-                $f['hoehe_mm'] ?? $f['ausfall_mm'] ?? $f['h_links_mm'] ?? null,
-            ]);
-            $positionen[] = [
-                'pos' => count($positionen) + 1,
-                'name' => $position->produkt->label()
-                    .($masse !== [] ? ' '.implode('×', $masse).' mm' : '')
-                    .(isset($f['glas']) ? ' · '.$f['glas'] : '')
-                    .(isset($f['groesse']) ? ' '.$f['groesse'] : ''),
-                'menge' => (int) ($f['anzahl'] ?? 1) ?: 1,
-            ];
+        if ($angebot->status === AngebotStatus::Angenommen) {
+            return redirect()->route('angebote.show', $angebot)
+                ->with('toast', 'Angenommene Angebote sind eingefroren');
         }
 
-        return $positionen;
+        $daten = $request->validate([
+            'preise' => ['array'],
+            'preise.*' => ['nullable', 'numeric', 'min:0'],
+            'rabatt_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+        ]);
+
+        $preise = array_filter(
+            $daten['preise'] ?? [],
+            fn ($wert) => $wert !== null && $wert !== '',
+        );
+        $angebot->update([
+            'preise' => $preise === [] ? null : array_map(fn ($w) => round((float) $w, 2), $preise),
+            'rabatt_prozent' => (float) ($daten['rabatt_prozent'] ?? 0),
+        ]);
+        AngebotsRechnung::aktualisiereSumme($angebot);
+
+        return redirect()->route('angebote.show', $angebot)->with('toast', 'Preise gespeichert');
     }
 
     public function setzeStatus(Request $request, Angebot $angebot): RedirectResponse
@@ -105,7 +98,8 @@ class AngebotController extends Controller
                 ->with('toast', 'Bitte zuerst die Angebotssumme erfassen');
         }
 
-        $angebot->update(['status' => $neu]);
+        $angebot->update(['status' => $neu] + ($neu === AngebotStatus::Versendet && $angebot->gueltig_bis === null
+            ? ['gueltig_bis' => now()->addDays(30)->toDateString()] : []));
         $angebot->projekt?->aktivitaeten()->create([
             'titel' => 'Angebot '.$angebot->nr.' '.mb_strtolower($neu->label()),
             'wer' => $request->user()->name,
@@ -118,6 +112,11 @@ class AngebotController extends Controller
 
     public function speichereSumme(Request $request, Angebot $angebot): RedirectResponse
     {
+        if ($angebot->status === AngebotStatus::Angenommen) {
+            return redirect()->route('angebote.show', $angebot)
+                ->with('toast', 'Angenommene Angebote sind eingefroren');
+        }
+
         $daten = $request->validate(['summe' => ['required', 'numeric', 'min:0']]);
         $angebot->update(['summe' => $daten['summe']]);
 

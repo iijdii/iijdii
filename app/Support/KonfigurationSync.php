@@ -26,14 +26,12 @@ final class KonfigurationSync
 
         $projekt->forceFill(['konfiguration' => KonfiguratorRechner::merge($pcfg)])->saveQuietly();
 
-        // Der Listenpreis folgt der Konfiguration, solange das Angebot noch
+        // Die Angebotssumme folgt den Positionen, solange das Angebot noch
         // Entwurf ist — versendete/angenommene Summen bleiben unangetastet.
         $angebot = $projekt->angebot()->first();
         if ($angebot !== null && $angebot->status === AngebotStatus::Entwurf) {
-            $preis = Preisliste::ausKonfiguration($projekt->konfiguration);
-            if ($preis !== null) {
-                $angebot->update(['summe' => $preis]);
-            }
+            $angebot->setRelation('projekt', $projekt);
+            AngebotsRechnung::aktualisiereSumme($angebot);
         }
     }
 

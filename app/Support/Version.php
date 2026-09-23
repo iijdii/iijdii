@@ -9,5 +9,5 @@ namespace App\Support;
  */
 final class Version
 {
-    public const PATCH = 'v34';
+    public const PATCH = 'v35';
 }

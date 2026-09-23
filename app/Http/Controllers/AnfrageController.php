@@ -129,6 +129,8 @@ class AnfrageController extends Controller
                 'anfrage_id' => $anfrage->id,
                 'status' => AngebotStatus::Entwurf,
                 'datum' => now()->toDateString(),
+                'gueltig_bis' => now()->addDays(30)->toDateString(),
+                'accept_token' => bin2hex(random_bytes(16)),
                 'konfiguration' => $konfiguration,
                 'summe' => Preisliste::ausKonfiguration($konfiguration),
             ]);

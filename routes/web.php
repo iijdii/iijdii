@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AbnahmeController;
 use App\Http\Controllers\AnfrageController;
+use App\Http\Controllers\AngebotAnnahmeController;
 use App\Http\Controllers\AngebotController;
 use App\Http\Controllers\BestellungController;
 use App\Http\Controllers\DashboardController;
@@ -52,6 +53,11 @@ Route::get('/einrichtung/{token}', function (string $token) {
     );
 })->name('einrichtung');
 
+// Öffentliche Online-Annahme eines Angebots — kein Login, Schutz ist die
+// Kenntnis des accept_token aus dem Angebots-PDF (Spez. v3.2).
+Route::get('/angebot-annahme/{token}', [AngebotAnnahmeController::class, 'zeige'])->name('angebote.annahme');
+Route::post('/angebot-annahme/{token}', [AngebotAnnahmeController::class, 'bestaetige'])->name('angebote.annahme.bestaetigen');
+
 Route::middleware(['auth', 'lieferant.portal'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -84,6 +90,7 @@ Route::middleware(['auth', 'lieferant.portal'])->group(function () {
     Route::get('/angebote/{angebot:nr}', [AngebotController::class, 'show'])->name('angebote.show');
     Route::post('/angebote/{angebot:nr}/status', [AngebotController::class, 'setzeStatus'])->middleware('role:verkaeufer,projektleiter')->name('angebote.status');
     Route::post('/angebote/{angebot:nr}/summe', [AngebotController::class, 'speichereSumme'])->middleware('role:verkaeufer,projektleiter')->name('angebote.summe');
+    Route::post('/angebote/{angebot:nr}/preise', [AngebotController::class, 'speicherePreise'])->middleware('role:verkaeufer,projektleiter')->name('angebote.preise');
     Route::get('/angebote/{angebot:nr}/pdf', [AngebotController::class, 'pdf'])->name('angebote.pdf');
 
     Route::get('/anfragen', [AnfrageController::class, 'index'])->name('anfragen');

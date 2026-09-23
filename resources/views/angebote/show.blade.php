@@ -41,28 +41,75 @@
         </div>
     </div>
 
+    @php $eingefroren = $angebot->status === \App\Enums\AngebotStatus::Angenommen; @endphp
     <div class="cols-2" style="grid-template-columns:minmax(0,1.7fr) minmax(260px,1fr);align-items:start">
         <div class="card p0">
             <div class="card-h">
-                <span class="card-t">Positionen aus der Konfiguration</span>
-                <span class="pill">{{ count($positionen) }}</span>
+                <span class="card-t">Positionen &amp; Preise</span>
+                <span class="pill">{{ count($rechnung['positionen']) }}</span>
             </div>
-            <div class="card-b" style="padding:6px 17px">
-                @if ($positionen === [])
-                    <p class="hint" style="padding:10px 0">Keine Konfiguration hinterlegt — Positionen folgen aus dem Projekt-Konfigurator.</p>
-                @else
+            <div class="card-b" style="padding:6px 17px 14px">
+                @if (count($rechnung['positionen']) === 1)
+                    <p class="hint" style="padding:8px 0 0">Keine Konfiguration hinterlegt —
+                        Positionen folgen aus dem Projekt-Konfigurator.</p>
+                @endif
+                <form method="POST" action="{{ route('angebote.preise', $angebot) }}">
+                    @csrf
                     <table class="tbl">
-                        <thead><tr><th>Pos</th><th>Bezeichnung</th><th class="num">Menge</th></tr></thead>
+                        <thead><tr><th>Pos</th><th>Bezeichnung</th><th class="num">Menge</th>
+                            <th class="num">Einzelpreis €</th><th class="num">Gesamt</th></tr></thead>
                         <tbody>
-                        @foreach ($positionen as $position)
+                        @foreach ($rechnung['positionen'] as $position)
                             <tr>
                                 <td><span class="pos">{{ $position['pos'] }}</span></td>
-                                <td class="b">{{ $position['name'] }}</td>
+                                <td>
+                                    <span class="b">{{ $position['titel'] }}</span>
+                                    @foreach ($position['details'] as $detail)
+                                        <div class="hint">{{ $detail }}</div>
+                                    @endforeach
+                                    @if ($position['key'] === 'dach' && $position['listenpreis'] !== null)
+                                        <div class="hint">Listenpreis laut Preisliste:
+                                            {{ Format::eur($position['listenpreis']) }} · zzgl. Montagekosten</div>
+                                    @endif
+                                </td>
                                 <td class="num mono">{{ $position['menge'] }}</td>
+                                <td class="num" style="width:120px">
+                                    <input class="inp mono num" type="number" step="0.01" min="0"
+                                           name="preise[{{ $position['key'] }}]"
+                                           value="{{ old('preise.'.$position['key'], ($angebot->preise[$position['key']] ?? null)) }}"
+                                           placeholder="{{ $position['listenpreis'] !== null ? number_format($position['listenpreis'], 2, '.', '') : '–' }}"
+                                           @disabled($eingefroren)>
+                                </td>
+                                <td class="num mono">{{ $position['gesamt'] !== null ? Format::eur($position['gesamt']) : '–' }}</td>
                             </tr>
                         @endforeach
                         </tbody>
                     </table>
+                    <div class="fx ac gap8" style="margin-top:10px;flex-wrap:wrap;justify-content:flex-end">
+                        <label class="hint" for="rabatt">Rabatt %</label>
+                        <input class="inp mono num" id="rabatt" type="number" step="0.01" min="0" max="100"
+                               name="rabatt_prozent" value="{{ old('rabatt_prozent', (float) $angebot->rabatt_prozent ?: '') }}"
+                               style="width:90px" @disabled($eingefroren)>
+                        <button class="btn btns btnp" type="submit" @disabled($eingefroren)>Preise speichern</button>
+                    </div>
+                </form>
+                <table class="tbl" style="margin-top:8px">
+                    <tbody>
+                    <tr><td class="num" style="border:0">Zwischensumme</td>
+                        <td class="num mono" style="width:130px;border:0">{{ Format::eur($rechnung['zwischensumme']) }}</td></tr>
+                    @if ($rechnung['rabattBetrag'] > 0)
+                        <tr><td class="num" style="border:0">Rabatt {{ rtrim(rtrim(number_format($rechnung['rabattProzent'], 2, ',', '.'), '0'), ',') }} %</td>
+                            <td class="num mono" style="border:0">−{{ Format::eur($rechnung['rabattBetrag']) }}</td></tr>
+                    @endif
+                    <tr><td class="num b" style="border:0">Gesamtbetrag (brutto)</td>
+                        <td class="num mono b" style="border:0">{{ Format::eur($rechnung['gesamt']) }}</td></tr>
+                    <tr><td class="num hint" style="border:0">darin enthaltene MwSt. 19 %</td>
+                        <td class="num mono hint" style="border:0">{{ Format::eur($rechnung['mwst']) }}</td></tr>
+                    </tbody>
+                </table>
+                @if ($eingefroren)
+                    <p class="hint">Angenommen am {{ $angebot->angenommen_am?->format('d.m.Y H:i') ?? '–' }} —
+                        das Angebot ist eingefroren.</p>
                 @endif
             </div>
         </div>
@@ -75,26 +122,27 @@
                 @if ($angebot->summe === null)
                     <p class="hint">Noch keine Summe erfasst — «in Konfiguration».</p>
                 @endif
-                @if ($listenpreis !== null)
-                    <p class="hint" style="margin-top:6px">Listenpreis laut Preisliste:
-                        <b>{{ Format::eur($listenpreis) }}</b> (Maße auf Raster aufgerundet,
-                        zzgl. Montagekosten)</p>
-                    @if ((float) $angebot->summe !== (float) $listenpreis)
-                        <form method="POST" action="{{ route('angebote.summe', $angebot) }}" style="margin-top:6px">
-                            @csrf
-                            <input type="hidden" name="summe" value="{{ $listenpreis }}">
-                            <button class="btn btns" type="submit">Listenpreis übernehmen</button>
-                        </form>
-                    @endif
+                @unless ($eingefroren)
+                    <form method="POST" action="{{ route('angebote.summe', $angebot) }}"
+                          class="fx ac gap8" style="margin-top:10px">
+                        @csrf
+                        <input class="inp mono" type="number" step="0.01" min="0" name="summe"
+                               value="{{ old('summe', $angebot->summe) }}" placeholder="Gesamtsumme (brutto)" style="flex:1">
+                        <button class="btn btns" type="submit">Speichern</button>
+                    </form>
+                    @error('summe')<p class="hint" style="color:var(--red)">{{ $message }}</p>@enderror
+                @endunless
+            </div>
+            <div class="card">
+                <div class="mc-h"><svg class="i"><use href="#ic-doc"/></svg>Online-Annahme</div>
+                <p class="hint">Dieser Link steht auf Seite 4 des Angebots-PDF — der Kunde kann das
+                    Angebot damit ohne Login verbindlich annehmen
+                    (gültig bis {{ $angebot->gueltig_bis?->format('d.m.Y') ?? '–' }}).</p>
+                <input class="inp mono" readonly value="{{ $annahmeUrl }}" onclick="this.select()" style="width:100%;margin-top:6px">
+                @if ($angebot->angenommen_am)
+                    <p class="hint" style="margin-top:6px">Online angenommen am
+                        {{ $angebot->angenommen_am->format('d.m.Y H:i') }} · IP {{ $angebot->angenommen_ip ?? '–' }}</p>
                 @endif
-                <form method="POST" action="{{ route('angebote.summe', $angebot) }}"
-                      class="fx ac gap8" style="margin-top:10px">
-                    @csrf
-                    <input class="inp mono" type="number" step="0.01" min="0" name="summe"
-                           value="{{ old('summe', $angebot->summe) }}" placeholder="Gesamtsumme (brutto)" style="flex:1">
-                    <button class="btn btns" type="submit">Speichern</button>
-                </form>
-                @error('summe')<p class="hint" style="color:var(--red)">{{ $message }}</p>@enderror
             </div>
             <div class="card">
                 <div class="mc-h"><svg class="i"><use href="#ic-angebote"/></svg>Status</div>
