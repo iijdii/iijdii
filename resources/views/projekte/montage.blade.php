@@ -147,12 +147,10 @@
             @include('projekte.montage-partials.led')
         @endif
 
-        {{-- 8 · Endmaße der Extras --}}
-        @if ($phase2->isNotEmpty())
-            @include('projekte.montage-partials.endmasse-positionen')
-        @else
-            @include('projekte.montage-partials.endmasse')
-        @endif
+        {{-- 8 · Endmaße der Extras — gewohntes Layout (Tabs, Zeichnung,
+             Soll/Ist/Δ); die Gruppen kommen aus den Phase-2-Positionen
+             bzw. bei Bestandsprojekten aus den pcfg-Extras. --}}
+        @include('projekte.montage-partials.endmasse')
 
         {{-- 9 · Notiz / Problem --}}
         <section class="mm-card c6" id="s9">

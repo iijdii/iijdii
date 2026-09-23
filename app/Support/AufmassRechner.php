@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Models\ProjektPosition;
+
 /**
  * Soll/Ist/Δ-Gruppen der „Endmaße der Extras" — Port von _mmEnd aus dem
  * Prototyp. Toleranzschwellen werden übergeben (Settings-Werte
@@ -31,8 +33,139 @@ final class AufmassRechner
         return $ad <= $tolGruen ? 'ok' : ($ad <= $tolGelb ? 'warn' : 'bad');
     }
 
+    /** Ein Soll/Ist/Δ-Feld — geteilt von Legacy- und Positions-Gruppen. */
+    private static function feld(string $tag, string $label, float $soll, string $name, ?string $istRoh, int $tolGruen, int $tolGelb): array
+    {
+        $ist = self::parseIst($istRoh);
+        $delta = null;
+        $ampel = null;
+        $deltaText = '—';
+        $badge = '';
+        if ($ist !== null) {
+            $delta = round($ist - $soll);
+            $ampel = self::ampel($delta, $tolGruen, $tolGelb);
+            $deltaText = ($delta > 0 ? '+' : '').(int) $delta.' mm';
+            $badge = match ($ampel) {
+                'ok' => 'b-green', 'warn' => 'b-yellow', 'bad' => 'b-red'
+            };
+        }
+
+        return [
+            'tag' => $tag, 'label' => $label, 'name' => $name,
+            'soll' => (int) round($soll),
+            'sollText' => number_format(round($soll), 0, ',', '.'),
+            'ist' => $ist,
+            'delta' => $delta, 'deltaText' => $deltaText,
+            'ampel' => $ampel, 'badge' => $badge,
+        ];
+    }
+
     /**
-     * @param array<string, mixed> $mess  aufmass['mess'] — Keys "gruppe.TAG"
+     * Endmaße-Gruppen aus den Phase-2-Positionen (Einheitssystem): gleiche
+     * Optik wie die Legacy-Gruppen (Tabs, Zeichnung, Soll/Ist/Δ) — die
+     * Eingaben heißen aber endmasse[{position}][{feld}] und fließen in die
+     * Nachbestellung. Rechenwerte (Diagonale, Flügelbreite) werden mit
+     * gespeichert, die Nachbestellung liest nur die bekannten Maß-Felder.
+     *
+     * @param  iterable<ProjektPosition>  $positionen
+     * @return list<array<string, mixed>>
+     */
+    public static function gruppenAusPositionen(iterable $positionen, array $kalk, int $tolGruen, int $tolGelb): array
+    {
+        $G = [];
+        $I = fn ($v) => (int) $v;
+
+        foreach ($positionen as $position) {
+            $f = $position->felder ?? [];
+            $em = $position->endmasse ?? [];
+            $feld = fn (string $tag, string $label, string $key, float $soll): array => self::feld(
+                $tag, $label, $soll, 'endmasse['.$position->id.']['.$key.']',
+                isset($em[$key]) ? (string) $em[$key] : null, $tolGruen, $tolGelb,
+            );
+            $n = max(1, $I($f['anzahl'] ?? $f['felder_n'] ?? 1));
+            $titel = 'Pos. '.$position->pos.' · '.$position->produkt->label();
+
+            [$shape, $badge, $felder, $note, $extra] = match ($position->produkt->value) {
+                'wand', 'gelaender' => (function () use ($feld, $f, $I, $n, $position) {
+                    $b = $I($f['breite_mm'] ?? $f['laenge_mm'] ?? 0);
+                    $h1 = $I($f['h_links_mm'] ?? $f['hoehe_mm'] ?? 0);
+                    $h2 = $I($f['h_rechts_mm'] ?? 0) ?: $h1;
+
+                    return ['fest', $n.' Stück', [
+                        $feld('A', 'Breite', $position->produkt->value === 'gelaender' ? 'laenge_mm' : 'breite_mm', $b),
+                        $feld('B', 'Höhe links', $position->produkt->value === 'gelaender' ? 'hoehe_mm' : 'h_links_mm', $h1),
+                        $feld('C', 'Höhe rechts', 'h_rechts_mm', $h2),
+                        $feld('D', 'Diagonale', 'diagonale_mm', sqrt($b * $b + max($h1, $h2) ** 2)),
+                    ], 'Diagonale beidseitig prüfen — Differenz max. 4 mm. Bei H links ≠ H rechts als Trapez fertigen. Füllung '.($f['glas'] ?? '–').'.',
+                        ['qty' => $n]];
+                })(),
+                'schiebe' => (function () use ($feld, $f, $I, $n) {
+                    $sw = $I($f['breite_mm'] ?? 0);
+                    $sh = $I($f['hoehe_mm'] ?? 0);
+                    $fl = $n > 0 ? (int) round(($sw + ($n - 1) * 60) / $n) : 0;
+                    $dir = match ($f['richtung'] ?? '') {
+                        'Nach links' => 'left', 'Nach rechts' => 'right', default => '',
+                    };
+
+                    return ['schiebe', $n.' Flügel · '.strtolower($f['richtung'] ?? 'mittig'), [
+                        $feld('A', 'Anlage Breite', 'breite_mm', $sw),
+                        $feld('B', 'Anlage Höhe', 'hoehe_mm', $sh),
+                        $feld('C', 'Flügelbreite', 'fluegel_mm', $fl),
+                        $feld('D', 'Laufschiene', 'laufschiene_mm', $sw),
+                    ], 'Laufschiene auf Waage prüfen — max. 2 mm über die Gesamtbreite. Füllung '.($f['glas'] ?? '–').'.',
+                        ['dir' => $dir, 'qty' => $n]];
+                })(),
+                'keil' => (function () use ($feld, $f, $I, $n, $kalk) {
+                    $D = $I($kalk['pcfg']['depth'] ?? 0);
+                    $hv = $I($f['h_vorn_mm'] ?? 0) ?: 120;
+                    $hh = max(0, $I($kalk['wallHEff']) - $I($kalk['gutterHEff'])) + $hv;
+
+                    return ['keil', $n.' × '.($f['seite'] ?? '–'), [
+                        $feld('A', 'Breite unten', 'breite_unten_mm', $D),
+                        $feld('B', 'Höhe hinten', 'hoehe_hinten_mm', $hh),
+                        $feld('C', 'Höhe vorne', 'h_vorn_mm', $hv),
+                        $feld('D', 'Breite oben', 'breite_oben_mm', sqrt($D * $D + ($hh - $hv) ** 2)),
+                    ], 'Schrägschnitt '.$kalk['slopeEff'].'° — erst nach dem Ausrichten der Pfosten messen. Füllung '.($f['material'] ?? '–').' · '.($f['transparenz'] ?? '–').'.',
+                        ['side' => $f['seite'] ?? '', 'qty' => $n, 'unterzug' => '110×110']];
+                })(),
+                'markise' => (function () use ($feld, $f, $I, $kalk) {
+                    $mw = $I($f['breite_mm'] ?? 0);
+                    $fd = $I($f['felder_n'] ?? 1) ?: 1;
+                    $kn = $fd + 1;
+                    $ka = $kn > 1 ? (int) round(($mw - 300) / ($kn - 1)) : 0;
+
+                    return ['markise', $f['modell'] ?? '–', [
+                        $feld('A', 'Kassettenbreite', 'breite_mm', $mw),
+                        $feld('B', 'Ausfall ausgefahren', 'ausfall_mm', $I($f['ausfall_mm'] ?? 0)),
+                        $feld('C', 'Konsolen-Achsabstand', 'konsolen_mm', $ka),
+                        $feld('D', 'Höhe Vorderkante', 'hoehe_vorderkante_mm', max(0, $I($kalk['gutterHEff']) - 250)),
+                    ], $kn.' Konsolen · nur an Sparren oder Unterzug befestigen. Neigung 12–15°.', []];
+                })(),
+                default => (function () use ($feld, $f, $I, $n) {
+                    $b = $I($f['breite_mm'] ?? $f['laenge_mm'] ?? 0);
+                    $h = $I($f['hoehe_mm'] ?? 0);
+
+                    return ['fest', $n.' Stück', [
+                        $feld('A', 'Breite', 'breite_mm', $b),
+                        $feld('B', 'Höhe', 'hoehe_mm', $h),
+                    ], 'Maße nach Montage prüfen.', ['qty' => $n]];
+                })(),
+            };
+
+            $gefuellt = count(array_filter($felder, fn ($x) => $x['ist'] !== null));
+            $G[] = array_merge([
+                'ek' => 'p'.$position->id, 'title' => $titel, 'badge' => $badge, 'shape' => $shape,
+                'fields' => $felder, 'note' => $note,
+                'gefuellt' => $gefuellt, 'gesamt' => count($felder),
+                'progCls' => $gefuellt === 0 ? '' : ($gefuellt === count($felder) ? 'b-green' : 'b-yellow'),
+            ], $extra);
+        }
+
+        return $G;
+    }
+
+    /**
+     * @param  array<string, mixed>  $mess  aufmass['mess'] — Keys "gruppe.TAG"
      * @return list<array<string, mixed>> Gruppen mit fields[] {tag,label,soll,sollText,ist,delta,deltaText,ampel,badge}
      */
     public static function gruppen(array $pcfg, array $mess, int $tolGruen, int $tolGelb): array
@@ -45,28 +178,11 @@ final class AufmassRechner
         $hat = fn (string $x) => in_array($x, $extras, true);
         $G = [];
 
-        $feld = function (string $ek, string $tag, string $label, float $soll) use ($mess, $tolGruen, $tolGelb): array {
-            $ist = self::parseIst(isset($mess[$ek.'.'.$tag]) ? (string) $mess[$ek.'.'.$tag] : null);
-            $delta = null;
-            $ampel = null;
-            $deltaText = '—';
-            $badge = '';
-            if ($ist !== null) {
-                $delta = round($ist - $soll);
-                $ampel = self::ampel($delta, $tolGruen, $tolGelb);
-                $deltaText = ($delta > 0 ? '+' : '').(int) $delta.' mm';
-                $badge = match ($ampel) { 'ok' => 'b-green', 'warn' => 'b-yellow', 'bad' => 'b-red' };
-            }
-
-            return [
-                'tag' => $tag, 'label' => $label,
-                'soll' => (int) round($soll),
-                'sollText' => number_format(round($soll), 0, ',', '.'),
-                'ist' => $ist,
-                'delta' => $delta, 'deltaText' => $deltaText,
-                'ampel' => $ampel, 'badge' => $badge,
-            ];
-        };
+        $feld = fn (string $ek, string $tag, string $label, float $soll): array => self::feld(
+            $tag, $label, $soll, 'mess['.$ek.'.'.$tag.']',
+            isset($mess[$ek.'.'.$tag]) ? (string) $mess[$ek.'.'.$tag] : null,
+            $tolGruen, $tolGelb,
+        );
 
         $gruppe = function (string $ek, string $title, string $badge, string $shape, array $felder, string $note, array $extra = []) use (&$G) {
             $gefuellt = count(array_filter($felder, fn ($f) => $f['ist'] !== null));

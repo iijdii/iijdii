@@ -52,12 +52,13 @@ class EndmasseZyklusTest extends TestCase
         $projekt = $this->projektMitElementen();
         $wand = $projekt->positionen()->where('produkt', 'wand')->firstOrFail();
 
-        // Montage-Modus zeigt die Positions-Sektion mit Sollwerten
+        // Montage-Modus zeigt die Positionen im gewohnten Endmaße-Layout
+        // (Tabs, Zeichnung, Soll/Ist/Δ) mit dem alten Sende-Knopf.
         $this->actingAs($this->monteur)->get('/projekte/'.$projekt->nr.'/montage')
             ->assertOk()
             ->assertSee('Endmaße der Extras')
-            ->assertSee('Position 2 — Wand / Festelement')
-            ->assertSee('Endmaße speichern');
+            ->assertSee('Pos. 2 · Wand / Festelement')
+            ->assertSee('Aufmaß senden');
 
         // Endmaße speichern (Wand final 3010 breit, Höhen 2005/2420)
         $this->actingAs($this->monteur)->post('/projekte/'.$projekt->nr.'/montage/endmasse', [

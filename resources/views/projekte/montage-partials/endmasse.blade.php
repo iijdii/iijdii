@@ -15,7 +15,8 @@
             @endforeach
         </div>
 
-        <form id="aufmass-form" method="POST" action="{{ route('projekte.montage.aufmass', $projekt) }}"
+        {{-- Ziel je Datenquelle: Positions-Endmaße (Phase 2) oder Legacy-Aufmaß. --}}
+        <form id="aufmass-form" method="POST" action="{{ $endmasseAction }}"
               data-tol-gruen="{{ $tolGruen }}" data-tol-gelb="{{ $tolGelb }}">
             @csrf
             <div class="ex-panel">
@@ -37,7 +38,7 @@
                                     <span class="ex-tag">{{ $feld['tag'] }}</span>
                                     <span class="ex-lab"><b>{{ $feld['label'] }}</b><span>Soll {{ $feld['sollText'] }} mm</span></span>
                                     <input class="ex-in" type="text" inputmode="decimal" placeholder="Ist"
-                                           name="mess[{{ $gruppe['ek'] }}.{{ $feld['tag'] }}]"
+                                           name="{{ $feld['name'] }}"
                                            value="{{ $feld['ist'] !== null ? rtrim(rtrim(number_format($feld['ist'], 2, ',', ''), '0'), ',') : '' }}">
                                     <span class="badge {{ $feld['badge'] }} ex-d">{{ $feld['deltaText'] }}</span>
                                 </div>

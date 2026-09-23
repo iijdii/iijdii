@@ -28,7 +28,13 @@ class MontageController extends Controller
         $gesetzt = $aufmass['led'] ?? [];
         [$tolGruen, $tolGelb] = $this->toleranzen();
 
-        $gruppen = AufmassRechner::gruppen($p, $aufmass['mess'] ?? [], $tolGruen, $tolGelb);
+        // Endmaße-Gruppen: aus den Phase-2-Positionen (Einheitssystem), bei
+        // Bestandsprojekten ohne Positionen aus den pcfg-Extras — beide im
+        // gewohnten Layout (Tabs, Zeichnung, Soll/Ist/Δ).
+        $phase2 = $projekt->positionen()->where('phase', 2)->orderBy('pos')->get();
+        $gruppen = $phase2->isNotEmpty()
+            ? AufmassRechner::gruppenAusPositionen($phase2, $kalk, $tolGruen, $tolGelb)
+            : AufmassRechner::gruppen($p, $aufmass['mess'] ?? [], $tolGruen, $tolGelb);
         $aktiveGruppe = collect($gruppen)->firstWhere('ek', $request->query('gruppe')) ?? ($gruppen[0] ?? null);
 
         // Verglasungs-Zeichnung: synthetisches Festelement (Prototyp).
@@ -59,7 +65,10 @@ class MontageController extends Controller
 
         return view('projekte.montage', [
             'projekt' => $projekt,
-            'phase2' => $projekt->positionen()->where('phase', 2)->orderBy('pos')->get(),
+            'phase2' => $phase2,
+            'endmasseAction' => $phase2->isNotEmpty()
+                ? route('projekte.montage.endmasse', $projekt)
+                : route('projekte.montage.aufmass', $projekt),
             'kalk' => $kalk,
             'pcfg' => $p,
             'tolGruen' => $tolGruen,
@@ -89,12 +98,26 @@ class MontageController extends Controller
      */
     public function speichereEndmasse(Request $request, Projekt $projekt): RedirectResponse
     {
+        // Dübelgröße wie im Legacy-Aufmaß mitpflegen (gemeinsames Formular).
+        if ($request->filled('duebel_size')) {
+            $konfiguration = $projekt->konfiguration ?? [];
+            $konfiguration['duebel'] = array_merge(
+                $konfiguration['duebel'] ?? [],
+                ['size' => (string) $request->input('duebel_size')],
+            );
+            $projekt->update(['konfiguration' => $konfiguration]);
+        }
+
         $eingaben = (array) $request->input('endmasse', []);
         $erfasst = 0;
 
         foreach ($projekt->positionen()->where('phase', 2)->get() as $position) {
             $werte = array_filter(
-                array_map(fn ($w) => is_numeric($w) ? (int) $w : null, (array) ($eingaben[$position->id] ?? [])),
+                array_map(function ($w) {
+                    $wert = AufmassRechner::parseIst((string) $w);
+
+                    return $wert !== null ? (int) round($wert) : null;
+                }, (array) ($eingaben[$position->id] ?? [])),
                 fn ($w) => $w !== null && $w >= 0,
             );
             if ($werte === []) {
