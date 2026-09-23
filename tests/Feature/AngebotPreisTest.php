@@ -7,6 +7,7 @@ use App\Models\Angebot;
 use App\Models\Projekt;
 use App\Models\User;
 use App\Support\AngebotsRechnung;
+use App\Support\QrCode;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -185,16 +186,25 @@ class AngebotPreisTest extends TestCase
         $token = $angebot->accept_token;
         $this->assertNotNull($token);
 
-        // Öffentliche Seite ohne Login
+        // Öffentliche, dokumentgetreue Seite ohne Login
         $this->get('/angebot-annahme/'.$token)
             ->assertOk()
             ->assertSee('Angebot '.$angebot->nr)
+            ->assertSee('Technische Ausführung')
+            ->assertSee('Zur Überarbeitung senden')
             ->assertSee('Angebot verbindlich annehmen');
         $this->get('/angebot-annahme/falscher-token')->assertNotFound();
 
+        // Ohne alle vier Haken keine Annahme
+        $this->post('/angebot-annahme/'.$token, ['aktion' => 'annehmen'])
+            ->assertSessionHas('annahme_fehler');
+        $this->assertNotSame(AngebotStatus::Angenommen, $angebot->fresh()->status);
+
         // Annahme: Status, Zeitpunkt, IP + Aktivität am Projekt
-        $this->post('/angebot-annahme/'.$token)
-            ->assertRedirect(route('angebote.annahme', $token));
+        $this->post('/angebot-annahme/'.$token, [
+            'aktion' => 'annehmen',
+            'bestaetigung' => ['angebot', 'technik', 'montage', 'widerruf'],
+        ])->assertRedirect(route('angebote.annahme', $token));
         $angebot->refresh();
         $this->assertSame(AngebotStatus::Angenommen, $angebot->status);
         $this->assertNotNull($angebot->angenommen_am);
@@ -217,7 +227,56 @@ class AngebotPreisTest extends TestCase
 
         $this->get('/angebot-annahme/'.$angebot->accept_token)
             ->assertOk()->assertSee('Angebot abgelaufen');
-        $this->post('/angebot-annahme/'.$angebot->accept_token);
+        $this->post('/angebot-annahme/'.$angebot->accept_token, [
+            'aktion' => 'annehmen', 'bestaetigung' => ['angebot', 'technik', 'montage', 'widerruf'],
+        ]);
         $this->assertNotSame(AngebotStatus::Angenommen, $angebot->fresh()->status);
+    }
+
+    public function test_kunde_kann_ablehnen_oder_ueberarbeitung_anfordern(): void
+    {
+        $projekt = $this->projektMitDach();
+        $angebot = $projekt->angebot;
+        $angebot->update(['status' => AngebotStatus::Versendet]);
+
+        // Überarbeitung braucht einen Kommentar; danach Status → Entwurf
+        $this->post('/angebot-annahme/'.$angebot->accept_token, ['aktion' => 'ueberarbeitung'])
+            ->assertSessionHas('annahme_fehler');
+        $this->post('/angebot-annahme/'.$angebot->accept_token, [
+            'aktion' => 'ueberarbeitung', 'kommentar' => 'Bitte Tiefe auf 3,5 m ändern',
+        ])->assertSessionHas('annahme_info');
+        $angebot->refresh();
+        $this->assertSame(AngebotStatus::Entwurf, $angebot->status);
+        $this->assertSame('Bitte Tiefe auf 3,5 m ändern', $angebot->kunden_kommentar);
+        $this->assertTrue($projekt->aktivitaeten()
+            ->where('titel', 'like', '%Überarbeitung%')->exists());
+
+        // Kommentar erscheint für den Verkäufer auf der Angebots-Seite
+        $this->actingAs($this->verkauf)->get('/angebote/'.$angebot->nr)
+            ->assertSee('Kommentar des Kunden')
+            ->assertSee('Bitte Tiefe auf 3,5 m ändern');
+
+        // Ablehnen setzt den Status auf Abgelehnt
+        $angebot->update(['status' => AngebotStatus::Versendet]);
+        $this->post('/angebot-annahme/'.$angebot->accept_token, ['aktion' => 'ablehnen']);
+        $this->assertSame(AngebotStatus::Abgelehnt, $angebot->fresh()->status);
+        $this->get('/angebot-annahme/'.$angebot->accept_token)->assertSee('Angebot abgelehnt');
+    }
+
+    public function test_angebots_pdf_traegt_qr_code_der_online_annahme(): void
+    {
+        $projekt = $this->projektMitDach();
+        $url = route('angebote.annahme', $projekt->angebot->accept_token);
+
+        $qr = QrCode::svgDataUri($url);
+        $this->assertNotNull($qr);
+        $this->assertStringStartsWith('data:image/svg+xml;base64,', $qr);
+
+        // Matrix hat gültige Größe (Version 1–5 → 21–37 Module) und Suchmuster
+        $matrix = QrCode::matrix($url);
+        $this->assertContains(count($matrix), [21, 25, 29, 33, 37]);
+        $this->assertSame(1, $matrix[0][0]);
+        $this->assertSame(1, $matrix[3][3]);
+        $this->assertNull(QrCode::matrix(str_repeat('x', 200)));
     }
 }

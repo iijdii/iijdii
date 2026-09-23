@@ -182,6 +182,12 @@
                     <p class="hint" style="margin-top:6px">Online angenommen am
                         {{ $angebot->angenommen_am->format('d.m.Y H:i') }} · IP {{ $angebot->angenommen_ip ?? '–' }}</p>
                 @endif
+                @if ($angebot->kunden_kommentar)
+                    <div class="kbox" style="margin-top:8px">
+                        <div class="kt">Kommentar des Kunden</div>
+                        <p class="hint" style="white-space:pre-line">{{ $angebot->kunden_kommentar }}</p>
+                    </div>
+                @endif
             </div>
             <div class="card">
                 <div class="mc-h"><svg class="i"><use href="#ic-angebote"/></svg>Status</div>

@@ -56,7 +56,7 @@ Route::get('/einrichtung/{token}', function (string $token) {
 // Öffentliche Online-Annahme eines Angebots — kein Login, Schutz ist die
 // Kenntnis des accept_token aus dem Angebots-PDF (Spez. v3.2).
 Route::get('/angebot-annahme/{token}', [AngebotAnnahmeController::class, 'zeige'])->name('angebote.annahme');
-Route::post('/angebot-annahme/{token}', [AngebotAnnahmeController::class, 'bestaetige'])->name('angebote.annahme.bestaetigen');
+Route::post('/angebot-annahme/{token}', [AngebotAnnahmeController::class, 'antwort'])->name('angebote.annahme.bestaetigen');
 
 Route::middleware(['auth', 'lieferant.portal'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

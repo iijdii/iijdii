@@ -7,6 +7,7 @@ use App\Models\Angebot;
 use App\Support\AngebotsRechnung;
 use App\Support\KonfiguratorRechner;
 use App\Support\PdfArchiv;
+use App\Support\QrCode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -53,12 +54,14 @@ class AngebotController extends Controller
     {
         $angebot->load(['kunde', 'projekt.positionen']);
         $konfiguration = $angebot->projekt?->konfiguration ?? $angebot->konfiguration;
+        $annahmeUrl = route('angebote.annahme', $angebot->stelleAnnahmeTokenSicher());
 
         return PdfArchiv::liefere('angebote.pdf', [
             'angebot' => $angebot,
             'rechnung' => AngebotsRechnung::fuer($angebot),
             'kalk' => $konfiguration !== null ? KonfiguratorRechner::berechne($konfiguration) : null,
-            'annahmeUrl' => route('angebote.annahme', $angebot->stelleAnnahmeTokenSicher()),
+            'annahmeUrl' => $annahmeUrl,
+            'annahmeQr' => QrCode::svgDataUri($annahmeUrl),
         ], 'Angebot_'.$angebot->nr.'.pdf', $angebot->projekt, 'angebot', $angebot->status->label());
     }
 

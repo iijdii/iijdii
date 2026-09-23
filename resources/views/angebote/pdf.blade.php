@@ -190,9 +190,19 @@
     </tr></table>
 
     <div class="hinweis">
-        <b>Online-Annahme:</b> Sie können dieses Angebot auch bequem online annehmen —
-        öffnen Sie dazu den folgenden Link:<br>
-        <span style="font-family:'DejaVu Sans Mono',monospace;font-size:8.5px">{{ $annahmeUrl }}</span>
+        <table style="width:100%;border-collapse:collapse"><tr>
+            @if (($annahmeQr ?? null) !== null)
+                <td style="width:30mm;padding:0 10px 0 0;vertical-align:top">
+                    <img src="{{ $annahmeQr }}" alt="QR-Code zur Online-Annahme" style="width:28mm;height:28mm">
+                </td>
+            @endif
+            <td style="padding:0;vertical-align:top">
+                <b>Online-Annahme:</b> Scannen Sie den QR-Code mit dem Smartphone oder öffnen Sie den
+                folgenden Link — dort können Sie das Angebot einsehen, verbindlich annehmen, ablehnen
+                oder mit einem Kommentar zur Überarbeitung zurückgeben:<br>
+                <span style="font-family:'DejaVu Sans Mono',monospace;font-size:8px">{{ $annahmeUrl }}</span>
+            </td>
+        </tr></table>
     </div>
 
     <p class="legal">Dieses Angebot ist freibleibend und gilt

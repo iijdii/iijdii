@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable(['nr', 'kunde_id', 'anfrage_id', 'titel', 'status', 'datum', 'summe', 'konfiguration',
     'gueltig_bis', 'rabatt_prozent', 'preise', 'rabatte', 'freie_positionen', 'ausgeblendet',
-    'accept_token', 'angenommen_am', 'angenommen_ip'])]
+    'accept_token', 'angenommen_am', 'angenommen_ip', 'kunden_kommentar'])]
 class Angebot extends Model
 {
     use HasFactory;
