@@ -58,7 +58,7 @@
         </div>
     </div>
 
-    <div class="anf-tools">
+    <div class="anf-tools prj-tabs">
         <div class="seg" style="flex-wrap:wrap">
             @foreach ([
                 'uebersicht' => 'Übersicht', 'kunde' => 'Kunde & Termine',

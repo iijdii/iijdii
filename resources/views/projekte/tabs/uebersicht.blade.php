@@ -17,7 +17,7 @@
 @endphp
 
 <div class="prj-cols">
-    <div class="colstack">
+    <div class="prj-zeich">
         <div class="card p0">
             <div class="card-h">
                 <span class="card-t">Technische Zeichnungen — Konstruktion</span>
@@ -36,8 +36,10 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        {{-- Links nur das Dach — die Extra-Positionen stehen kompakt rechts. --}}
+    <div class="colstack prj-links">
+        {{-- Produktpass des Dachs — die Extra-Positionen stehen kompakt rechts. --}}
         @forelse ($projekt->positionen->filter(fn ($p) => $p->produkt->istDach()) as $position)
             <div class="card p0">
                 <div class="card-h">
@@ -162,8 +164,10 @@
         @empty
             <div class="card"><p class="hint">Noch keine Dach-Position — über «Position hinzufügen» starten.</p></div>
         @endforelse
+    </div>
 
-        {{-- LED-Plan unter dem Konfigurator (Wunsch des Betreibers) --}}
+    <div class="colstack prj-mitte">
+        {{-- LED-Plan in der Mittelspalte neben dem Produktpass --}}
         @isset ($ledZeichnung)
             @include('projekte.partials.led-plan')
         @endisset
