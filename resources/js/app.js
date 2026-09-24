@@ -162,6 +162,16 @@ document.addEventListener('click', (e) => {
     const ansicht = link.dataset.pdfAnsicht
         || download + (download.includes('?') ? '&' : '?') + 'ansicht=1';
 
+    // Mobile Browser (v. a. Chrome auf Android) haben keinen Inline-
+    // PDF-Viewer — ein iframe bliebe leer. Dann direkt in neuem Tab
+    // öffnen, dort übernimmt der System-Viewer bzw. der Download.
+    const ohneInlineViewer = navigator.pdfViewerEnabled === false
+        || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+    if (ohneInlineViewer) {
+        window.open(ansicht, '_blank');
+        return;
+    }
+
     modalContent.innerHTML = `
         <div class="jb" style="padding:10px 14px;border-bottom:1px solid var(--line,#e2e5ea);gap:10px;flex-wrap:wrap">
             <b class="pdfv-titel" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></b>
