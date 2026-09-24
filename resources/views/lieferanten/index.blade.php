@@ -21,13 +21,14 @@
         </div>
         <div class="card-b" style="padding:6px 17px;overflow-x:auto">
             <table class="tbl">
-                <thead><tr><th>Name</th><th>Ansprechpartner</th><th>Kontakt</th><th>Ort</th>
+                <thead><tr><th>Name</th><th>Sortiment</th><th>Ansprechpartner</th><th>Kontakt</th><th>Ort</th>
                     <th class="num">Artikel</th><th class="num">Offene Bestellungen</th><th class="num">Lagerwert</th></tr></thead>
                 <tbody>
                 @foreach ($lieferanten as $zeile)
                     @php $lieferant = $zeile['lieferant']; @endphp
                     <tr class="lrow" onclick="window.location='{{ route('bestellungen', ['lieferant' => $lieferant->id]) }}'">
                         <td class="b">{{ $lieferant->name }}</td>
+                        <td style="font-size:12px;color:var(--ink3)">{{ $lieferant->sortiment ?? '–' }}</td>
                         <td>{{ $lieferant->ansprechpartner ?? '–' }}</td>
                         <td>
                             <span class="mono" style="font-size:12px">{{ $lieferant->telefon ?? '–' }}</span>

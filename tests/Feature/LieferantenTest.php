@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Rolle;
 use App\Models\Artikel;
 use App\Models\Lieferant;
 use App\Models\User;
@@ -24,7 +25,12 @@ class LieferantenTest extends TestCase
 
         $this->actingAs($benutzer)->get('/lieferanten')
             ->assertOk()
-            ->assertSeeInOrder(['Solarlux', 'Sunshine', 'Würth'])
+            ->assertSeeInOrder(['KD Überdachung GmbH', 'Rhein-Main Überdachungen', 'Solarlux', 'Sunshine', 'Würth'])
+            ->assertSee('Profile · Glas · Schiebe-Elemente')
+            ->assertSee('anfrage@rheinmain-ueberdachungen.de')
+            ->assertSee('63477 Maintal')
+            ->assertSee('info@kd-ueberdachung.de')
+            ->assertSee('65428 Rüsselsheim am Main')
             ->assertSee('Fr. Behrens')
             ->assertSee('order@solarlux.example')
             ->assertSee('49324 Melle')
@@ -51,7 +57,7 @@ class LieferantenTest extends TestCase
 
     public function test_rendert_ohne_seed_daten(): void
     {
-        $benutzer = User::factory()->role(\App\Enums\Rolle::Admin)->create();
+        $benutzer = User::factory()->role(Rolle::Admin)->create();
 
         $this->actingAs($benutzer)->get('/lieferanten')
             ->assertOk()
