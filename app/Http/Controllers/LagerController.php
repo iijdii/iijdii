@@ -4,26 +4,26 @@ namespace App\Http\Controllers;
 
 use App\Enums\ArtikelKategorie;
 use App\Enums\BestellungStatus;
+use App\Enums\LagerbewegungTyp;
 use App\Models\Artikel;
 use App\Models\Bestellung;
 use App\Models\Lagerbewegung;
 use App\Models\Reservierung;
 use App\Models\WareneingangPosition;
-use App\Enums\LagerbewegungTyp;
-use Illuminate\Support\Facades\DB;
 use App\Services\LagerService;
+use App\Support\Format;
 use App\Support\Nummern;
 use App\Support\PdfArchiv;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class LagerController extends Controller
 {
-    public function __construct(private readonly LagerService $lager)
-    {
-    }
+    public function __construct(private readonly LagerService $lager) {}
 
     public function index(Request $request): View
     {
@@ -94,7 +94,7 @@ class LagerController extends Controller
      * das Artikel-Modal seit M2 anzeigt. Bewusst nicht idempotent:
      * jeder Klick erzeugt neue Entwürfe, der Toast nennt die Nummern.
      */
-    public function erstelleBestellvorschlag(Request $request): \Illuminate\Http\RedirectResponse
+    public function erstelleBestellvorschlag(Request $request): RedirectResponse
     {
         $niedrig = Artikel::query()->with('lieferant')->withSum('reservierungen', 'menge')->get()
             ->filter(fn (Artikel $a) => $a->bestandsstatus() !== 'ok');
@@ -132,7 +132,7 @@ class LagerController extends Controller
     }
 
     /** Nachbestellen aus dem Artikel-Modal: Position im neuesten Entwurf des Lieferanten. */
-    public function nachbestellen(Request $request, Artikel $artikel): \Illuminate\Http\RedirectResponse
+    public function nachbestellen(Request $request, Artikel $artikel): RedirectResponse
     {
         $bestellung = Bestellung::query()
             ->where('lieferant_id', $artikel->lieferant_id)
@@ -176,7 +176,7 @@ class LagerController extends Controller
     }
 
     /** Manuelle Korrekturbuchung: Bestand ± Menge + eine Journal-Zeile. */
-    public function bucheKorrektur(Request $request, Artikel $artikel): \Illuminate\Http\RedirectResponse
+    public function bucheKorrektur(Request $request, Artikel $artikel): RedirectResponse
     {
         $daten = $request->validate([
             'menge' => ['required', 'integer', 'not_in:0', 'min:-9999', 'max:9999'],
@@ -202,11 +202,11 @@ class LagerController extends Controller
         });
 
         return redirect()->route('lager')
-            ->with('toast', 'Korrektur gebucht · '.\App\Support\Format::mengeSigniert((int) $daten['menge']));
+            ->with('toast', 'Korrektur gebucht · '.Format::mengeSigniert((int) $daten['menge']));
     }
 
     /** Lieferschein-PDF zum gebuchten Wareneingang einer Bestellung. */
-    public function lieferschein(Bestellung $bestellung): \Illuminate\Http\Response
+    public function lieferschein(Bestellung $bestellung): Response
     {
         $wareneingang = $bestellung->wareneingaenge()->with('benutzer')->latest('datum')->first();
         abort_unless($wareneingang !== null, 404);
@@ -215,7 +215,7 @@ class LagerController extends Controller
             'bestellung' => $bestellung->load(['lieferant', 'projekt']),
             'wareneingang' => $wareneingang,
             'positionen' => $this->lager->aggregierePositionen($bestellung),
-        ], 'Lieferschein_'.$wareneingang->lieferschein_nr.'.pdf', $bestellung->projekt, 'lieferschein');
+        ], 'Lieferschein_'.$wareneingang->lieferschein_nr, $bestellung->projekt, 'lieferschein', null, $bestellung->kunde);
     }
 
     public function bucheWareneingang(Request $request, Bestellung $bestellung): RedirectResponse

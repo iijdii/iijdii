@@ -62,7 +62,7 @@ class AngebotController extends Controller
             'kalk' => $konfiguration !== null ? KonfiguratorRechner::berechne($konfiguration) : null,
             'annahmeUrl' => $annahmeUrl,
             'annahmeQr' => QrCode::svgDataUri($annahmeUrl),
-        ], 'Angebot_'.$angebot->nr.'.pdf', $angebot->projekt, 'angebot', $angebot->status->label());
+        ], 'Angebot_'.$angebot->nr, $angebot->projekt, 'angebot', $angebot->status->label(), $angebot->kunde);
     }
 
     /** Preise je Position + globaler Rabatt; die Summe folgt den Positionen. */

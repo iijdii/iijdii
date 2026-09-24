@@ -472,10 +472,11 @@ class BestellungController extends Controller
         return PdfArchiv::liefere(
             'bestellungen.pdf',
             $this->positionsDaten($bestellung) + ['bestellung' => $bestellung],
-            'Bestellung_'.$bestellung->nr.'.pdf',
+            'Bestellung_'.$bestellung->nr,
             $bestellung->projekt,
             'bestellung',
             $bestellung->status->label(),
+            $bestellung->kunde,
         );
     }
 

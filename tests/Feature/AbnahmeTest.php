@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Abnahmeprotokoll;
+use App\Models\MontageAufgabe;
 use App\Models\Projekt;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -82,12 +83,12 @@ class AbnahmeTest extends TestCase
 
         Storage::assertExists('unterschriften/AP-2026-0114_auftraggeber.png');
         Storage::assertExists('unterschriften/AP-2026-0114_monteur.png');
-        Storage::assertExists('dokumente/Abnahmeprotokoll_AP-2026-0114.pdf');
-        $this->assertStringStartsWith('%PDF', Storage::get('dokumente/Abnahmeprotokoll_AP-2026-0114.pdf'));
+        Storage::assertExists('dokumente/Abnahmeprotokoll_AP-2026-0114_DEMO-Demo.pdf');
+        $this->assertStringStartsWith('%PDF', Storage::get('dokumente/Abnahmeprotokoll_AP-2026-0114_DEMO-Demo.pdf'));
 
         $projekt = Projekt::query()->where('nr', 'PRJ-2026-011')->firstOrFail();
         $dokument = $projekt->dokumente()->where('typ', 'abnahmeprotokoll')->firstOrFail();
-        $this->assertSame('Abnahmeprotokoll_AP-2026-0114.pdf', $dokument->dateiname);
+        $this->assertSame('Abnahmeprotokoll_AP-2026-0114_DEMO-Demo.pdf', $dokument->dateiname);
         $this->assertSame('abgenommen', $dokument->badge);
         $this->assertGreaterThan(0, $dokument->groesse);
 
@@ -123,7 +124,7 @@ class AbnahmeTest extends TestCase
         $this->assertSame(2, $protokoll->maengel()->count());
         $this->assertSame('2026-09-10', $protokoll->maengel()->first()->frist->toDateString());
 
-        Storage::assertExists('dokumente/Abnahmeprotokoll_AP-2026-0114_mit_Vorbehalt.pdf');
+        Storage::assertExists('dokumente/Abnahmeprotokoll_AP-2026-0114_DEMO-Demo_mit_Vorbehalt.pdf');
         $this->assertSame('2 Mängel', Projekt::query()->where('nr', 'PRJ-2026-011')->firstOrFail()
             ->dokumente()->where('typ', 'abnahmeprotokoll')->value('badge'));
 
@@ -139,15 +140,16 @@ class AbnahmeTest extends TestCase
             'sig_auftraggeber' => self::SIG, 'sig_monteur' => self::SIG,
         ])->assertSessionHas('toast', 'Abnahme verweigert — Protokoll archiviert');
 
-        Storage::assertExists('dokumente/Abnahmeprotokoll_AP-2026-0114_verweigert.pdf');
+        Storage::assertExists('dokumente/Abnahmeprotokoll_AP-2026-0114_DEMO-Demo_verweigert.pdf');
         $this->assertSame('verweigert', Projekt::query()->where('nr', 'PRJ-2026-011')->firstOrFail()
             ->dokumente()->where('typ', 'abnahmeprotokoll')->value('badge'));
     }
+
     public function test_positionen_kommen_aus_erledigten_aufgaben(): void
     {
         // Zwei Checklisten-Aufgaben erledigen → sie ersetzen die Konfigurator-Positionen
         foreach (['Fundamente prüfen & Pfosten stellen', 'Verglasung einsetzen'] as $titel) {
-            $aufgabe = \App\Models\MontageAufgabe::query()->where('titel', $titel)->firstOrFail();
+            $aufgabe = MontageAufgabe::query()->where('titel', $titel)->firstOrFail();
             $this->actingAs($this->monteur)
                 ->post('/projekte/PRJ-2026-011/montage/aufgaben/'.$aufgabe->id.'/erledigt');
         }
@@ -163,6 +165,6 @@ class AbnahmeTest extends TestCase
             'art' => 'ohne', 'ort' => 'Berlin',
             'sig_auftraggeber' => self::SIG, 'sig_monteur' => self::SIG,
         ])->assertSessionHas('toast', 'Abnahmeprotokoll unterschrieben und archiviert');
-        Storage::assertExists('dokumente/Abnahmeprotokoll_AP-2026-0114.pdf');
+        Storage::assertExists('dokumente/Abnahmeprotokoll_AP-2026-0114_DEMO-Demo.pdf');
     }
 }

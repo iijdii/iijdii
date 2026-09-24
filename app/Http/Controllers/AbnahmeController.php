@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Enums\ProjektStatus;
 use App\Models\Projekt;
+use App\Support\Format;
 use App\Support\KonfiguratorRechner;
 use App\Support\Nummern;
+use App\Support\PdfArchiv;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -89,7 +91,7 @@ class AbnahmeController extends Controller
                 'vorbehalt' => '_mit_Vorbehalt',
                 default => '',
             };
-            $dateiname = 'Abnahmeprotokoll_'.$nr.$suffix.'.pdf';
+            $dateiname = 'Abnahmeprotokoll_'.$nr.PdfArchiv::kundenTeil($projekt->kunde).$suffix.'.pdf';
             $bytes = Pdf::loadView('abnahme.pdf', [
                 'protokoll' => $protokoll,
                 'projekt' => $projekt->load('kunde'),
@@ -165,7 +167,7 @@ class AbnahmeController extends Controller
         return array_map(fn ($pos) => [
             'pos' => $pos['pos'],
             'name' => $pos['name'],
-            'menge' => \App\Support\Format::menge($pos['menge']).' Stk',
+            'menge' => Format::menge($pos['menge']).' Stk',
         ], $kalk['positionen']);
     }
 

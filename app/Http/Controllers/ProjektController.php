@@ -116,7 +116,7 @@ class ProjektController extends Controller
             'projekt' => $projekt,
             'kalk' => KonfiguratorRechner::berechne($projekt->konfiguration ?? []),
             'materialListe' => $this->lager->materialListe($projekt),
-        ], 'Projektmappe_'.$projekt->nr.'.pdf', $projekt, 'projektmappe');
+        ], 'Projektmappe_'.$projekt->nr, $projekt, 'projektmappe', null, $projekt->kunde);
     }
 
     public function speichereStammdaten(Request $request, Projekt $projekt): RedirectResponse
