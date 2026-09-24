@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>@include('partials.pdf-stil', ['palette' => 'blau'])</head>
-@php use App\Support\Format; @endphp
+@php use App\Support\Format; use App\Support\PdfSkizze; @endphp
 <body>
     @include('partials.pdf-fuss')
     @include('partials.pdf-kopf', [
@@ -57,6 +57,22 @@
             @endforeach
             </tbody>
         </table>
+
+        <h2>Zuschnittskizzen Glas</h2>
+        <table style="width:100%;border-collapse:collapse">
+            @foreach ($glasPositionen->chunk(2) as $paar)
+                <tr>
+                    @foreach ($paar as $g)
+                        <td style="width:50%;text-align:center;padding:4px 2px 10px;vertical-align:top">
+                            <img src="{{ PdfSkizze::glas($g['skizze']) }}" style="width:80mm" alt="Skizze Position {{ $g['nr'] }}">
+                            <div style="font-size:9.5px;color:#64748b">Pos. {{ $g['nr'] }} · {{ $g['position']->bezeichnung }} · {{ $g['skizze']['mass'] }}</div>
+                        </td>
+                    @endforeach
+                    @if ($paar->count() === 1)<td style="width:50%"></td>@endif
+                </tr>
+            @endforeach
+        </table>
+        <p class="legal">Alle Maße in mm. Trapez-Positionen zeigen zusätzlich das Rohmaß (gestrichelt) mit beiden Höhen links/rechts.</p>
     @endif
 
     @if ($schiebePositionen->isNotEmpty())
@@ -75,6 +91,24 @@
             @endforeach
             </tbody>
         </table>
+
+        <div style="page-break-inside:avoid">
+        <h2>Skizzen Schiebe-Elemente</h2>
+        <table style="width:100%;border-collapse:collapse">
+            @foreach ($schiebePositionen->chunk(2) as $paar)
+                <tr>
+                    @foreach ($paar as $s)
+                        <td style="width:50%;text-align:center;padding:4px 2px 10px;vertical-align:top">
+                            <img src="{{ PdfSkizze::schiebe($s['skizze']) }}" style="width:80mm" alt="Skizze {{ $s['position']->bezeichnung }}">
+                            <div style="font-size:9.5px;color:#64748b">{{ $s['position']->bezeichnung }} · {{ number_format((int) $s['position']->breite_mm, 0, ',', '.') }} × {{ number_format((int) $s['position']->hoehe_mm, 0, ',', '.') }} mm · {{ $s['anzahl'] }} Elemente · Laufrichtung {{ $s['richtung'] }}</div>
+                        </td>
+                    @endforeach
+                    @if ($paar->count() === 1)<td style="width:50%"></td>@endif
+                </tr>
+            @endforeach
+        </table>
+        <p class="legal">Alle Maße in mm. Pfeile zeigen die Laufrichtung der nummerierten Flügel.</p>
+        </div>
     @endif
 
     @if ($materialPositionen->isNotEmpty())

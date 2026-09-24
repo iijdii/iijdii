@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Dokument;
 use App\Models\Projekt;
 use App\Models\User;
+use App\Support\GlasSkizze;
+use App\Support\PdfSkizze;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -58,6 +60,37 @@ class PdfExportTest extends TestCase
         $antwort->assertOk()->assertDownload('Bestellung_BST-2026-112.pdf');
         $this->assertStringStartsWith('%PDF', $antwort->getContent());
         $this->assertSame(1, Dokument::query()->where('dateiname', 'Bestellung_BST-2026-112.pdf')->count());
+    }
+
+    public function test_pdf_skizze_glas_traegt_masse_und_rohmass(): void
+    {
+        // Zuschnittskizze (Trapez) im Bestellungs-PDF: Polygon + beide Höhen + Rohmaß
+        $uri = PdfSkizze::glas(GlasSkizze::position(1200, 2600, 2150, true));
+        $this->assertStringStartsWith('data:image/svg+xml;base64,', $uri);
+
+        $svg = base64_decode(substr($uri, strlen('data:image/svg+xml;base64,')));
+        $this->assertStringContainsString('<polygon', $svg);
+        $this->assertStringContainsString('stroke-dasharray', $svg);
+        $this->assertStringContainsString('Rohmaß 1200×2600</text>', $svg);
+        $this->assertStringContainsString('>1.200</text>', $svg);
+        $this->assertStringContainsString('>2.600</text>', $svg);
+        $this->assertStringContainsString('>2.150</text>', $svg);
+
+        // Rechteck: kein Rohmaß, keine zweite Höhe
+        $svg = base64_decode(substr(PdfSkizze::glas(GlasSkizze::position(1078, 3480, 3480, false)), 30));
+        $this->assertStringNotContainsString('Rohmaß', $svg);
+        $this->assertStringContainsString('>3.480</text>', $svg);
+    }
+
+    public function test_pdf_skizze_schiebe_traegt_fluegel_und_masse(): void
+    {
+        $svg = base64_decode(substr(PdfSkizze::schiebe(GlasSkizze::schiebe(4200, 2400, 4, 'center')), 30));
+        // Nummerierte Flügel 1–4, Laufrichtungs-Pfeile, beide Maßketten-Labels
+        $this->assertStringContainsString('>1</text>', $svg);
+        $this->assertStringContainsString('>4</text>', $svg);
+        $this->assertStringContainsString('>4.200</text>', $svg);
+        $this->assertStringContainsString('>2.400</text>', $svg);
+        $this->assertStringContainsString('<polyline', $svg);
     }
 
     public function test_lieferschein_pdf_nur_fuer_gebuchte_wareneingaenge(): void

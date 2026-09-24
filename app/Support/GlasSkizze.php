@@ -28,12 +28,16 @@ final class GlasSkizze
     public static function kachel(int $w, int $hL, int $hR): array
     {
         $w = max(1, $w);
-        $box = 120; $padX = 15; $padT = 17; $padB = 15;
+        $box = 120;
+        $padX = 15;
+        $padT = 17;
+        $padB = 15;
         $aW = $box - 2 * $padX;
         $aH = 118 - $padT - $padB;
         $mH = max(1, $hL, $hR);
         $s = min($aW / $w, $aH / $mH);
-        $pw = $w * $s; $ph = $mH * $s;
+        $pw = $w * $s;
+        $ph = $mH * $s;
         $oX = ($box - $pw) / 2;
         $top = $padT + ($aH - $ph) / 2;
         $bY = $top + $ph;
@@ -57,19 +61,26 @@ final class GlasSkizze
     {
         $w = max(1, $w);
         $mH = max(1, $hL, $hR);
-        $BW = 360; $pL = 72; $pT = 44; $pB = 68;
+        $BW = 360;
+        $pL = 72;
+        $pT = 44;
+        $pB = 68;
         $aW = $BW - 2 * $pL;
         $aH = 260 - $pT - $pB;
         $s = min($aW / $w, $aH / $mH);
-        $pw = $w * $s; $ph = $mH * $s;
+        $pw = $w * $s;
+        $ph = $mH * $s;
         $oX = $pL + ($aW - $pw) / 2;
         $top = $pT + ($aH - $ph) / 2;
         $bY = $top + $ph;
         $tlY = $bY - $hL * $s;
         $trY = $bY - $hR * $s;
 
-        $dl = []; $ar = [];
-        $yD = $bY + 20; $xL = $oX - 18; $xR = $oX + $pw + 18;
+        $dl = [];
+        $ar = [];
+        $yD = $bY + 20;
+        $xL = $oX - 18;
+        $xR = $oX + $pw + 18;
         $L = function ($x1, $y1, $x2, $y2) use (&$dl) {
             $dl[] = ['x1' => self::f($x1), 'y1' => self::f($y1), 'x2' => self::f($x2), 'y2' => self::f($y2)];
         };
@@ -115,6 +126,12 @@ final class GlasSkizze
             'sW' => 'left:'.self::px($oX + $pw / 2).';top:'.self::px($yD + 11).';transform:translate(-50%,-50%)',
             'sHL' => 'left:'.self::px($xL - 7).';top:'.self::px(($tlY + $bY) / 2).';transform:translate(-50%,-50%) rotate(-90deg)',
             'sHR' => 'left:'.self::px($xR + 7).';top:'.self::px(($trY + $bY) / 2).';transform:translate(-50%,-50%) rotate(90deg)',
+            // Numerische Label-Anker (PDF-Skizzen: SVG-<text> statt HTML-Overlay)
+            'lRoh' => ['x' => self::f($oX + $pw / 2), 'y' => self::f($top - 6)],
+            'lW' => ['x' => self::f($oX + $pw / 2), 'y' => self::f($yD + 14)],
+            'lHL' => ['x' => self::f($xL - 7), 'y' => self::f(($tlY + $bY) / 2)],
+            'lHR' => ['x' => self::f($xR + 7), 'y' => self::f(($trY + $bY) / 2)],
+            'wert' => ['w' => $w, 'hL' => $hL, 'hR' => $hR],
         ];
     }
 
@@ -125,16 +142,25 @@ final class GlasSkizze
     public static function keil(int $hB, int $hF, int $bU): array
     {
         $bU = max(1, $bU);
-        $BW = 200; $H = 150; $pL = 22; $pR = 22; $pT = 24; $pB = 26;
+        $BW = 200;
+        $H = 150;
+        $pL = 22;
+        $pR = 22;
+        $pT = 24;
+        $pB = 26;
         $aw = $BW - $pL - $pR;
         $ah = $H - $pT - $pB;
         $mx = max(1, $hB, $hF);
         $s = min($aw / $bU, $ah / $mx);
-        $w = $bU * $s; $hb = $hB * $s; $hf = $hF * $s;
+        $w = $bU * $s;
+        $hb = $hB * $s;
+        $hf = $hF * $s;
         $oX = $pL + ($aw - $w) / 2;
         $baseY = $pT + $ah;
-        $blX = $oX; $brX = $oX + $w;
-        $tlY = $baseY - $hb; $trY = $baseY - $hf;
+        $blX = $oX;
+        $brX = $oX + $w;
+        $tlY = $baseY - $hb;
+        $trY = $baseY - $hf;
 
         return [
             'pts' => self::f($blX).','.self::f($baseY).' '.self::f($brX).','.self::f($baseY).' '
@@ -151,12 +177,18 @@ final class GlasSkizze
      */
     public static function schiebe(int $w, int $h, int $n, ?string $richtung): array
     {
-        $w = max(1, $w); $h = max(1, $h); $n = max(1, $n);
-        $BW = 360; $pL = 70; $pT = 42; $pB = 66;
+        $w = max(1, $w);
+        $h = max(1, $h);
+        $n = max(1, $n);
+        $BW = 360;
+        $pL = 70;
+        $pT = 42;
+        $pB = 66;
         $aW = $BW - 2 * $pL;
         $aH = 260 - $pT - $pB;
         $s = min($aW / $w, $aH / $h);
-        $pw = $w * $s; $ph = $h * $s;
+        $pw = $w * $s;
+        $ph = $h * $s;
         $oX = $pL + ($aW - $pw) / 2;
         $top = $pT + ($aH - $ph) / 2;
         $bY = $top + $ph;
@@ -164,25 +196,34 @@ final class GlasSkizze
         $cy = ($top + $bY) / 2;
         $mid = ($n + 1) / 2;
 
-        $divs = []; $slines = []; $sheads = []; $nums = [];
+        $divs = [];
+        $slines = [];
+        $sheads = [];
+        $nums = [];
         for ($i = 1; $i < $n; $i++) {
             $x = $oX + $segW * $i;
             $divs[] = ['x1' => self::f($x), 'y1' => self::f($top), 'x2' => self::f($x), 'y2' => self::f($bY)];
         }
         for ($i = 1; $i <= $n; $i++) {
             $cx = $oX + $segW * ($i - 0.5);
-            $nums[] = ['i' => $i, 'st' => 'left:'.self::px($cx).';top:'.self::px($cy - 9).';transform:translate(-50%,-50%)'];
+            $nums[] = ['i' => $i, 'st' => 'left:'.self::px($cx).';top:'.self::px($cy - 9).';transform:translate(-50%,-50%)', 'x' => self::f($cx), 'y' => self::f($cy - 6)];
             if ($richtung === 'left') {
-                $hl = true; $hr = false;
+                $hl = true;
+                $hr = false;
             } elseif ($richtung === 'right') {
-                $hl = false; $hr = true;
+                $hl = false;
+                $hr = true;
             } elseif ($richtung === 'center') {
-                $hl = $i <= $mid; $hr = $i >= $mid;
+                $hl = $i <= $mid;
+                $hr = $i >= $mid;
             } else {
-                $hl = true; $hr = true;
+                $hl = true;
+                $hr = true;
             }
             $half = min(15, $segW / 3);
-            $ay = $cy + 12; $lX = $cx - $half; $rX = $cx + $half;
+            $ay = $cy + 12;
+            $lX = $cx - $half;
+            $rX = $cx + $half;
             $slines[] = ['x1' => self::f($lX), 'y1' => self::f($ay), 'x2' => self::f($rX), 'y2' => self::f($ay)];
             if ($hl) {
                 $sheads[] = self::f($lX + 4).','.self::f($ay - 3).' '.self::f($lX).','.self::f($ay).' '.self::f($lX + 4).','.self::f($ay + 3);
@@ -192,8 +233,10 @@ final class GlasSkizze
             }
         }
 
-        $dl = []; $ar = [];
-        $yD = $bY + 18; $xL = $oX - 16;
+        $dl = [];
+        $ar = [];
+        $yD = $bY + 18;
+        $xL = $oX - 16;
         $dl[] = ['x1' => self::f($oX), 'y1' => self::f($bY), 'x2' => self::f($oX), 'y2' => self::f($yD + 4)];
         $dl[] = ['x1' => self::f($oX + $pw), 'y1' => self::f($bY), 'x2' => self::f($oX + $pw), 'y2' => self::f($yD + 4)];
         $dl[] = ['x1' => self::f($oX), 'y1' => self::f($yD), 'x2' => self::f($oX + $pw), 'y2' => self::f($yD)];
@@ -212,6 +255,10 @@ final class GlasSkizze
             'dl' => $dl, 'ar' => $ar,
             'sW' => 'left:'.self::px($oX + $pw / 2).';top:'.self::px($yD + 11).';transform:translate(-50%,-50%)',
             'sHL' => 'left:'.self::px($xL - 7).';top:'.self::px(($top + $bY) / 2).';transform:translate(-50%,-50%) rotate(-90deg)',
+            // Numerische Label-Anker (PDF-Skizzen: SVG-<text> statt HTML-Overlay)
+            'lW' => ['x' => self::f($oX + $pw / 2), 'y' => self::f($yD + 14)],
+            'lHL' => ['x' => self::f($xL - 7), 'y' => self::f(($top + $bY) / 2)],
+            'wert' => ['w' => $w, 'h' => $h, 'n' => $n, 'richtung' => $richtung],
         ];
     }
 }
