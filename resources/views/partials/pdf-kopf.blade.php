@@ -1,9 +1,14 @@
 {{-- Briefkopf aller PDF-Dokumente: Logo links, Firmendaten rechts,
      darunter Dokumenttitel (H1) und Status-Badges.
      Erwartet: $titel (string), optional $badges (string[]). --}}
+@php $logoPfad = public_path('images/logo-lea.png'); @endphp
 <table class="kopf"><tr>
     <td style="width:55%">
-        <div class="logo">LEA<span class="akzent">.</span></div>
+        @if (is_file($logoPfad))
+            <img src="data:image/png;base64,{{ base64_encode(file_get_contents($logoPfad)) }}" style="width:27mm" alt="LEA Überdachung">
+        @else
+            <div class="logo">LEA<span class="akzent">.</span></div>
+        @endif
         <div class="logo-untertitel">Terrassendach · Montage · Service</div>
     </td>
     <td class="firmen-daten">

@@ -94,7 +94,11 @@
 <section class="page">
     <header class="kopf">
         <div>
-            <div class="logo">LEA<span class="akzent">.</span></div>
+            @if (is_file(public_path('images/logo-lea.png')))
+                <img src="{{ asset('images/logo-lea.png') }}" style="width:96px" alt="LEA Überdachung">
+            @else
+                <div class="logo">LEA<span class="akzent">.</span></div>
+            @endif
             <div class="logo-untertitel">Terrassendach · Montage · Service</div>
         </div>
         <div class="firmen-daten">
