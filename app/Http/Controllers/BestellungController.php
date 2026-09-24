@@ -467,7 +467,7 @@ class BestellungController extends Controller
     /** PDF im Abnahme-Muster (PdfArchiv): Download + Dokument bei Projektbezug. */
     public function pdf(Bestellung $bestellung): Response
     {
-        $bestellung->load(['lieferant', 'projekt', 'kunde', 'positionen.artikel']);
+        $bestellung->load(['lieferant', 'projekt', 'kunde', 'ersteller', 'positionen.artikel']);
 
         return PdfArchiv::liefere(
             'bestellungen.pdf',

@@ -17,6 +17,8 @@ final class PdfSkizze
 
     private const MASS = '#64748b';
 
+    private const GOLD = '#d9a441';
+
     private const GLASFUELLUNG = '#e9eff6';
 
     /** Glasposition (GlasSkizze::position()-Array) als SVG-Data-URI. */
@@ -79,15 +81,23 @@ final class PdfSkizze
         return 'data:image/svg+xml;base64,'.base64_encode($svg.'</svg>');
     }
 
-    /** @param array<int,array{x1:string,y1:string,x2:string,y2:string}> $dl */
+    /**
+     * Maßketten; die Breiten-Kette (die jeweils ersten drei Linien und
+     * zwei Pfeilspitzen, siehe Aufbau in GlasSkizze) wird wie im
+     * Design-Vorbild goldfarben hervorgehoben.
+     *
+     * @param  array<int,array{x1:string,y1:string,x2:string,y2:string}>  $dl
+     */
     private static function massketten(array $dl, array $ar): string
     {
         $svg = '';
-        foreach ($dl as $l) {
-            $svg .= '<line x1="'.$l['x1'].'" y1="'.$l['y1'].'" x2="'.$l['x2'].'" y2="'.$l['y2'].'" stroke="'.self::MASS.'" stroke-width="1"/>';
+        foreach ($dl as $i => $l) {
+            $farbe = $i < 3 ? self::GOLD : self::MASS;
+            $svg .= '<line x1="'.$l['x1'].'" y1="'.$l['y1'].'" x2="'.$l['x2'].'" y2="'.$l['y2'].'" stroke="'.$farbe.'" stroke-width="1"/>';
         }
-        foreach ($ar as $p) {
-            $svg .= '<polyline points="'.$p.'" fill="none" stroke="'.self::MASS.'" stroke-width="1"/>';
+        foreach ($ar as $i => $p) {
+            $farbe = $i < 2 ? self::GOLD : self::MASS;
+            $svg .= '<polyline points="'.$p.'" fill="none" stroke="'.$farbe.'" stroke-width="1"/>';
         }
 
         return $svg;
