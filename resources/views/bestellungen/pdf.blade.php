@@ -40,75 +40,69 @@
 
     @if ($glasPositionen->isNotEmpty())
         <h2>Glas-Positionen</h2>
-        <table class="positions">
-            <thead><tr><th style="width:24px">#</th><th>Bezeichnung</th><th>Form</th><th class="num">Breite</th><th class="num">Höhe L/R</th><th>Glas</th><th class="num">Menge</th></tr></thead>
-            <tbody>
-            @foreach ($glasPositionen as $g)
-                @php $d = $g['position']->details ?? []; @endphp
+        @foreach ($glasPositionen as $g)
+            @php
+                $d = $g['position']->details ?? [];
+                $hL = (int) ($d['hL'] ?? $g['position']->hoehe_mm);
+                $hR = (int) ($d['hR'] ?? $hL);
+                $trapez = $g['form'] === 'Trapez';
+            @endphp
+            <table style="width:100%;border-collapse:collapse;page-break-inside:avoid;margin-bottom:6px">
                 <tr>
-                    <td>{{ $g['nr'] }}</td>
-                    <td>{{ $g['position']->bezeichnung }}</td>
-                    <td>{{ $g['form'] }}</td>
-                    <td class="num">{{ number_format((int) $g['position']->breite_mm, 0, ',', '.') }} mm</td>
-                    <td class="num">{{ number_format((int) ($d['hL'] ?? $g['position']->hoehe_mm), 0, ',', '.') }} / {{ number_format((int) ($d['hR'] ?? $d['hL'] ?? $g['position']->hoehe_mm), 0, ',', '.') }} mm</td>
-                    <td>{{ $g['glas'] }}</td>
-                    <td class="num">{{ Format::menge($g['position']->menge) }} {{ $g['position']->einheit }}</td>
+                    <td style="width:53%;text-align:center;vertical-align:middle;padding:2px 8px 6px 0">
+                        <img src="{{ PdfSkizze::glas($g['skizze']) }}" style="width:78mm" alt="Skizze Position {{ $g['nr'] }}">
+                    </td>
+                    <td style="width:47%;vertical-align:middle;padding:2px 0 6px">
+                        <div class="box">
+                            <div class="box-titel">Pos. {{ $g['nr'] }} · {{ $g['position']->bezeichnung }}</div>
+                            <table class="kv">
+                                <tr><td class="k">Form</td><td>{{ $g['form'] }}</td></tr>
+                                <tr><td class="k">Breite</td><td>{{ number_format((int) $g['position']->breite_mm, 0, ',', '.') }} mm</td></tr>
+                                @if ($trapez)
+                                    <tr><td class="k">Höhe links</td><td>{{ number_format($hL, 0, ',', '.') }} mm</td></tr>
+                                    <tr><td class="k">Höhe rechts</td><td>{{ number_format($hR, 0, ',', '.') }} mm</td></tr>
+                                    <tr><td class="k">Rohmaß</td><td>{{ number_format((int) $g['position']->breite_mm, 0, ',', '.') }} × {{ number_format(max($hL, $hR), 0, ',', '.') }} mm</td></tr>
+                                @else
+                                    <tr><td class="k">Höhe</td><td>{{ number_format($hL, 0, ',', '.') }} mm</td></tr>
+                                @endif
+                                <tr><td class="k">Glas</td><td>{{ $g['glas'] }}</td></tr>
+                                <tr><td class="k">Menge</td><td>{{ Format::menge($g['position']->menge) }} {{ $g['position']->einheit }}</td></tr>
+                                <tr><td class="k">Maße</td><td>{{ $g['quelle'] === 'live' ? 'aus Projekt übernommen' : 'manuell erfasst' }}</td></tr>
+                            </table>
+                        </div>
+                    </td>
                 </tr>
-            @endforeach
-            </tbody>
-        </table>
-
-        <h2>Zuschnittskizzen Glas</h2>
-        <table style="width:100%;border-collapse:collapse">
-            @foreach ($glasPositionen->chunk(2) as $paar)
-                <tr>
-                    @foreach ($paar as $g)
-                        <td style="width:50%;text-align:center;padding:4px 2px 10px;vertical-align:top">
-                            <img src="{{ PdfSkizze::glas($g['skizze']) }}" style="width:80mm" alt="Skizze Position {{ $g['nr'] }}">
-                            <div style="font-size:9.5px;color:#64748b">Pos. {{ $g['nr'] }} · {{ $g['position']->bezeichnung }} · {{ $g['skizze']['mass'] }}</div>
-                        </td>
-                    @endforeach
-                    @if ($paar->count() === 1)<td style="width:50%"></td>@endif
-                </tr>
-            @endforeach
-        </table>
+            </table>
+        @endforeach
         <p class="legal">Alle Maße in mm. Trapez-Positionen zeigen zusätzlich das Rohmaß (gestrichelt) mit beiden Höhen links/rechts.</p>
     @endif
 
     @if ($schiebePositionen->isNotEmpty())
         <h2>Schiebe-Elemente</h2>
-        <table class="positions">
-            <thead><tr><th>Bezeichnung</th><th class="num">Breite × Höhe</th><th class="num">Elemente</th><th>Glas</th></tr></thead>
-            <tbody>
-            @foreach ($schiebePositionen as $s)
-                @php $d = $s['position']->details ?? []; @endphp
+        @foreach ($schiebePositionen as $s)
+            <table style="width:100%;border-collapse:collapse;page-break-inside:avoid;margin-bottom:6px">
                 <tr>
-                    <td>{{ $s['position']->bezeichnung }}</td>
-                    <td class="num">{{ number_format((int) $s['position']->breite_mm, 0, ',', '.') }} × {{ number_format((int) $s['position']->hoehe_mm, 0, ',', '.') }} mm</td>
-                    <td class="num">{{ (int) ($d['count'] ?? $s['position']->menge) }}</td>
-                    <td>{{ $d['glas'] ?? '–' }}</td>
+                    <td style="width:53%;text-align:center;vertical-align:middle;padding:2px 8px 6px 0">
+                        <img src="{{ PdfSkizze::schiebe($s['skizze']) }}" style="width:78mm" alt="Skizze {{ $s['position']->bezeichnung }}">
+                    </td>
+                    <td style="width:47%;vertical-align:middle;padding:2px 0 6px">
+                        <div class="box">
+                            <div class="box-titel">{{ $s['position']->bezeichnung }}</div>
+                            <table class="kv">
+                                <tr><td class="k">Breite</td><td>{{ number_format((int) $s['position']->breite_mm, 0, ',', '.') }} mm</td></tr>
+                                <tr><td class="k">Höhe</td><td>{{ number_format((int) $s['position']->hoehe_mm, 0, ',', '.') }} mm</td></tr>
+                                <tr><td class="k">Elemente</td><td>{{ $s['anzahl'] }}</td></tr>
+                                <tr><td class="k">Laufrichtung</td><td>{{ $s['richtung'] }}</td></tr>
+                                <tr><td class="k">Glas</td><td>{{ $s['glas'] }}</td></tr>
+                                <tr><td class="k">Menge</td><td>{{ Format::menge($s['position']->menge) }} {{ $s['position']->einheit }}</td></tr>
+                                <tr><td class="k">Maße</td><td>{{ $s['quelle'] === 'live' ? 'aus Projekt übernommen' : 'manuell erfasst' }}</td></tr>
+                            </table>
+                        </div>
+                    </td>
                 </tr>
-            @endforeach
-            </tbody>
-        </table>
-
-        <div style="page-break-inside:avoid">
-        <h2>Skizzen Schiebe-Elemente</h2>
-        <table style="width:100%;border-collapse:collapse">
-            @foreach ($schiebePositionen->chunk(2) as $paar)
-                <tr>
-                    @foreach ($paar as $s)
-                        <td style="width:50%;text-align:center;padding:4px 2px 10px;vertical-align:top">
-                            <img src="{{ PdfSkizze::schiebe($s['skizze']) }}" style="width:80mm" alt="Skizze {{ $s['position']->bezeichnung }}">
-                            <div style="font-size:9.5px;color:#64748b">{{ $s['position']->bezeichnung }} · {{ number_format((int) $s['position']->breite_mm, 0, ',', '.') }} × {{ number_format((int) $s['position']->hoehe_mm, 0, ',', '.') }} mm · {{ $s['anzahl'] }} Elemente · Laufrichtung {{ $s['richtung'] }}</div>
-                        </td>
-                    @endforeach
-                    @if ($paar->count() === 1)<td style="width:50%"></td>@endif
-                </tr>
-            @endforeach
-        </table>
+            </table>
+        @endforeach
         <p class="legal">Alle Maße in mm. Pfeile zeigen die Laufrichtung der nummerierten Flügel.</p>
-        </div>
     @endif
 
     @if ($materialPositionen->isNotEmpty())
