@@ -202,17 +202,17 @@ class BestellungController extends Controller
             return $zurueck->with('toast', 'Keine Endmaße erfasst — zuerst im Montage-Modus eintragen');
         }
 
+        // Bestehender Phase-2-Entwurf wird nicht dupliziert, sondern mit
+        // den AKTUELLEN Endmaßen neu aufgebaut: automatisch erzeugte
+        // Positionen (projekt_position_id gesetzt) werden ersetzt,
+        // manuell ergänzte bleiben stehen.
         $entwurf = $projekt->bestellungen()
             ->where('status', BestellungStatus::Entwurf)
             ->where('titel', 'like', '%Phase 2%')
             ->first();
-        if ($entwurf !== null) {
-            return redirect()->route('bestellungen.show', $entwurf)
-                ->with('toast', 'Entwurf '.$entwurf->nr.' (Phase 2) existiert bereits');
-        }
 
-        $bestellung = DB::transaction(function () use ($request, $projekt, $positionen) {
-            $bestellung = Bestellung::query()->create([
+        $bestellung = DB::transaction(function () use ($request, $projekt, $positionen, $entwurf) {
+            $bestellung = $entwurf ?? Bestellung::query()->create([
                 'nr' => Nummern::bestellung(),
                 'titel' => 'Projekt '.$projekt->nr.' · Phase 2 (Endmaße)',
                 'kategorie' => 'gemischt',
@@ -222,8 +222,9 @@ class BestellungController extends Controller
                 'status' => BestellungStatus::Entwurf,
                 'notizen' => 'Nachbestellung aus den Endmaßen — Lieferant im Entwurf wählen.',
             ]);
+            $bestellung->positionen()->whereNotNull('projekt_position_id')->delete();
 
-            $pos = 0;
+            $pos = (int) $bestellung->positionen()->max('pos');
             foreach ($positionen as $position) {
                 // Endmaß gewinnt, konfigurierte Felder füllen Lücken.
                 $m = ($position->endmasse ?? []) + ($position->felder ?? []);
@@ -331,7 +332,7 @@ class BestellungController extends Controller
             }
 
             $projekt->aktivitaeten()->create([
-                'titel' => 'Nachbestellung '.$bestellung->nr.' aus Endmaßen erstellt (Phase 2)',
+                'titel' => 'Nachbestellung '.$bestellung->nr.' aus Endmaßen '.($entwurf !== null ? 'aktualisiert' : 'erstellt').' (Phase 2)',
                 'wer' => $request->user()->name,
                 'datum' => now()->format('d.m.'),
                 'status' => 'done',
@@ -341,7 +342,9 @@ class BestellungController extends Controller
         });
 
         return redirect()->route('bestellungen.show', $bestellung)
-            ->with('toast', 'Entwurf '.$bestellung->nr.' (Phase 2) erstellt — bitte Lieferant wählen');
+            ->with('toast', $entwurf !== null
+                ? 'Entwurf '.$bestellung->nr.' aus den aktuellen Endmaßen neu aufgebaut'
+                : 'Entwurf '.$bestellung->nr.' (Phase 2) erstellt — bitte Lieferant wählen');
     }
 
     public function edit(Bestellung $bestellung): View

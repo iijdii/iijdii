@@ -136,10 +136,20 @@ class EndmasseZyklusTest extends TestCase
         $this->assertSame([2950, 2950], $segelPositionen->pluck('hoehe_mm')->all());
         $this->assertSame($segel->id, $segelPositionen[0]->projekt_position_id);
 
-        // Idempotent: zweiter Klick öffnet den bestehenden Entwurf.
+        // Zweiter Klick dupliziert nicht, sondern baut die Auto-Positionen
+        // aus den AKTUELLEN Endmaßen neu auf; manuelle bleiben stehen.
+        $this->actingAs($this->verkauf)->post('/bestellungen/'.$bestellung->nr.'/positionen', [
+            'typ' => 'material', 'bezeichnung' => 'Silikon', 'menge' => 2,
+        ]);
+        $this->actingAs($this->monteur)->post('/projekte/'.$projekt->nr.'/montage/endmasse', [
+            'endmasse' => [$keil->id => ['breite_unten_mm' => 3050, 'hoehe_hinten_mm' => 530, 'h_vorn_mm' => 120]],
+        ]);
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/nachbestellung')
-            ->assertRedirect(route('bestellungen.show', $bestellung));
+            ->assertRedirect(route('bestellungen.show', $bestellung))
+            ->assertSessionHas('toast', 'Entwurf '.$bestellung->nr.' aus den aktuellen Endmaßen neu aufgebaut');
         $this->assertSame(1, $projekt->bestellungen()->count());
+        $this->assertSame(3050, $bestellung->positionen()->where('bezeichnung', 'like', 'Keil%')->firstOrFail()->breite_mm);
+        $this->assertTrue($bestellung->positionen()->where('bezeichnung', 'Silikon')->exists());
 
         // Material-Tab zeigt den Phase-2-Knopf
         $this->actingAs($this->verkauf)
