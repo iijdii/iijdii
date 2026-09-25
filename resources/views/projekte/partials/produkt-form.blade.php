@@ -238,7 +238,19 @@
                     <option value="{{ $ort }}"></option>
                 @endforeach
             </datalist></div>
-        <div class="fld"><label>Verglasung</label><input class="inp" type="text" name="{{ $prefix }}[felder][glas]" value="{{ $v('glas', 'VSG 8 mm klar') }}"></div>
+        @php $schiebeGlas = $v('glas', 'VSG 8 mm'); @endphp
+        <div class="fld"><label>Glas</label>
+            <select class="inp" name="{{ $prefix }}[felder][glas]">
+                @foreach (array_unique(array_merge(\App\Support\ProduktFelder::GLASARTEN, [$schiebeGlas])) as $glasart)
+                    <option @selected($schiebeGlas === $glasart)>{{ $glasart }}</option>
+                @endforeach
+            </select></div>
+        <div class="fld"><label>Transparenz</label>
+            <select class="inp" name="{{ $prefix }}[felder][transparenz]">
+                @foreach (\App\Support\ProduktFelder::TRANSPARENZ as $transparenz)
+                    <option @selected($v('transparenz', 'Klar') === $transparenz)>{{ $transparenz }}</option>
+                @endforeach
+            </select></div>
     </div>
 
     <div data-produkt-felder="keil" class="fgrid2" style="margin-top:10px">
@@ -258,9 +270,16 @@
                     <option @selected($v('material', 'Glas') === $material)>{{ $material }}</option>
                 @endforeach
             </select></div>
+        @php $keilGlas = $v('glas', 'VSG 8 mm'); @endphp
+        <div class="fld"><label>Glas</label>
+            <select class="inp" name="{{ $prefix }}[felder][glas]">
+                @foreach (array_unique(array_merge(\App\Support\ProduktFelder::GLASARTEN, [$keilGlas])) as $glasart)
+                    <option @selected($keilGlas === $glasart)>{{ $glasart }}</option>
+                @endforeach
+            </select></div>
         <div class="fld"><label>Transparenz</label>
             <select class="inp" name="{{ $prefix }}[felder][transparenz]">
-                @foreach (['Klar', 'Opal', 'Matt'] as $transparenz)
+                @foreach (\App\Support\ProduktFelder::TRANSPARENZ as $transparenz)
                     <option @selected($v('transparenz', 'Klar') === $transparenz)>{{ $transparenz }}</option>
                 @endforeach
             </select></div>

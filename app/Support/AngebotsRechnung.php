@@ -150,12 +150,16 @@ final class AngebotsRechnung
                     ? max(1, (int) ($kalk['fields'] ?? 1))
                     : 1;
             }
+            // Füllung (Glasart + Transparenz) nur bei verglasten Elementen.
+            $fuellung = in_array($position->produkt->value, ['wand', 'schiebe', 'keil'], true)
+                ? ProduktFelder::fuellung($f)
+                : '';
             $positionen[] = $zeile(
                 'p'.$position->id,
                 $position->produkt->label()
                     .($masse !== [] ? ' · '.implode(' · ', $masse) : '')
                     .((($f['einbauort'] ?? '') !== '') ? ' · '.$f['einbauort'] : '')
-                    .(isset($f['glas']) ? ' · '.$f['glas'] : '')
+                    .($fuellung !== '' ? ' · '.$fuellung : '')
                     .(isset($f['groesse']) ? ' '.$f['groesse'] : ''),
                 [],
                 $menge,

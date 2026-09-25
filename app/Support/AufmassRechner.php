@@ -114,7 +114,7 @@ final class AufmassRechner
                         $feld('B', 'Anlage Höhe', 'hoehe_mm', $sh),
                         $feld('C', 'Flügelbreite', 'fluegel_mm', $fl),
                         $feld('D', 'Laufschiene', 'laufschiene_mm', $sw),
-                    ], ($einbauort !== '' ? 'Einbauort: '.$einbauort.'. ' : '').'Laufschiene auf Waage prüfen — max. 2 mm über die Gesamtbreite. Füllung '.($f['glas'] ?? '–').'.',
+                    ], ($einbauort !== '' ? 'Einbauort: '.$einbauort.'. ' : '').'Laufschiene auf Waage prüfen — max. 2 mm über die Gesamtbreite. Füllung '.(ProduktFelder::fuellung($f) ?: '–').'.',
                         ['dir' => $dir, 'qty' => $n]];
                 })(),
                 'keil' => (function () use ($feld, $f, $I, $n, $kalk) {
@@ -130,7 +130,7 @@ final class AufmassRechner
                         $feld('B', 'Höhe hinten', 'hoehe_hinten_mm', $hh),
                         $feld('C', 'Höhe vorne', 'h_vorn_mm', $hv),
                         $feld('D', 'Breite oben', 'breite_oben_mm', sqrt($D * $D + ($hh - $hv) ** 2)),
-                    ], 'Schrägschnitt '.$kalk['slopeEff'].'° — erst nach dem Ausrichten der Pfosten messen. Füllung '.($f['material'] ?? '–').' · '.($f['transparenz'] ?? '–').'.',
+                    ], 'Schrägschnitt '.$kalk['slopeEff'].'° — erst nach dem Ausrichten der Pfosten messen. Füllung '.(ProduktFelder::fuellung($f) ?: '–').'.',
                         ['side' => $f['seite'] ?? '', 'qty' => $n, 'unterzug' => '110×110']];
                 })(),
                 'markise' => (function () use ($feld, $f, $I, $kalk) {

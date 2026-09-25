@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Projekt;
 use App\Models\User;
+use App\Support\ProduktFelder;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -83,6 +84,22 @@ class ProjektPositionenTest extends TestCase
             ->post('/projekte/PRJ-2026-038/positionen/'.$position->id.'/loeschen')
             ->assertSessionHas('toast', 'Position entfernt');
         $this->assertSame(0, $projekt->positionen()->count());
+    }
+
+    public function test_keil_und_schiebe_mit_glasart_und_transparenz_klar_oder_milch(): void
+    {
+        $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-038/positionen', [
+            'position' => ['produkt' => 'keil', 'felder' => [
+                'material' => 'Glas', 'glas' => 'ESG 10 mm', 'transparenz' => 'Milch',
+            ]],
+        ])->assertSessionHasNoErrors();
+        $keil = Projekt::query()->where('nr', 'PRJ-2026-038')->firstOrFail()->positionen()->firstOrFail();
+        $this->assertSame('ESG 10 mm Milch', ProduktFelder::fuellung($keil->felder));
+
+        // Nur Klar oder Milch — alte Werte (Opal/Matt) werden abgewiesen.
+        $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-038/positionen', [
+            'position' => ['produkt' => 'schiebe', 'felder' => ['glas' => 'VSG 8 mm', 'transparenz' => 'Opal']],
+        ])->assertSessionHasErrors('transparenz');
     }
 
     public function test_bestandsprojekt_ohne_positionen_heilt_sich_beim_oeffnen(): void

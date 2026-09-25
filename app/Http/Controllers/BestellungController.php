@@ -16,6 +16,7 @@ use App\Support\GlasSkizze;
 use App\Support\KonfiguratorRechner;
 use App\Support\Nummern;
 use App\Support\PdfArchiv;
+use App\Support\ProduktFelder;
 use App\Support\SeitenwandRechner;
 use App\Support\Stueckliste;
 use Illuminate\Http\RedirectResponse;
@@ -259,7 +260,7 @@ class BestellungController extends Controller
                         'menge' => $anzahl, 'einheit' => 'Stück',
                         'breite_mm' => (int) $m['breite_mm'], 'hoehe_mm' => (int) ($m['hoehe_mm'] ?? 0),
                         'projekt_position_id' => $position->id,
-                        'details' => ['count' => $anzahl, 'glas' => (string) ($m['glas'] ?? ''), 'einbauort' => $einbauort, 'quelle' => 'live'],
+                        'details' => ['count' => $anzahl, 'glas' => ProduktFelder::fuellung($m), 'einbauort' => $einbauort, 'quelle' => 'live'],
                     ]);
 
                     continue;
@@ -275,7 +276,7 @@ class BestellungController extends Controller
                     $hh = (int) ($m['hoehe_hinten_mm'] ?? $m['h_hinten_mm'] ?? 0);
                     $hv = (int) ($m['h_vorn_mm'] ?? 0);
                     $rechts = ($m['seite'] ?? '') === 'Rechts';
-                    $fuellung = trim(($m['material'] ?? 'Glas').' '.($m['transparenz'] ?? ''));
+                    $fuellung = ProduktFelder::fuellung($m);
                     $bestellung->positionen()->create([
                         'typ' => 'glas', 'pos' => ++$pos,
                         'bezeichnung' => 'Keil '.($m['seite'] ?? '').' nach Endmaß (Trapez) — Pos. '.$position->pos,

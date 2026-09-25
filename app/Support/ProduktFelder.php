@@ -13,6 +13,31 @@ use Illuminate\Validation\Rule;
  */
 final class ProduktFelder
 {
+    /** Glasarten für Keile und Schiebeanlagen. */
+    public const GLASARTEN = ['VSG 8 mm', 'VSG 10 mm', 'ESG 8 mm', 'ESG 10 mm'];
+
+    /** Transparenz für Keile und Schiebeanlagen (Betreiber-Vorgabe). */
+    public const TRANSPARENZ = ['Klar', 'Milch'];
+
+    /**
+     * Füllung als Text für Titel, Notizen und Bestellungen, z. B.
+     * «VSG 8 mm Milch». Keile aus Aluminium/Polycarbonat nennen ihr
+     * Material; ältere Freitext-Glaswerte ohne Transparenz bleiben.
+     *
+     * @param  array<string, mixed>  $felder
+     */
+    public static function fuellung(array $felder): string
+    {
+        $material = (string) ($felder['material'] ?? 'Glas');
+        $transparenz = trim((string) ($felder['transparenz'] ?? ''));
+
+        return match ($material) {
+            'Aluminium' => 'Aluminium',
+            'Glas' => trim(((string) ($felder['glas'] ?? '')).' '.$transparenz),
+            default => trim($material.' '.$transparenz),
+        };
+    }
+
     /** @return array{produkt: ProjektProdukt, gruppe: string, phase: int, felder: array} */
     public static function daten(array $eingabe): array
     {
@@ -100,13 +125,16 @@ final class ProduktFelder
                     // Einbauort frei (Links/Rechts/Vorne links/… — bei mehr
                     // Pfosten auch «Vorne Feld 2» u. Ä.).
                     'einbauort' => ['nullable', 'string', 'max:40'],
+                    // Freitext bleibt erlaubt (Altbestand «VSG 8 mm klar»).
                     'glas' => ['nullable', 'string', 'max:64'],
+                    'transparenz' => ['nullable', Rule::in(self::TRANSPARENZ)],
                 ],
                 ProjektProdukt::Keil => [
                     'anzahl' => $mm, 'breite_mm' => $mm, 'h_hinten_mm' => $mm, 'h_vorn_mm' => $mm,
                     'seite' => ['nullable', Rule::in(['Links', 'Rechts', 'Beidseitig'])],
                     'material' => ['nullable', Rule::in(['Glas', 'Aluminium', 'Polycarbonat'])],
-                    'transparenz' => ['nullable', Rule::in(['Klar', 'Opal', 'Matt'])],
+                    'glas' => ['nullable', 'string', 'max:64'],
+                    'transparenz' => ['nullable', Rule::in(self::TRANSPARENZ)],
                 ],
                 ProjektProdukt::Gelaender => [
                     'laenge_mm' => $mm, 'hoehe_mm' => $mm, 'felder_n' => $mm,

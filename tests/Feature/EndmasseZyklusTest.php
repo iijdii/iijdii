@@ -41,6 +41,7 @@ class EndmasseZyklusTest extends TestCase
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/positionen', [
             'position' => ['produkt' => 'schiebe', 'felder' => [
                 'breite_mm' => 4000, 'hoehe_mm' => 2200, 'anzahl' => 3, 'einbauort' => 'Vorne links',
+                'glas' => 'VSG 10 mm', 'transparenz' => 'Milch',
             ]],
         ]);
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/positionen', [
@@ -48,7 +49,7 @@ class EndmasseZyklusTest extends TestCase
         ]);
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/positionen', [
             'position' => ['produkt' => 'keil', 'felder' => [
-                'anzahl' => 1, 'seite' => 'Links', 'material' => 'Glas', 'transparenz' => 'Klar',
+                'anzahl' => 1, 'seite' => 'Links', 'material' => 'Glas', 'glas' => 'VSG 8 mm', 'transparenz' => 'Milch',
                 'breite_mm' => 3000, 'h_hinten_mm' => 520, 'h_vorn_mm' => 120,
             ]],
         ]);
@@ -122,12 +123,13 @@ class EndmasseZyklusTest extends TestCase
         $this->assertSame($schiebe->id, $sp->projekt_position_id);
         $this->assertStringContainsString('(Vorne links)', $sp->bezeichnung);
         $this->assertSame('Vorne links', $sp->details['einbauort']);
+        $this->assertSame('VSG 10 mm Milch', $sp->details['glas']);
 
         // Keil → Glas-Position (Trapez) mit Skizze, Höhen hinten/vorn
         $kp = $bestellung->positionen()->where('typ', 'glas')
             ->where('bezeichnung', 'like', 'Keil%')->firstOrFail();
         $this->assertSame(3010, $kp->breite_mm);
-        $this->assertSame(['form' => 'Trapez', 'hL' => 525, 'hR' => 118, 'glas' => 'Glas Klar', 'quelle' => 'live'], $kp->details);
+        $this->assertSame(['form' => 'Trapez', 'hL' => 525, 'hR' => 118, 'glas' => 'VSG 8 mm Milch', 'quelle' => 'live'], $kp->details);
         $this->assertSame($keil->id, $kp->projekt_position_id);
 
         // Sonnensegel → Sonnenschutz (Tuch): gleiche Maße zu einer Position
