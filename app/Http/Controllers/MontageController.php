@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ProjektProdukt;
 use App\Models\MontageAufgabe;
 use App\Models\MontageNotiz;
 use App\Models\MontageZusatzmaterial;
@@ -10,6 +11,7 @@ use App\Models\Setting;
 use App\Support\AufmassRechner;
 use App\Support\KonfiguratorRechner;
 use App\Support\LedPlan;
+use App\Support\MarkisenFormular;
 use App\Support\MontageZeichnung;
 use App\Support\RoofZeichnung;
 use Illuminate\Http\RedirectResponse;
@@ -109,6 +111,7 @@ class MontageController extends Controller
         }
 
         $eingaben = (array) $request->input('endmasse', []);
+        $formulare = (array) $request->input('formular', []);
         $erfasst = 0;
 
         foreach ($projekt->positionen()->where('phase', 2)->get() as $position) {
@@ -120,6 +123,19 @@ class MontageController extends Controller
                 }, (array) ($eingaben[$position->id] ?? [])),
                 fn ($w) => $w !== null && $w >= 0,
             );
+            // Markisen-Bestellblatt (Optionen/Texte) aus dem Montage-Modus.
+            // Nur echte Änderungen zählen — das Formular wird auch für nicht
+            // aktive Gruppen mitgesendet und soll sie nicht als erfasst markieren.
+            if (isset($formulare[$position->id]) && $position->produkt === ProjektProdukt::Markise) {
+                $modell = MarkisenFormular::modell($position->felder ?? []);
+                $neu = MarkisenFormular::bereinige((array) $formulare[$position->id], $modell);
+                $bisher = MarkisenFormular::bereinige(
+                    MarkisenFormular::werte($position->felder ?? [], $position->endmasse ?? []), $modell,
+                );
+                if ($neu != $bisher) {
+                    $werte['formular'] = $neu;
+                }
+            }
             if ($werte === []) {
                 continue;
             }

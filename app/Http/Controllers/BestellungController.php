@@ -14,6 +14,7 @@ use App\Services\LagerService;
 use App\Support\Format;
 use App\Support\GlasSkizze;
 use App\Support\KonfiguratorRechner;
+use App\Support\MarkisenFormular;
 use App\Support\Nummern;
 use App\Support\PdfArchiv;
 use App\Support\ProduktFelder;
@@ -187,7 +188,7 @@ class BestellungController extends Controller
      * Entwurfs werden entfernt, damit der Aufrufer sie aus den aktuellen
      * Daten neu anlegt; manuell ergänzte Positionen bleiben stehen.
      */
-    private function entwurfFuer(Request $request, Projekt $projekt, string $suffix, string $kategorie): Bestellung
+    private function entwurfFuer(Request $request, Projekt $projekt, string $suffix, string $kategorie, ?string $lieferant = null): Bestellung
     {
         $titel = 'Projekt '.$projekt->nr.' · '.$suffix;
         $entwurf = $projekt->bestellungen()
@@ -203,6 +204,8 @@ class BestellungController extends Controller
         return Bestellung::query()->create([
             'nr' => Nummern::bestellung(),
             'titel' => $titel,
+            // Fester Lieferant je Gruppe (Markisen → Varisol), sonst wählt der Verkäufer.
+            'lieferant_id' => $lieferant !== null ? Lieferant::query()->where('name', $lieferant)->value('id') : null,
             'kategorie' => $kategorie,
             'projekt_id' => $projekt->id,
             'kunde_id' => $projekt->kunde_id,
@@ -233,7 +236,7 @@ class BestellungController extends Controller
         // manuell ergänzte bleiben stehen).
         $gruppen = [
             'glas' => ['Phase 2 · Glas & Schiebe', 'glas'],
-            'markise' => ['Phase 2 · Markisen', 'markise'],
+            'markise' => ['Phase 2 · Markisen', 'markise', 'Rödelbronn GmbH (Varisol)'],
             'sonnensegel' => ['Phase 2 · Sonnensegel (Tuch)', 'sonnensegel'],
             'sonstiges' => ['Phase 2 · Sonstiges', 'gemischt'],
         ];
@@ -363,6 +366,25 @@ class BestellungController extends Controller
                                 'farbe' => $farbe, 'projekt_pos' => $position->pos] + ($position->endmasse ?? []),
                         ]);
                     }
+
+                    continue;
+                }
+
+                // Markise: das komplette Varisol-Bestellblatt wandert in die
+                // Position (Konfigurator + Endmaße + Formular aus der Montage).
+                if ($position->produkt === ProjektProdukt::Markise) {
+                    $formular = MarkisenFormular::werte($position->felder ?? [], $position->endmasse ?? []);
+                    $stueck = max(1, (int) ($formular['anzahl'] ?? 1));
+                    $bestellung->positionen()->create([
+                        'typ' => 'material', 'pos' => ++$pos,
+                        'bezeichnung' => MarkisenFormular::MODELLE[$formular['modell']]
+                            .' · Breite '.(int) ($formular['breite_mm'] ?? 0).' mm · Ausfall '.(int) ($formular['ausfall_mm'] ?? 0).' mm',
+                        'menge' => $stueck, 'einheit' => 'Stück',
+                        'breite_mm' => (int) ($formular['breite_mm'] ?? 0) ?: null,
+                        'hoehe_mm' => (int) ($formular['ausfall_mm'] ?? 0) ?: null,
+                        'projekt_position_id' => $position->id,
+                        'details' => ['art' => 'markise', 'formular' => $formular, 'projekt_pos' => $position->pos],
+                    ]);
 
                     continue;
                 }
@@ -669,10 +691,12 @@ class BestellungController extends Controller
         $material = $bestellung->positionen->where('typ', BestellungPositionTyp::Material);
         $istSegel = fn ($p) => ($p->details['art'] ?? null) === 'sonnensegel'
             || str_starts_with((string) $p->bezeichnung, 'Sonnenschutz (Tuch)');
+        $istMarkise = fn ($p) => ($p->details['art'] ?? null) === 'markise';
 
         return [
-            'materialPositionen' => $material->reject($istSegel)->values(),
+            'materialPositionen' => $material->reject($istSegel)->reject($istMarkise)->values(),
             'segelPositionen' => $material->filter($istSegel)->values(),
+            'markisenPositionen' => $material->filter($istMarkise)->values(),
             'glasPositionen' => $glasPositionen,
             'schiebePositionen' => $schiebePositionen,
         ];

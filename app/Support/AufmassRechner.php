@@ -133,7 +133,7 @@ final class AufmassRechner
                     ], 'Schrägschnitt '.$kalk['slopeEff'].'° — erst nach dem Ausrichten der Pfosten messen. Füllung '.(ProduktFelder::fuellung($f) ?: '–').'.',
                         ['side' => $f['seite'] ?? '', 'qty' => $n, 'unterzug' => '110×110']];
                 })(),
-                'markise' => (function () use ($feld, $f, $I, $kalk) {
+                'markise' => (function () use ($feld, $f, $I, $kalk, $position, $em) {
                     $mw = $I($f['breite_mm'] ?? 0);
                     $fd = $I($f['felder_n'] ?? 1) ?: 1;
                     $kn = $fd + 1;
@@ -144,7 +144,9 @@ final class AufmassRechner
                         $feld('B', 'Ausfall ausgefahren', 'ausfall_mm', $I($f['ausfall_mm'] ?? 0)),
                         $feld('C', 'Konsolen-Achsabstand', 'konsolen_mm', $ka),
                         $feld('D', 'Höhe Vorderkante', 'hoehe_vorderkante_mm', max(0, $I($kalk['gutterHEff']) - 250)),
-                    ], $kn.' Konsolen · nur an Sparren oder Unterzug befestigen. Neigung 12–15°.', []];
+                    ], $kn.' Konsolen · nur an Sparren oder Unterzug befestigen. Neigung 12–15°.',
+                        // Bestellblatt Varisol im Montage-Modus (formular[pid][…]).
+                        ['formular' => ['pid' => $position->id, 'werte' => MarkisenFormular::werte($f, $em)]]];
                 })(),
                 'sonnensegel' => (function () use ($feld, $f, $I, $kalk) {
                     // Betreiber-Standard: Stückzahl = Anzahl der Dachfelder,

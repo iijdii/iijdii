@@ -218,6 +218,62 @@ class EndmasseZyklusTest extends TestCase
         $this->assertSame(3, $alt->positionen()->where('bezeichnung', 'like', 'Seitenwand%')->count());
     }
 
+    public function test_markise_bestellblatt_varisol_vom_konfigurator_ueber_montage_bis_bestellung(): void
+    {
+        $projekt = $this->projektMitElementen();
+        $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/positionen', [
+            'position' => ['produkt' => 'markise', 'felder' => [
+                'modell' => 'F513', 'anzahl' => 2, 'breite_mm' => 3880, 'ausfall_mm' => 2200,
+                'antrieb' => 'io Funkmotor', 'handsender' => '1-Kanal', 'antriebsseite' => 'Links',
+                'kabelabgang' => '3', 'gestellfarbe' => 'TG 29/80077', 'dessin' => 'STARLIGHT blue 6253/597',
+                'befestigung_kasten' => 'Decke',
+            ]],
+        ])->assertSessionHasNoErrors();
+        $markise = $projekt->positionen()->where('produkt', 'markise')->firstOrFail();
+
+        // Montage-Modus zeigt das Bestellblatt mit Kabelabgangs-Skizze.
+        $this->actingAs($this->monteur)
+            ->get('/projekte/'.$projekt->nr.'/montage?gruppe=p'.$markise->id)
+            ->assertOk()
+            ->assertSee('Bestellblatt Varisol')
+            ->assertSee('Deckenmontage nach oben')
+            ->assertSee('formular['.$markise->id.'][kabelabgang]', false);
+
+        // Monteur ändert Kabelabgang und Antriebsseite; ungültige Optionen fallen weg.
+        $this->actingAs($this->monteur)->post('/projekte/'.$projekt->nr.'/montage/endmasse', [
+            'endmasse' => [$markise->id => ['breite_mm' => 3875]],
+            'formular' => [$markise->id => [
+                'modell' => 'F513', 'kabelabgang' => '5', 'antriebsseite' => 'Rechts', 'antrieb' => 'Kurbel',
+                'dessin' => 'STARLIGHT blue 6253/597', 'sonstiges' => 'Bitte 5-Kanal-Sender dazu',
+            ]],
+        ]);
+        $formular = $markise->fresh()->endmasse['formular'];
+        $this->assertSame('5', $formular['kabelabgang']);
+        $this->assertSame('Rechts', $formular['antriebsseite']);
+        $this->assertArrayNotHasKey('antrieb', $formular); // Kurbel gibt es bei F513 nicht
+
+        // Nachbestellung: eigener Markisen-Entwurf, Lieferant Varisol gesetzt,
+        // Position trägt das vollständige Bestellblatt.
+        $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/nachbestellung');
+        $bestellung = $projekt->bestellungen()->where('kategorie', 'markise')->firstOrFail();
+        $this->assertSame('Rödelbronn GmbH (Varisol)', $bestellung->lieferant?->name);
+        $this->assertSame('D.60986', $bestellung->lieferant?->kundennummer);
+        $position = $bestellung->positionen()->firstOrFail();
+        $this->assertSame('markise', $position->details['art']);
+        $this->assertSame(2.0, (float) $position->menge);
+        $this->assertSame(3875, $position->details['formular']['breite_mm']);
+        $this->assertSame('5', $position->details['formular']['kabelabgang']);
+        $this->assertSame('Bitte 5-Kanal-Sender dazu', $position->details['formular']['sonstiges']);
+
+        $this->actingAs($this->verkauf)->get('/bestellungen/'.$bestellung->nr)
+            ->assertOk()
+            ->assertSee('Markisen · Bestellblatt Varisol')
+            ->assertSee('Varisol F513');
+        $pdf = $this->actingAs($this->verkauf)->get('/bestellungen/'.$bestellung->nr.'/pdf');
+        $pdf->assertOk();
+        $this->assertStringStartsWith('%PDF', $pdf->getContent());
+    }
+
     public function test_abschluss_erst_nach_zweiter_abnahme(): void
     {
         $projekt = $this->projektMitElementen();

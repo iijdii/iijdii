@@ -130,6 +130,39 @@
         </div>
     @endif
 
+    @if ($markisenPositionen->isNotEmpty())
+        <div class="card p0">
+            <div class="card-h">
+                <span class="card-t">Markisen · Bestellblatt Varisol</span>
+                <a class="btn btns" href="{{ route('bestellungen.pdf', $bestellung) }}"
+                   data-pdf data-pdf-titel="Bestellung {{ $bestellung->nr }}">Bestellblätter (PDF)</a>
+            </div>
+            <div class="card-b" style="overflow-x:auto">
+                <table class="tbl">
+                    <thead><tr><th>Pos.</th><th>Modell</th><th class="num">Breite</th><th class="num">Ausfall</th>
+                        <th>Antrieb</th><th>Antriebsseite</th><th>Gestellfarbe</th><th>Dessin</th><th class="num">Stück</th></tr></thead>
+                    <tbody>
+                    @foreach ($markisenPositionen as $markise)
+                        @php $mf = $markise->details['formular'] ?? []; @endphp
+                        <tr>
+                            <td><span class="posn">{{ $loop->iteration }}</span></td>
+                            <td class="b">{{ \App\Support\MarkisenFormular::MODELLE[\App\Support\MarkisenFormular::modell($mf)] }}
+                                @if (($mf['typ'] ?? '') !== '')<div class="hint">{{ $mf['typ'] }}</div>@endif</td>
+                            <td class="num mono">{{ number_format((int) ($mf['breite_mm'] ?? 0), 0, ',', '.') }} mm</td>
+                            <td class="num mono">{{ number_format((int) ($mf['ausfall_mm'] ?? 0), 0, ',', '.') }} mm</td>
+                            <td>{{ $mf['antrieb'] ?? '–' }}</td>
+                            <td>{{ $mf['antriebsseite'] ?? '–' }}</td>
+                            <td>{{ $mf['gestellfarbe'] ?? '–' }}</td>
+                            <td>{{ $mf['dessin'] ?? '–' }}</td>
+                            <td class="num mono b">{{ \App\Support\Format::menge($markise->menge) }}</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
     @if ($materialPositionen->isNotEmpty())
         <div class="card p0">
             <div class="card-h">

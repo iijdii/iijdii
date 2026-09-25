@@ -497,3 +497,16 @@ document.querySelectorAll('[data-position-form]').forEach((form) => {
     select.addEventListener('change', update);
     update();
 });
+
+// ---------- Markisen-Bestellblatt: Modellwechsel T200 / F513 ----------
+// Zeilen und Optionen mit data-nur-modell werden passend zum gewählten
+// Modell ein-/ausgeblendet (Konfigurator; im Montage-Modus steht das
+// Modell fest und der Server rendert bereits den richtigen Stand).
+document.addEventListener('change', (e) => {
+    const auswahl = e.target.closest('[data-markise-modell]');
+    if (!auswahl) return;
+    const formular = auswahl.closest('[data-markise-formular]');
+    formular?.querySelectorAll('[data-nur-modell]').forEach((el) => {
+        el.hidden = !el.dataset.nurModell.split(' ').includes(auswahl.value);
+    });
+});

@@ -299,17 +299,17 @@
     </div>
 
     {{-- ——— Sonnenschutz ——— --}}
-    <div data-produkt-felder="markise" class="fgrid2" style="margin-top:10px">
-        <div class="fld"><label>Modell</label><input class="inp" type="text" name="{{ $prefix }}[felder][modell]" value="{{ $v('modell', 'Varisol T200') }}"></div>
-        <div class="fld"><label>Breite (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][breite_mm]" value="{{ $v('breite_mm') }}"></div>
-        <div class="fld"><label>Ausfall (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][ausfall_mm]" value="{{ $v('ausfall_mm') }}"></div>
-        <div class="fld"><label>Anzahl Felder</label><input class="inp" type="number" name="{{ $prefix }}[felder][felder_n]" value="{{ $v('felder_n', 1) }}"></div>
-        <div class="fld"><label>Antrieb</label>
-            <select class="inp" name="{{ $prefix }}[felder][antrieb]">
-                @foreach (['Motor', 'Kurbel'] as $antrieb)
-                    <option @selected($v('antrieb', 'Motor') === $antrieb)>{{ $antrieb }}</option>
-                @endforeach
-            </select></div>
+    <div data-produkt-felder="markise" style="margin-top:10px">
+        {{-- Bestellblatt Varisol (T200 / F513) — dieselben Felder erscheinen
+             im Montage-Modus und im Bestell-PDF an den Lieferanten. --}}
+        @include('projekte.partials.markise-formular', [
+            'name' => fn (string $feld) => $prefix.'[felder]['.$feld.']',
+            'werte' => is_array($f) ? $f : [],
+            'mitBasis' => true,
+        ])
+        <div class="fgrid2" style="margin-top:8px">
+            <div class="fld"><label>Anzahl Felder (Konsolen)</label><input class="inp" type="number" name="{{ $prefix }}[felder][felder_n]" value="{{ $v('felder_n', 1) }}"></div>
+        </div>
     </div>
 
     <div data-produkt-felder="sonnensegel" class="fgrid2" style="margin-top:10px">

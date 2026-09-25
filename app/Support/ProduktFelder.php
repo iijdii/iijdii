@@ -140,11 +140,8 @@ final class ProduktFelder
                     'laenge_mm' => $mm, 'hoehe_mm' => $mm, 'felder_n' => $mm,
                     'material' => ['nullable', Rule::in(['Aluminium', 'Glas', 'Edelstahl'])],
                 ],
-                ProjektProdukt::Markise => [
-                    'modell' => ['nullable', 'string', 'max:64'], 'breite_mm' => $mm,
-                    'ausfall_mm' => $mm, 'felder_n' => $mm,
-                    'antrieb' => ['nullable', Rule::in(['Motor', 'Kurbel'])],
-                ],
+                // Bestellblatt Varisol T200/F513 — Regeln aus MarkisenFormular.
+                ProjektProdukt::Markise => MarkisenFormular::regeln(),
                 // Sonnensegel: Betreiber-Standard — Stückzahl = Dachfelder,
                 // Breite wie die Wandblende (Achsmaß − 60 mm), Länge =
                 // Dachtiefe; leere Felder werden aus dem Dach abgeleitet.

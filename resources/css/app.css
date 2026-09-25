@@ -844,3 +844,17 @@ form:has(.lgpick input:checked) .lgbulk{display:flex}
 .card-akt form{display:contents}
 .dtile .rd text.vlabel{display:none}
 .dtile .rd text.vlabel+text.anno{display:none}
+
+/* ---------- Markisen-Bestellblatt (Konfigurator + Montage-Modus) ---------- */
+.mf-skizzen{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.mf-skizzen > div{display:flex;flex-wrap:wrap;gap:10px}
+.mf-skizze{border:1px solid var(--line);border-radius:10px;background:#fff;padding:6px}
+.mf-skizze svg{display:block;max-width:100%;height:auto}
+.mf-row{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:10px;align-items:start;padding:8px 0;border-bottom:1px solid var(--line)}
+.mf-label{font-size:13px;font-weight:600;color:var(--ink2);padding-top:5px}
+.mf-opts{display:flex;flex-wrap:wrap;gap:6px}
+.mf-opt{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;background:#fff}
+.mf-opt:has(input:checked){border-color:var(--blued,#26374a);background:#eef4fb;font-weight:600}
+.mf-opt input{margin:0}
+.mf-opt .hint{font-size:11px}
+@media (max-width:700px){.mf-row{grid-template-columns:1fr;gap:4px}}

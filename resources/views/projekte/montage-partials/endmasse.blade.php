@@ -43,6 +43,14 @@
                                     <span class="badge {{ $feld['badge'] }} ex-d">{{ $feld['deltaText'] }}</span>
                                 </div>
                             @endforeach
+                            @if (! empty($gruppe['formular']))
+                                <div class="mm-sub" style="margin:14px 0 6px;font-weight:600">Bestellblatt Varisol — für die Bestellung beim Lieferanten</div>
+                                @include('projekte.partials.markise-formular', [
+                                    'name' => fn (string $f) => 'formular['.$gruppe['formular']['pid'].']['.$f.']',
+                                    'werte' => $gruppe['formular']['werte'],
+                                    'mitBasis' => false,
+                                ])
+                            @endif
                         </div>
                     @endforeach
                 </div>

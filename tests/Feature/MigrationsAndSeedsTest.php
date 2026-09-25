@@ -24,7 +24,7 @@ class MigrationsAndSeedsTest extends TestCase
     public function test_catalogue_is_fully_imported(): void
     {
         $this->assertSame(41, Artikel::count());
-        $this->assertSame(5, Lieferant::count());
+        $this->assertSame(6, Lieferant::count());
     }
 
     public function test_alias_lookup_resolves_free_text(): void

@@ -36,6 +36,21 @@
     .sigtab { width: 100%; border-collapse: collapse; margin-top: 30px; page-break-inside: avoid; }
     .sigtab td { width: 46%; border-top: 1.4px solid #243447; padding-top: 5px; font-size: 9.5px; color: #47586b; }
     .sigtab td.zw { width: 8%; border-top: none; }
+    /* Varisol-Bestellblatt */
+    .vb-kopf { width: 100%; border-collapse: collapse; }
+    .vb-kopf td { padding: 2px 6px; font-size: 9.5px; border-bottom: 1px solid #dbe2ea; }
+    .vb-kopf .k { color: #64748b; width: 34mm; }
+    .vb-kopf .w { background: #eef6fb; }
+    .vb-titel { width: 100%; border-collapse: collapse; background: #111827; color: #ffffff; margin: 8px 0 6px; }
+    .vb-titel td { padding: 7px 10px; font-size: 12.5px; font-weight: bold; }
+    .vb { width: 100%; border-collapse: collapse; }
+    .vb td { padding: 3px 6px; font-size: 9.3px; line-height: 1.55; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+    .vb .k { font-weight: bold; color: #1f2937; width: 44mm; }
+    .vb-opt { margin-right: 9px; }
+    .vb-klein { color: #64748b; font-size: 8px; }
+    .vb-feld { display: inline-block; min-width: 26mm; background: #eef6fb; padding: 1px 5px; font-weight: bold; }
+    .bx { display: inline-block; width: 8px; height: 8px; border: 1.2px solid #26374a; margin-right: 4px; vertical-align: -1px; }
+    .bx.on { background: #26374a; }
 </style>
 </head>
 @php
@@ -46,6 +61,12 @@
 @endphp
 <body>
     @include('partials.pdf-fuss')
+    @php
+        // Reine Markisen-Bestellung: nur die Varisol-Bestellblätter.
+        $nurMarkisen = $markisenPositionen->isNotEmpty() && $glasPositionen->isEmpty()
+            && $schiebePositionen->isEmpty() && $materialPositionen->isEmpty() && $segelPositionen->isEmpty();
+    @endphp
+    @unless ($nurMarkisen)
 
     <table class="kopfzeile"><tr>
         <td style="width:50%">
@@ -248,5 +269,13 @@
         <td class="zw"></td>
         <td>Bestätigung Produktion / Lieferant</td>
     </tr></table>
+    @endunless
+
+    @foreach ($markisenPositionen as $markise)
+        @include('bestellungen.partials.varisol-blatt', [
+            'position' => $markise,
+            'neueSeite' => ! $loop->first || ! $nurMarkisen,
+        ])
+    @endforeach
 </body>
 </html>
