@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
@@ -33,6 +34,8 @@ class Bestellung extends Model
             'glas' => 'Glas',
             'aluminium' => 'Aluminium / Zubehör',
             'gemischt' => 'Gemischt',
+            'markise' => 'Markisen',
+            'sonnensegel' => 'Sonnensegel (Tuch)',
             default => $this->kategorie ?? '–',
         };
     }
@@ -46,7 +49,7 @@ class Bestellung extends Model
         };
     }
 
-    public function touren(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function touren(): BelongsToMany
     {
         return $this->belongsToMany(Tour::class, 'tour_bestellung', 'bestellung_id', 'tour_id');
     }

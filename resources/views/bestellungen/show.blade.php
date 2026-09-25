@@ -117,7 +117,22 @@
                     <tbody>
                     @foreach ($materialPositionen as $position)
                         <tr>
-                            <td><span class="b">{{ $position->bezeichnung }}</span></td>
+                            <td><span class="b">{{ $position->bezeichnung }}</span>
+                                @if (! empty($position->details['komponenten']))
+                                    <table class="tbl" style="margin-top:6px;font-size:12px">
+                                        <thead><tr><th>Bauteil</th><th class="num">Menge</th><th class="num">Zuschnitt</th></tr></thead>
+                                        <tbody>
+                                        @foreach ($position->details['komponenten'] as $teil)
+                                            <tr>
+                                                <td>{{ $teil['name'] }}</td>
+                                                <td class="num mono">{{ $teil['menge'] }} {{ $teil['einheit'] }}</td>
+                                                <td class="num mono">{{ ! empty($teil['laenge_mm']) ? number_format((int) $teil['laenge_mm'], 0, ',', '.').' mm' : '–' }}</td>
+                                            </tr>
+                                        @endforeach
+                                        </tbody>
+                                    </table>
+                                @endif
+                            </td>
                             <td class="mono">{{ $position->artikel?->art_nr ?? '—' }}</td>
                             <td class="mono">{{ Format::menge($position->menge) }}</td>
                             <td>{{ $position->einheit ?? $position->artikel?->einheit->value ?? 'Stück' }}</td>

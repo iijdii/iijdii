@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Bestellung;
 use App\Models\Projekt;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -102,10 +103,18 @@ class EndmasseZyklusTest extends TestCase
             ],
         ]);
 
-        $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/nachbestellung');
-        $bestellung = $projekt->bestellungen()->firstOrFail();
-        $this->assertSame('Projekt '.$projekt->nr.' · Phase 2 (Endmaße)', $bestellung->titel);
+        $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/nachbestellung')
+            ->assertRedirect(route('projekte.show', [$projekt, 'tab' => 'material']));
+
+        // Je Lieferanten-Gruppe ein Entwurf: Glas & Schiebe (Wand, Schiebe,
+        // Keil) und Sonnensegel separat — Markisen kommen hier nicht vor.
+        $this->assertSame(2, $projekt->bestellungen()->count());
+        $bestellung = $projekt->bestellungen()->where('titel', 'Projekt '.$projekt->nr.' · Phase 2 · Glas & Schiebe')->firstOrFail();
+        $segelBestellung = $projekt->bestellungen()->where('titel', 'Projekt '.$projekt->nr.' · Phase 2 · Sonnensegel (Tuch)')->firstOrFail();
+        $this->assertSame('glas', $bestellung->kategorie);
+        $this->assertSame('sonnensegel', $segelBestellung->kategorie);
         $this->assertNull($bestellung->lieferant_id);
+        $this->assertSame(0, $bestellung->positionen()->where('bezeichnung', 'like', 'Sonnenschutz%')->count());
 
         // Wand → 3 Zuschnitt-Panels (SeitenwandRechner: 985/970/985, Trapez)
         $panels = $bestellung->positionen()->where('typ', 'glas')
@@ -134,7 +143,7 @@ class EndmasseZyklusTest extends TestCase
 
         // Sonnensegel → Sonnenschutz (Tuch): gleiche Maße zu einer Position
         // mit Stückzahl summiert, Maße + Farbe in der Bezeichnung.
-        $segelPositionen = $bestellung->positionen()
+        $segelPositionen = $segelBestellung->positionen()
             ->where('bezeichnung', 'like', 'Sonnenschutz%')->orderBy('pos')->get();
         $this->assertCount(1, $segelPositionen);
         $this->assertSame(2.0, (float) $segelPositionen[0]->menge);
@@ -152,9 +161,8 @@ class EndmasseZyklusTest extends TestCase
             'endmasse' => [$keil->id => ['breite_unten_mm' => 3050, 'hoehe_hinten_mm' => 530, 'h_vorn_mm' => 120]],
         ]);
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/nachbestellung')
-            ->assertRedirect(route('bestellungen.show', $bestellung))
-            ->assertSessionHas('toast', 'Entwurf '.$bestellung->nr.' aus den aktuellen Endmaßen neu aufgebaut');
-        $this->assertSame(1, $projekt->bestellungen()->count());
+            ->assertSessionHas('toast', 'Phase 2 bereit: '.$bestellung->nr.' Glas · '.$segelBestellung->nr.' Sonnensegel (Tuch) — bitte Lieferanten wählen');
+        $this->assertSame(2, $projekt->bestellungen()->count());
         $this->assertSame(3050, $bestellung->positionen()->where('bezeichnung', 'like', 'Keil%')->firstOrFail()->breite_mm);
         $this->assertTrue($bestellung->positionen()->where('bezeichnung', 'Silikon')->exists());
 
@@ -163,6 +171,42 @@ class EndmasseZyklusTest extends TestCase
             ->post('/projekte/'.$projekt->nr.'/aufmass-bestaetigung', ['aktion' => 'bestaetigen']);
         $this->actingAs($this->verkauf)->get('/projekte/'.$projekt->nr.'?tab=material')
             ->assertSee('Nachbestellung aus Endmaßen (Phase 2)');
+    }
+
+    public function test_markisen_eigener_entwurf_und_alt_entwurf_wird_uebernommen(): void
+    {
+        $projekt = $this->projektMitElementen();
+        $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/positionen', [
+            'position' => ['produkt' => 'markise', 'felder' => ['breite_mm' => 4500, 'ausfall_mm' => 3000]],
+        ]);
+        $markise = $projekt->positionen()->where('produkt', 'markise')->firstOrFail();
+        $wand = $projekt->positionen()->where('produkt', 'wand')->firstOrFail();
+
+        // Alt-Entwurf aus früheren Versionen mit einer manuellen Position.
+        $alt = Bestellung::query()->create([
+            'nr' => 'BST-ALT-1', 'titel' => 'Projekt '.$projekt->nr.' · Phase 2 (Endmaße)',
+            'kategorie' => 'gemischt', 'projekt_id' => $projekt->id, 'kunde_id' => $projekt->kunde_id,
+            'status' => 'entwurf',
+        ]);
+        $alt->positionen()->create(['typ' => 'material', 'pos' => 1, 'bezeichnung' => 'Silikon', 'menge' => 1, 'einheit' => 'Stück']);
+
+        $this->actingAs($this->monteur)->post('/projekte/'.$projekt->nr.'/montage/endmasse', [
+            'endmasse' => [
+                $markise->id => ['breite_mm' => 4480, 'ausfall_mm' => 3000],
+                $wand->id => ['breite_mm' => 3000, 'h_links_mm' => 2000, 'h_rechts_mm' => 2420],
+            ],
+        ]);
+        $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/nachbestellung');
+
+        $markisen = $projekt->bestellungen()->where('titel', 'Projekt '.$projekt->nr.' · Phase 2 · Markisen')->firstOrFail();
+        $this->assertSame('markise', $markisen->kategorie);
+        $this->assertStringContainsString('Breite 4480 mm', $markisen->positionen()->firstOrFail()->bezeichnung);
+
+        // Der Alt-Entwurf wurde zum Glas-Entwurf — manuelle Position bleibt.
+        $alt->refresh();
+        $this->assertSame('Projekt '.$projekt->nr.' · Phase 2 · Glas & Schiebe', $alt->titel);
+        $this->assertTrue($alt->positionen()->where('bezeichnung', 'Silikon')->exists());
+        $this->assertSame(3, $alt->positionen()->where('bezeichnung', 'like', 'Seitenwand%')->count());
     }
 
     public function test_abschluss_erst_nach_zweiter_abnahme(): void

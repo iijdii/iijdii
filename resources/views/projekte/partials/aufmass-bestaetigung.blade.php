@@ -29,8 +29,9 @@
                     <button class="btn btns" type="submit">Zurücksetzen</button>
                 </form>
             </div>
-            <p class="hint" style="margin-top:8px">Erzeugt einen Bestell-Entwurf mit den Phase-1-Positionen
-                (Dachfelder aus der Glas-Kalkulation, Pfosten, Sparren). Den Lieferanten wählen Sie im Entwurf.</p>
+            <p class="hint" style="margin-top:8px">Erzeugt zwei Entwürfe: <b>Konstruktion</b> — die Überdachung als
+                eine Position mit allen Bauteilen und Zuschnittlängen — und <b>Glas</b> für das Dach (eigener
+                Lieferant). Erneuter Klick baut beide aus den aktuellen Daten neu auf.</p>
             @php $endmassPositionen = $projekt->positionen->where('phase', 2)->whereNotNull('endmasse_am'); @endphp
             @if ($endmassPositionen->isNotEmpty())
                 <form method="POST" action="{{ route('projekte.nachbestellung', $projekt) }}" style="margin-top:12px">
@@ -39,7 +40,8 @@
                         <svg class="i"><use href="#ic-bestellungen"/></svg>Nachbestellung aus Endmaßen (Phase 2)</button>
                 </form>
                 <p class="hint" style="margin-top:8px">{{ $endmassPositionen->count() }} Position(en) mit
-                    Endmaßen vom Monteur — Seitenwände gehen als fertiger Glaszuschnitt in den Entwurf.</p>
+                    Endmaßen vom Monteur — je Lieferant ein Entwurf: Glas &amp; Schiebe (Wände, Keile,
+                    Schiebeanlagen), Markisen, Sonnensegel.</p>
             @endif
         @else
             <p class="hint">Bestellungen aus diesem Projekt sind gesperrt, bis der Verkäufer die Maße

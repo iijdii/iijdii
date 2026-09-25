@@ -169,14 +169,23 @@
         <div class="karte karte-teilbar">
             <div class="karte-kopf">Material-Positionen</div>
             <table class="skiztab">
-                <thead><tr><th>Bezeichnung</th><th style="width:32mm">Art.-Nr.</th><th style="width:28mm;text-align:right">Menge</th></tr></thead>
+                <thead><tr><th>Bezeichnung</th><th style="width:38mm">Art.-Nr. / Zuschnitt</th><th style="width:28mm;text-align:right">Menge</th></tr></thead>
                 <tbody>
                 @foreach ($materialPositionen as $position)
                     <tr>
-                        <td>{{ $position->bezeichnung }}</td>
+                        <td><b>{{ $position->bezeichnung }}</b></td>
                         <td>{{ $position->artikel?->art_nr ?? '–' }}</td>
                         <td style="text-align:right">{{ Format::menge($position->menge) }} {{ $position->einheit }}</td>
                     </tr>
+                    {{-- Bauteile der Überdachung als eingerückte Unterzeilen
+                         (dompdf verliert verschachtelte Tabellen in Zeilen). --}}
+                    @foreach ($position->details['komponenten'] ?? [] as $teil)
+                        <tr style="font-size:9.5px">
+                            <td style="padding:4px 10px 4px 24px;color:#1f2937">– {{ $teil['name'] }}</td>
+                            <td style="padding:4px 10px">{!! ! empty($teil['laenge_mm']) ? 'Zuschnitt <b>'.number_format((int) $teil['laenge_mm'], 0, ',', '.').' mm</b>' : '' !!}</td>
+                            <td style="padding:4px 10px;text-align:right">{{ $teil['menge'] }} {{ $teil['einheit'] }}</td>
+                        </tr>
+                    @endforeach
                 @endforeach
                 </tbody>
             </table>

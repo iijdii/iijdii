@@ -37,7 +37,7 @@
                 </select></div>
             <div class="fld"><label>Kategorie</label>
                 <select class="inp" name="kategorie">
-                    @foreach (['glas' => 'Glas', 'aluminium' => 'Aluminium / Zubehör', 'gemischt' => 'Gemischt'] as $schluessel => $label)
+                    @foreach (['glas' => 'Glas', 'aluminium' => 'Aluminium / Zubehör', 'gemischt' => 'Gemischt', 'markise' => 'Markisen', 'sonnensegel' => 'Sonnensegel (Tuch)'] as $schluessel => $label)
                         <option value="{{ $schluessel }}" @selected($wert('kategorie', 'gemischt') === $schluessel)>{{ $label }}</option>
                     @endforeach
                 </select></div>

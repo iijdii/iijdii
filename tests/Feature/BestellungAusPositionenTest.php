@@ -34,7 +34,16 @@ class BestellungAusPositionenTest extends TestCase
         return Projekt::query()->orderByDesc('id')->firstOrFail();
     }
 
-    public function test_entwurf_entsteht_aus_phase1_positionen(): void
+    /** Die beiden Phase-1-Entwürfe (Konstruktion / Glas) des Projekts. */
+    private function entwuerfe(Projekt $projekt): array
+    {
+        return [
+            $projekt->bestellungen()->where('titel', 'Projekt '.$projekt->nr.' · Phase 1 · Konstruktion (Überdachung)')->firstOrFail(),
+            $projekt->bestellungen()->where('titel', 'Projekt '.$projekt->nr.' · Phase 1 · Glas (Dach)')->firstOrFail(),
+        ];
+    }
+
+    public function test_entwuerfe_konstruktion_und_glas_aus_phase1_positionen(): void
     {
         $projekt = $this->frischesProjekt();
         $this->actingAs($this->verkauf)
@@ -43,49 +52,56 @@ class BestellungAusPositionenTest extends TestCase
         $antwort = $this->actingAs($this->verkauf)
             ->post('/projekte/'.$projekt->nr.'/bestellung-aus-positionen');
 
-        $bestellung = $projekt->bestellungen()->firstOrFail();
-        $antwort->assertRedirect(route('bestellungen.show', $bestellung))
-            ->assertSessionHas('toast', 'Entwurf '.$bestellung->nr.' erstellt — bitte Lieferant wählen');
+        [$konstruktion, $glasBestellung] = $this->entwuerfe($projekt);
+        $antwort->assertRedirect(route('projekte.show', [$projekt, 'tab' => 'material']))
+            ->assertSessionHas('toast', 'Entwürfe '.$konstruktion->nr.' (Konstruktion) und '.$glasBestellung->nr.' (Glas) bereit — bitte Lieferanten wählen');
+        $this->assertSame(2, $projekt->bestellungen()->count());
 
-        $this->assertSame('entwurf', $bestellung->status->value);
-        $this->assertNull($bestellung->lieferant_id);
-        $this->assertSame($projekt->kunde_id, $bestellung->kunde_id);
+        foreach ([$konstruktion, $glasBestellung] as $b) {
+            $this->assertSame('entwurf', $b->status->value);
+            $this->assertNull($b->lieferant_id);
+            $this->assertSame($projekt->kunde_id, $b->kunde_id);
+        }
+        $this->assertSame('aluminium', $konstruktion->kategorie);
+        $this->assertSame('glas', $glasBestellung->kategorie);
 
-        // KD-Regeln: W=6000 → (6000−60)/772 → 8 Felder, Achsmaß 743,
-        // Glas 721 × 2.950; Pfosten rec=3, Sparren 9.
-        $glas = $bestellung->positionen()->where('typ', 'glas')->firstOrFail();
+        // Glas separat — KD-Regeln: W=6000 → 8 Felder, Glas 721 × 2.950.
+        $this->assertSame(0, $konstruktion->positionen()->where('typ', 'glas')->count());
+        $glas = $glasBestellung->positionen()->where('typ', 'glas')->firstOrFail();
         $this->assertSame(8.0, (float) $glas->menge);
         $this->assertSame(721, $glas->breite_mm);
         $this->assertSame(2950, $glas->hoehe_mm);
-        $this->assertSame('live', $glas->details['quelle']); // Badge «aus Projekt»
+        $this->assertSame('live', $glas->details['quelle']);
 
-        // KD-Stückliste: alle Hauptpositionen mit Mengen aus dem Rechenkern.
-        $material = $bestellung->positionen()->where('typ', 'material')->orderBy('pos')->get();
-        $zeileVon = fn (string $name) => $material->first(fn ($z) => str_starts_with($z->bezeichnung, $name));
-        $menge = fn (string $name) => (float) $zeileVon($name)?->menge;
-        $this->assertSame(3.0, $menge('Alu-Pfosten 110×110'));
-        $this->assertSame(9.0, $menge('Sparren/Träger'));
-        $this->assertSame(9.0, $menge('Endstopp'));
-        $this->assertSame(7.0, $menge('Abdeckprofil Rundleiste'));
-        $this->assertSame(1.0, $menge('Gigarinne'));
-        $this->assertSame(1.0, $menge('LED-Set 12 Spots'));
-        $this->assertNotNull($zeileVon('Alu-Pfosten')->artikel_id); // Alias
-        $this->assertSame(6000, $zeileVon('Gigarinne')->details['laenge_mm']);
+        // Konstruktion = EINE Position «Überdachung» mit allen Bauteilen
+        // und Zuschnittlängen innen.
+        $this->assertSame(1, $konstruktion->positionen()->count());
+        $ueberdachung = $konstruktion->positionen()->firstOrFail();
+        $this->assertStringStartsWith('Überdachung', $ueberdachung->bezeichnung);
+        $this->assertSame('Satz', $ueberdachung->einheit);
+        $teile = collect($ueberdachung->details['komponenten']);
+        $teil = fn (string $name) => $teile->first(fn ($t) => str_starts_with($t['name'], $name));
+        $this->assertSame(3, $teil('Alu-Pfosten 110×110')['menge']);
+        $this->assertSame(9, $teil('Sparren/Träger')['menge']);
+        $this->assertSame(3000, $teil('Sparren/Träger')['laenge_mm']);
+        $this->assertSame(7, $teil('Abdeckprofil Rundleiste')['menge']);
+        $this->assertSame(6000, $teil('Gigarinne')['laenge_mm']);
+        $this->assertSame(1, $teil('LED-Set 12 Spots')['menge']);
 
-        // Rückverfolgbarkeit: alle Positionen zeigen auf die Dach-Projektposition.
+        // Rückverfolgbarkeit auf die Dach-Projektposition.
         $dach = $projekt->positionen()->where('gruppe', 'dach')->firstOrFail();
-        $this->assertSame([$dach->id], $bestellung->positionen()->pluck('projekt_position_id')->unique()->all());
+        $this->assertSame($dach->id, $ueberdachung->projekt_position_id);
+        $this->assertSame($dach->id, $glas->projekt_position_id);
 
-        $this->assertTrue($projekt->aktivitaeten()
-            ->where('titel', 'Bestell-Entwurf '.$bestellung->nr.' aus Positionen erstellt')->exists());
-
-        // Detailseite rendert ohne Lieferant
-        $this->actingAs($this->verkauf)->get('/bestellungen/'.$bestellung->nr)
+        // Detailseite zeigt die Bauteile mit Zuschnitt, ohne Lieferant.
+        $this->actingAs($this->verkauf)->get('/bestellungen/'.$konstruktion->nr)
             ->assertOk()
-            ->assertSee('— Lieferant wählen —');
+            ->assertSee('— Lieferant wählen —')
+            ->assertSee('Zuschnitt')
+            ->assertSee('6.000 mm');
     }
 
-    public function test_gesperrt_ohne_aufmass_und_ohne_duplikate(): void
+    public function test_gesperrt_ohne_aufmass_und_neuaufbau_ohne_duplikate(): void
     {
         $projekt = $this->frischesProjekt();
 
@@ -96,17 +112,19 @@ class BestellungAusPositionenTest extends TestCase
             ->assertSessionHas('toast', 'Aufmaß nicht bestätigt — Bestellung gesperrt');
         $this->assertSame(0, $projekt->bestellungen()->count());
 
-        // Nach Bestätigung: erster Klick erzeugt, zweiter öffnet den Entwurf.
+        // Zweiter Klick baut die beiden Entwürfe neu auf, statt zu duplizieren;
+        // manuell ergänzte Positionen bleiben.
         $this->actingAs($this->verkauf)
             ->post('/projekte/'.$projekt->nr.'/aufmass-bestaetigung', ['aktion' => 'bestaetigen']);
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/bestellung-aus-positionen');
-        $entwurf = $projekt->bestellungen()->firstOrFail();
+        [$konstruktion] = $this->entwuerfe($projekt);
+        $this->actingAs($this->verkauf)->post('/bestellungen/'.$konstruktion->nr.'/positionen', [
+            'typ' => 'material', 'bezeichnung' => 'Silikon', 'menge' => 2,
+        ]);
 
-        $this->actingAs($this->verkauf)
-            ->post('/projekte/'.$projekt->nr.'/bestellung-aus-positionen')
-            ->assertRedirect(route('bestellungen.show', $entwurf))
-            ->assertSessionHas('toast', 'Entwurf '.$entwurf->nr.' aus Positionen existiert bereits');
-        $this->assertSame(1, $projekt->bestellungen()->count());
+        $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/bestellung-aus-positionen');
+        $this->assertSame(2, $projekt->bestellungen()->count());
+        $this->assertSame(2, $konstruktion->positionen()->count()); // Überdachung + Silikon
     }
 
     public function test_verkaeufer_waehlt_lieferant_im_entwurf_dann_erst_status(): void
@@ -115,7 +133,7 @@ class BestellungAusPositionenTest extends TestCase
         $this->actingAs($this->verkauf)
             ->post('/projekte/'.$projekt->nr.'/aufmass-bestaetigung', ['aktion' => 'bestaetigen']);
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/bestellung-aus-positionen');
-        $bestellung = $projekt->bestellungen()->firstOrFail();
+        [$bestellung] = $this->entwuerfe($projekt);
 
         // Ohne Lieferant verlässt der Status den Entwurf nicht.
         $this->actingAs($this->verkauf)->post('/bestellungen/'.$bestellung->nr.'/status', ['status' => 'geprueft'])
@@ -145,7 +163,7 @@ class BestellungAusPositionenTest extends TestCase
         $this->actingAs($this->verkauf)
             ->post('/projekte/'.$projekt->nr.'/aufmass-bestaetigung', ['aktion' => 'bestaetigen']);
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/bestellung-aus-positionen');
-        $bestellung = $projekt->bestellungen()->firstOrFail();
+        [, $bestellung] = $this->entwuerfe($projekt);
         $dach = $projekt->positionen()->where('gruppe', 'dach')->firstOrFail();
 
         $this->actingAs($this->verkauf)
@@ -153,7 +171,7 @@ class BestellungAusPositionenTest extends TestCase
             ->assertSessionHas('toast', 'Position entfernt');
 
         $this->assertSame(0, $bestellung->positionen()->whereNotNull('projekt_position_id')->count());
-        $this->assertSame(16, $bestellung->positionen()->count()); // Positionen selbst bleiben
+        $this->assertSame(1, $bestellung->positionen()->count()); // Positionen selbst bleiben
     }
 
     public function test_material_tab_zeigt_bestellknopf_nur_mit_bestaetigung(): void
@@ -187,8 +205,7 @@ class BestellungAusPositionenTest extends TestCase
 
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/bestellung-aus-positionen');
 
-        $this->assertSame(2, $projekt->bestellungen()->count());
-        $neu = Bestellung::query()->orderByDesc('id')->firstOrFail();
-        $this->assertSame('Projekt '.$projekt->nr.' · Phase 1', $neu->titel);
+        $this->assertSame(3, $projekt->bestellungen()->count());
+        $this->assertCount(2, $this->entwuerfe($projekt));
     }
 }

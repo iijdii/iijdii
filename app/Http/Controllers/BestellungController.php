@@ -113,16 +113,6 @@ class BestellungController extends Controller
             return $zurueck->with('toast', 'Keine Dachposition — Phase 1 hat nichts zu bestellen');
         }
 
-        // Kein Duplikat: ein offener Entwurf aus Positionen wird geöffnet.
-        $entwurf = $projekt->bestellungen()
-            ->where('status', BestellungStatus::Entwurf)
-            ->whereHas('positionen', fn ($q) => $q->whereNotNull('projekt_position_id'))
-            ->first();
-        if ($entwurf !== null) {
-            return redirect()->route('bestellungen.show', $entwurf)
-                ->with('toast', 'Entwurf '.$entwurf->nr.' aus Positionen existiert bereits');
-        }
-
         $kalk = KonfiguratorRechner::berechne($projekt->konfiguration ?? []);
         if ($kalk['fields'] < 1) {
             return $zurueck->with('toast', 'Konfiguration unvollständig — bitte Breite/Tiefe pflegen');
@@ -132,26 +122,22 @@ class BestellungController extends Controller
         }
         $p = $kalk['pcfg'];
 
-        $bestellung = DB::transaction(function () use ($request, $projekt, $dach, $kalk, $p) {
-            $bestellung = Bestellung::query()->create([
-                'nr' => Nummern::bestellung(),
-                'titel' => 'Projekt '.$projekt->nr.' · Phase 1',
-                'kategorie' => 'gemischt',
-                'projekt_id' => $projekt->id,
-                'kunde_id' => $projekt->kunde_id,
-                'ersteller_id' => $request->user()->id,
-                'status' => BestellungStatus::Entwurf,
-                'notizen' => 'Automatisch aus den Projektpositionen erstellt — Lieferant im Entwurf wählen.',
-            ]);
+        // Zwei Entwürfe, weil Profil und Glas meist von verschiedenen
+        // Lieferanten kommen: die Konstruktion als EINE Position
+        // «Überdachung» mit allen Bauteilen und Zuschnittlängen, das Glas
+        // des Daches separat. Erneuter Klick baut beide neu auf.
+        [$konstruktion, $glas] = DB::transaction(function () use ($request, $projekt, $dach, $kalk, $p) {
+            $konstruktion = $this->entwurfFuer($request, $projekt, 'Phase 1 · Konstruktion (Überdachung)', 'aluminium');
+            $glas = $this->entwurfFuer($request, $projekt, 'Phase 1 · Glas (Dach)', 'glas');
 
-            // Vollständige Hauptpositionen nach KD-Stückliste; Kleinteile
-            // ergänzt der Verkäufer im Entwurf.
-            foreach (Stueckliste::dach($kalk) as $i => $zeile) {
+            $komponenten = [];
+            $glasPos = (int) $glas->positionen()->max('pos');
+            foreach (Stueckliste::dach($kalk) as $zeile) {
                 if ($zeile['typ'] === 'glas') {
                     $glasArtikel = Artikel::findeNachName($p['covering'].' '.$p['thickness'].' klar')
                         ?? Artikel::findeNachName($p['covering'].' '.$p['thickness']);
-                    $bestellung->positionen()->create([
-                        'typ' => 'glas', 'pos' => $i + 1, 'bezeichnung' => $zeile['name'],
+                    $glas->positionen()->create([
+                        'typ' => 'glas', 'pos' => ++$glasPos, 'bezeichnung' => $zeile['name'],
                         'artikel_id' => $glasArtikel?->id,
                         'menge' => $zeile['menge'], 'einheit' => $zeile['einheit'],
                         'breite_mm' => $zeile['breite_mm'], 'hoehe_mm' => $zeile['hoehe_mm'],
@@ -165,28 +151,65 @@ class BestellungController extends Controller
                     continue;
                 }
 
-                $artikel = isset($zeile['such']) ? Artikel::findeNachName($zeile['such']) : null;
-                $bestellung->positionen()->create([
-                    'typ' => 'material', 'pos' => $i + 1, 'bezeichnung' => $zeile['name'],
-                    'artikel_id' => $artikel?->id, 'menge' => $zeile['menge'],
-                    'einheit' => $artikel?->einheit->value ?? $zeile['einheit'],
-                    'projekt_position_id' => $dach->id,
-                    'details' => isset($zeile['laenge_mm']) ? ['laenge_mm' => $zeile['laenge_mm']] : null,
-                ]);
+                $komponenten[] = [
+                    'name' => $zeile['name'],
+                    'menge' => (int) $zeile['menge'],
+                    'einheit' => $zeile['einheit'],
+                    'laenge_mm' => $zeile['laenge_mm'] ?? null,
+                ];
             }
 
+            $konstruktion->positionen()->create([
+                'typ' => 'material',
+                'pos' => (int) $konstruktion->positionen()->max('pos') + 1,
+                'bezeichnung' => ($kalk['positionen'][0]['name'] ?? 'Überdachung').' · '.$p['color'],
+                'menge' => 1, 'einheit' => 'Satz',
+                'projekt_position_id' => $dach->id,
+                'details' => ['komponenten' => $komponenten],
+            ]);
+
             $projekt->aktivitaeten()->create([
-                'titel' => 'Bestell-Entwurf '.$bestellung->nr.' aus Positionen erstellt',
+                'titel' => 'Bestell-Entwürfe '.$konstruktion->nr.' (Konstruktion) und '.$glas->nr.' (Glas) aus Positionen',
                 'wer' => $request->user()->name,
                 'datum' => now()->format('d.m.'),
                 'status' => 'done',
             ]);
 
-            return $bestellung;
+            return [$konstruktion, $glas];
         });
 
-        return redirect()->route('bestellungen.show', $bestellung)
-            ->with('toast', 'Entwurf '.$bestellung->nr.' erstellt — bitte Lieferant wählen');
+        return $zurueck->with('toast', 'Entwürfe '.$konstruktion->nr.' (Konstruktion) und '.$glas->nr.' (Glas) bereit — bitte Lieferanten wählen');
+    }
+
+    /**
+     * Offener Entwurf dieses Projekts mit dem Titel-Suffix — oder neu.
+     * Automatisch erzeugte Positionen (mit Projekt-Link) eines bestehenden
+     * Entwurfs werden entfernt, damit der Aufrufer sie aus den aktuellen
+     * Daten neu anlegt; manuell ergänzte Positionen bleiben stehen.
+     */
+    private function entwurfFuer(Request $request, Projekt $projekt, string $suffix, string $kategorie): Bestellung
+    {
+        $titel = 'Projekt '.$projekt->nr.' · '.$suffix;
+        $entwurf = $projekt->bestellungen()
+            ->where('status', BestellungStatus::Entwurf)
+            ->where('titel', $titel)
+            ->first();
+        if ($entwurf !== null) {
+            $entwurf->positionen()->whereNotNull('projekt_position_id')->delete();
+
+            return $entwurf;
+        }
+
+        return Bestellung::query()->create([
+            'nr' => Nummern::bestellung(),
+            'titel' => $titel,
+            'kategorie' => $kategorie,
+            'projekt_id' => $projekt->id,
+            'kunde_id' => $projekt->kunde_id,
+            'ersteller_id' => $request->user()->id,
+            'status' => BestellungStatus::Entwurf,
+            'notizen' => 'Automatisch aus dem Projekt erstellt — Lieferant im Entwurf wählen.',
+        ]);
     }
 
     /**
@@ -203,30 +226,44 @@ class BestellungController extends Controller
             return $zurueck->with('toast', 'Keine Endmaße erfasst — zuerst im Montage-Modus eintragen');
         }
 
-        // Bestehender Phase-2-Entwurf wird nicht dupliziert, sondern mit
-        // den AKTUELLEN Endmaßen neu aufgebaut: automatisch erzeugte
-        // Positionen (projekt_position_id gesetzt) werden ersetzt,
-        // manuell ergänzte bleiben stehen.
-        $entwurf = $projekt->bestellungen()
-            ->where('status', BestellungStatus::Entwurf)
-            ->where('titel', 'like', '%Phase 2%')
-            ->first();
+        // Je Lieferanten-Gruppe ein eigener Entwurf (Betreiber-Vorgabe):
+        // Glas & Schiebe meist ein Lieferant, Markisen ein anderer,
+        // Sonnensegel wieder ein anderer. Bestehende Entwürfe werden mit
+        // den AKTUELLEN Endmaßen neu aufgebaut (Auto-Positionen ersetzt,
+        // manuell ergänzte bleiben stehen).
+        $gruppen = [
+            'glas' => ['Phase 2 · Glas & Schiebe', 'glas'],
+            'markise' => ['Phase 2 · Markisen', 'markise'],
+            'sonnensegel' => ['Phase 2 · Sonnensegel (Tuch)', 'sonnensegel'],
+            'sonstiges' => ['Phase 2 · Sonstiges', 'gemischt'],
+        ];
+        $gruppeVon = fn (ProjektProdukt $produkt): string => match ($produkt) {
+            ProjektProdukt::Wand, ProjektProdukt::Schiebe, ProjektProdukt::Keil => 'glas',
+            ProjektProdukt::Markise => 'markise',
+            ProjektProdukt::Sonnensegel => 'sonnensegel',
+            default => 'sonstiges',
+        };
 
-        $bestellung = DB::transaction(function () use ($request, $projekt, $positionen, $entwurf) {
-            $bestellung = $entwurf ?? Bestellung::query()->create([
-                'nr' => Nummern::bestellung(),
-                'titel' => 'Projekt '.$projekt->nr.' · Phase 2 (Endmaße)',
-                'kategorie' => 'gemischt',
-                'projekt_id' => $projekt->id,
-                'kunde_id' => $projekt->kunde_id,
-                'ersteller_id' => $request->user()->id,
-                'status' => BestellungStatus::Entwurf,
-                'notizen' => 'Nachbestellung aus den Endmaßen — Lieferant im Entwurf wählen.',
-            ]);
-            $bestellung->positionen()->whereNotNull('projekt_position_id')->delete();
+        $entwuerfe = DB::transaction(function () use ($request, $projekt, $positionen, $gruppen, $gruppeVon) {
+            // Alt-Entwurf «Phase 2 (Endmaße)» aus früheren Versionen:
+            // manuelle Positionen wandern mit in den Glas-Entwurf.
+            $alt = $projekt->bestellungen()
+                ->where('status', BestellungStatus::Entwurf)
+                ->where('titel', 'Projekt '.$projekt->nr.' · Phase 2 (Endmaße)')
+                ->first();
+            if ($alt !== null) {
+                $alt->positionen()->whereNotNull('projekt_position_id')->delete();
+                $alt->positionen()->exists()
+                    ? $alt->update(['titel' => 'Projekt '.$projekt->nr.' · '.$gruppen['glas'][0], 'kategorie' => 'glas'])
+                    : $alt->delete();
+            }
 
-            $pos = (int) $bestellung->positionen()->max('pos');
+            $entwuerfe = [];
             foreach ($positionen as $position) {
+                $gruppe = $gruppeVon($position->produkt);
+                $bestellung = $entwuerfe[$gruppe] ??= $this->entwurfFuer($request, $projekt, ...$gruppen[$gruppe]);
+                $pos = (int) $bestellung->positionen()->max('pos');
+
                 // Endmaß gewinnt, konfigurierte Felder füllen Lücken.
                 $m = ($position->endmasse ?? []) + ($position->felder ?? []);
                 $anzahl = max(1, (int) ($m['anzahl'] ?? $m['felder_n'] ?? 1));
@@ -353,19 +390,20 @@ class BestellungController extends Controller
             }
 
             $projekt->aktivitaeten()->create([
-                'titel' => 'Nachbestellung '.$bestellung->nr.' aus Endmaßen '.($entwurf !== null ? 'aktualisiert' : 'erstellt').' (Phase 2)',
+                'titel' => 'Nachbestellung aus Endmaßen (Phase 2): '.implode(', ', array_map(
+                    fn (Bestellung $b) => $b->nr, $entwuerfe,
+                )),
                 'wer' => $request->user()->name,
                 'datum' => now()->format('d.m.'),
                 'status' => 'done',
             ]);
 
-            return $bestellung;
+            return $entwuerfe;
         });
 
-        return redirect()->route('bestellungen.show', $bestellung)
-            ->with('toast', $entwurf !== null
-                ? 'Entwurf '.$bestellung->nr.' aus den aktuellen Endmaßen neu aufgebaut'
-                : 'Entwurf '.$bestellung->nr.' (Phase 2) erstellt — bitte Lieferant wählen');
+        return $zurueck->with('toast', 'Phase 2 bereit: '.implode(' · ', array_map(
+            fn (Bestellung $b) => $b->nr.' '.$b->kategorieLabel(), $entwuerfe,
+        )).' — bitte Lieferanten wählen');
     }
 
     public function edit(Bestellung $bestellung): View
@@ -528,7 +566,7 @@ class BestellungController extends Controller
             // verlässt setzeStatus den Entwurf nicht.
             'lieferant_id' => ['nullable', 'exists:lieferanten,id'],
             'titel' => ['required', 'string', 'max:150'],
-            'kategorie' => ['nullable', Rule::in(['glas', 'aluminium', 'gemischt'])],
+            'kategorie' => ['nullable', Rule::in(['glas', 'aluminium', 'gemischt', 'markise', 'sonnensegel'])],
             // Harte Sperre (M10): Projektbezug nur mit bestätigtem Aufmaß.
             'projekt_id' => ['nullable', 'exists:projekte,id',
                 function (string $attribut, mixed $wert, \Closure $fehler) {
