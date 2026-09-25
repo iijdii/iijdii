@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bestellung;
 use App\Models\Kunde;
 use App\Support\Format;
 use App\Support\Nummern;
@@ -15,7 +16,8 @@ class KundeController extends Controller
     public function index(): View
     {
         return view('kunden.index', [
-            'kunden' => Kunde::query()->orderBy('kunden_nr')->get(),
+            // Neueste zuerst (Betreiber-Wunsch).
+            'kunden' => Kunde::query()->orderByDesc('created_at')->orderByDesc('id')->get(),
         ]);
     }
 
@@ -42,6 +44,27 @@ class KundeController extends Controller
         $kunde->update($this->validiert($request));
 
         return redirect()->route('kunden.show', $kunde)->with('toast', 'Kunde aktualisiert');
+    }
+
+    /**
+     * Löschen nur ohne verknüpfte Vorgänge — sonst blockiert der Guard
+     * (Anfragen über die Absage entfernen, Projekte/Angebote hängen dran).
+     */
+    public function loesche(Kunde $kunde): RedirectResponse
+    {
+        $verknuepft = $kunde->anfragen()->count()
+            + $kunde->angebote()->count()
+            + $kunde->projekte()->count()
+            + Bestellung::query()->where('kunde_id', $kunde->id)->count();
+        if ($verknuepft > 0) {
+            return redirect()->route('kunden.show', $kunde)
+                ->with('toast', 'Kunde hat '.$verknuepft.' verknüpfte Vorgänge — zuerst Anfragen/Projekte entfernen');
+        }
+
+        $nr = $kunde->kunden_nr;
+        $kunde->delete();
+
+        return redirect()->route('kunden')->with('toast', 'Kunde '.$nr.' gelöscht');
     }
 
     /** @return array<string, mixed> Whitelist + Normalisierung (tags: Komma-Text → Array). */

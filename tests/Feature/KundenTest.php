@@ -33,6 +33,35 @@ class KundenTest extends TestCase
             ->assertSee('Lead');
     }
 
+    public function test_liste_sortiert_neueste_zuerst(): void
+    {
+        $neu = Kunde::factory()->create(['anzeigename' => 'Ganz Neuer Kunde', 'created_at' => now()->addMinute()]);
+
+        $antwort = $this->actingAs($this->benutzer)->get('/kunden')->assertOk();
+        $this->assertSame($neu->kunden_nr, $antwort->viewData('kunden')->first()->kunden_nr);
+    }
+
+    public function test_kunde_loeschen_mit_guard_fuer_verknuepfte_vorgaenge(): void
+    {
+        // Frei angelegter Kunde ohne Vorgänge → löschbar
+        $frei = Kunde::factory()->create(['anzeigename' => 'Ohne Vorgänge']);
+        $this->actingAs($this->benutzer)->post('/kunden/'.$frei->kunden_nr.'/loeschen')
+            ->assertRedirect(route('kunden'))
+            ->assertSessionHas('toast', 'Kunde '.$frei->kunden_nr.' gelöscht');
+        $this->assertNull(Kunde::query()->find($frei->id));
+
+        // Kunde mit Anfragen/Projekten → blockiert
+        $this->actingAs($this->benutzer)->post('/kunden/K-1071/loeschen')
+            ->assertRedirect(route('kunden.show', 'K-1071'));
+        $this->assertStringContainsString('verknüpfte Vorgänge', session('toast'));
+        $this->assertNotNull(Kunde::query()->where('kunden_nr', 'K-1071')->first());
+
+        // Monteur darf nicht löschen
+        $monteur = User::query()->where('email', 'monteur@lea.test')->firstOrFail();
+        $zweiter = Kunde::factory()->create();
+        $this->actingAs($monteur)->post('/kunden/'.$zweiter->kunden_nr.'/loeschen')->assertForbidden();
+    }
+
     public function test_detail_shows_contact_subtables_and_timeline(): void
     {
         $this->actingAs($this->benutzer)->get('/kunden/K-1071')

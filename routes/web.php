@@ -86,6 +86,7 @@ Route::middleware(['auth', 'lieferant.portal'])->group(function () {
     Route::get('/kunden/{kunde:kunden_nr}', [KundeController::class, 'show'])->name('kunden.show');
     Route::get('/kunden/{kunde:kunden_nr}/bearbeiten', [KundeController::class, 'edit'])->name('kunden.edit');
     Route::put('/kunden/{kunde:kunden_nr}', [KundeController::class, 'update'])->middleware('role:verkaeufer,projektleiter')->name('kunden.update');
+    Route::post('/kunden/{kunde:kunden_nr}/loeschen', [KundeController::class, 'loesche'])->middleware('role:verkaeufer,projektleiter')->name('kunden.loeschen');
     Route::get('/angebote', [AngebotController::class, 'index'])->name('angebote');
     Route::get('/angebote/{angebot:nr}', [AngebotController::class, 'show'])->name('angebote.show');
     Route::post('/angebote/{angebot:nr}/status', [AngebotController::class, 'setzeStatus'])->middleware('role:verkaeufer,projektleiter')->name('angebote.status');
