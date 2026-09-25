@@ -17,9 +17,12 @@ use App\Http\Controllers\MaterialKatalogController;
 use App\Http\Controllers\MontageController;
 use App\Http\Controllers\ProjektController;
 use App\Http\Controllers\ProjektPositionController;
+use App\Models\User;
 use App\Support\Version;
+use Database\Seeders\LieferantSeeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 
 Route::get('/', fn () => redirect()->route('dashboard'));
 
@@ -35,8 +38,21 @@ Route::get('/einrichtung/{token}', function (string $token) {
         // einem Datei-Upload veraltet sein), dann migrieren.
         Artisan::call('optimize:clear');
         $ausgabe = Artisan::output();
-        Artisan::call('migrate', ['--force' => true, '--seed' => true]);
+
+        // Demo-Daten NUR bei der Erstinstallation: ein erneuter Aufruf
+        // nach einem Patch darf gelöschte Kunden, Lagerbestände und
+        // geänderte Passwörter nicht auf den Demo-Stand zurücksetzen.
+        $ersteInstallation = ! Schema::hasTable('users') || ! User::query()->exists();
+        Artisan::call('migrate', ['--force' => true]);
         $ausgabe .= Artisan::output();
+        if ($ersteInstallation) {
+            Artisan::call('db:seed', ['--force' => true]);
+            $ausgabe .= Artisan::output()."Erstinstallation: Demo-Daten angelegt.\n";
+        } else {
+            // Bestehende Installation: nur Lieferanten-Stammdaten ergänzen.
+            Artisan::call('db:seed', ['--class' => LieferantSeeder::class, '--force' => true]);
+            $ausgabe .= "Bestehende Installation: Demo-Daten übersprungen, Ihre Daten bleiben unverändert.\n";
+        }
         // Views vorkompilieren: spart pro Request PHP-Zeit auf dem
         // Shared Hosting (kein config:cache — .env-Änderungen wie das
         // Entfernen des SETUP_TOKEN müssen sofort greifen).
