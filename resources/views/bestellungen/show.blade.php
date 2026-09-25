@@ -102,6 +102,34 @@
         </div>
     @endif
 
+    @if ($segelPositionen->isNotEmpty())
+        <div class="card p0">
+            <div class="card-h">
+                <span class="card-t">Sonnensegel (Tuch)</span>
+                <span class="pill">{{ Format::menge($segelPositionen->sum(fn ($s) => (float) $s->menge)) }} Stück</span>
+            </div>
+            <div class="card-b" style="overflow-x:auto">
+                <table class="tbl">
+                    <thead><tr><th>Pos.</th><th>Artikel</th><th class="num">Breite</th><th class="num">Länge</th><th>Farbe</th><th class="num">Menge</th></tr></thead>
+                    <tbody>
+                    @foreach ($segelPositionen as $segel)
+                        @php $sd = $segel->details ?? []; @endphp
+                        <tr>
+                            <td><span class="posn">{{ $loop->iteration }}</span></td>
+                            <td><span class="b">Sonnensegel</span> · Tuch
+                                @if (! empty($sd['projekt_pos']))<div class="hint">Projekt-Pos. {{ $sd['projekt_pos'] }}</div>@endif</td>
+                            <td class="num mono">{{ number_format((int) ($sd['breite_mm'] ?? $segel->breite_mm), 0, ',', '.') }} mm</td>
+                            <td class="num mono">{{ number_format((int) ($sd['laenge_mm'] ?? $segel->hoehe_mm), 0, ',', '.') }} mm</td>
+                            <td>{{ ($sd['farbe'] ?? '') !== '' ? $sd['farbe'] : '–' }}</td>
+                            <td class="num mono b">{{ Format::menge($segel->menge) }} {{ $segel->einheit }}</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
     @if ($materialPositionen->isNotEmpty())
         <div class="card p0">
             <div class="card-h">

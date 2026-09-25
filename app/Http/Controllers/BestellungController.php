@@ -353,12 +353,14 @@ class BestellungController extends Controller
                     foreach ($gruppen as $breite => $menge) {
                         $bestellung->positionen()->create([
                             'typ' => 'material', 'pos' => ++$pos,
-                            'bezeichnung' => 'Sonnenschutz (Tuch) Sonnensegel · Breite '.$breite.' mm × Länge '.$laenge.' mm'
+                            'bezeichnung' => 'Sonnensegel (Tuch) · Breite '.$breite.' mm × Länge '.$laenge.' mm'
                                 .($farbe !== '' ? ' · Farbe '.$farbe : '').' — Pos. '.$position->pos,
                             'menge' => $menge, 'einheit' => 'Stück',
                             'breite_mm' => $breite ?: null, 'hoehe_mm' => $laenge ?: null,
                             'projekt_position_id' => $position->id,
-                            'details' => ['breite_mm' => $breite, 'laenge_mm' => $laenge, 'farbe' => $farbe] + ($position->endmasse ?? []),
+                            // «art» steuert die eigene Segel-Tabelle in Karte und PDF.
+                            'details' => ['art' => 'sonnensegel', 'breite_mm' => $breite, 'laenge_mm' => $laenge,
+                                'farbe' => $farbe, 'projekt_pos' => $position->pos] + ($position->endmasse ?? []),
                         ]);
                     }
 
@@ -662,8 +664,15 @@ class BestellungController extends Controller
                 ];
             });
 
+        // Sonnensegel bekommen eine eigene Tabelle (Breite/Länge/Farbe);
+        // ältere Positionen ohne «art» erkennt der Bezeichnungs-Präfix.
+        $material = $bestellung->positionen->where('typ', BestellungPositionTyp::Material);
+        $istSegel = fn ($p) => ($p->details['art'] ?? null) === 'sonnensegel'
+            || str_starts_with((string) $p->bezeichnung, 'Sonnenschutz (Tuch)');
+
         return [
-            'materialPositionen' => $bestellung->positionen->where('typ', BestellungPositionTyp::Material)->values(),
+            'materialPositionen' => $material->reject($istSegel)->values(),
+            'segelPositionen' => $material->filter($istSegel)->values(),
             'glasPositionen' => $glasPositionen,
             'schiebePositionen' => $schiebePositionen,
         ];

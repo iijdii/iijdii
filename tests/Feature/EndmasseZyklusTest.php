@@ -114,7 +114,7 @@ class EndmasseZyklusTest extends TestCase
         $this->assertSame('glas', $bestellung->kategorie);
         $this->assertSame('sonnensegel', $segelBestellung->kategorie);
         $this->assertNull($bestellung->lieferant_id);
-        $this->assertSame(0, $bestellung->positionen()->where('bezeichnung', 'like', 'Sonnenschutz%')->count());
+        $this->assertSame(0, $bestellung->positionen()->where('bezeichnung', 'like', 'Sonnensegel (Tuch)%')->count());
 
         // Wand → 3 Zuschnitt-Panels (SeitenwandRechner: 985/970/985, Trapez)
         $panels = $bestellung->positionen()->where('typ', 'glas')
@@ -144,13 +144,22 @@ class EndmasseZyklusTest extends TestCase
         // Sonnensegel → Sonnenschutz (Tuch): gleiche Maße zu einer Position
         // mit Stückzahl summiert, Maße + Farbe in der Bezeichnung.
         $segelPositionen = $segelBestellung->positionen()
-            ->where('bezeichnung', 'like', 'Sonnenschutz%')->orderBy('pos')->get();
+            ->where('bezeichnung', 'like', 'Sonnensegel (Tuch)%')->orderBy('pos')->get();
         $this->assertCount(1, $segelPositionen);
         $this->assertSame(2.0, (float) $segelPositionen[0]->menge);
         $this->assertSame(650, $segelPositionen[0]->breite_mm);
         $this->assertSame(2950, $segelPositionen[0]->hoehe_mm);
         $this->assertStringContainsString('Breite 650 mm × Länge 2950 mm · Farbe Sandbeige', $segelPositionen[0]->bezeichnung);
         $this->assertSame($segel->id, $segelPositionen[0]->projekt_position_id);
+        $this->assertSame('sonnensegel', $segelPositionen[0]->details['art']);
+
+        // Eigene Tabelle in Karte und PDF: Breite / Länge / Farbe als Spalten.
+        $this->actingAs($this->verkauf)->get('/bestellungen/'.$segelBestellung->nr)
+            ->assertOk()
+            ->assertSeeInOrder(['Sonnensegel (Tuch)', 'Breite', 'Länge', 'Farbe', '650 mm', '2.950 mm', 'Sandbeige']);
+        $pdf = $this->actingAs($this->verkauf)->get('/bestellungen/'.$segelBestellung->nr.'/pdf');
+        $pdf->assertOk();
+        $this->assertStringStartsWith('%PDF', $pdf->getContent());
 
         // Zweiter Klick dupliziert nicht, sondern baut die Auto-Positionen
         // aus den AKTUELLEN Endmaßen neu auf; manuelle bleiben stehen.

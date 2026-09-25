@@ -165,6 +165,50 @@
         </div>
     @endif
 
+    @if ($segelPositionen->isNotEmpty())
+        @php
+            $segelStueck = 0; $segelFlaeche = 0.0;
+            foreach ($segelPositionen as $segel) {
+                $sd = $segel->details ?? [];
+                $segelStueck += (int) $segel->menge;
+                $segelFlaeche += ((int) ($sd['breite_mm'] ?? $segel->breite_mm) / 1000)
+                    * ((int) ($sd['laenge_mm'] ?? $segel->hoehe_mm) / 1000) * (float) $segel->menge;
+            }
+        @endphp
+        <div class="karte karte-teilbar">
+            <div class="karte-kopf">Sonnensegel (Tuch)</div>
+            <table class="skiztab">
+                <thead><tr>
+                    <th style="width:10mm">Pos.</th>
+                    <th>Artikel</th>
+                    <th style="width:24mm;text-align:right">Breite</th>
+                    <th style="width:24mm;text-align:right">Länge</th>
+                    <th style="width:30mm">Farbe</th>
+                    <th style="width:20mm;text-align:right">Menge</th>
+                </tr></thead>
+                <tbody>
+                @foreach ($segelPositionen as $segel)
+                    @php $sd = $segel->details ?? []; @endphp
+                    <tr>
+                        <td style="font-weight:bold">{{ $loop->iteration }}</td>
+                        <td><b>Sonnensegel</b> · Tuch
+                            @if (! empty($sd['projekt_pos']))<br><span style="color:#64748b;font-size:9px">Projekt-Pos. {{ $sd['projekt_pos'] }}</span>@endif</td>
+                        <td style="text-align:right"><b>{{ number_format((int) ($sd['breite_mm'] ?? $segel->breite_mm), 0, ',', '.') }} mm</b></td>
+                        <td style="text-align:right"><b>{{ number_format((int) ($sd['laenge_mm'] ?? $segel->hoehe_mm), 0, ',', '.') }} mm</b></td>
+                        <td>{{ ($sd['farbe'] ?? '') !== '' ? $sd['farbe'] : '–' }}</td>
+                        <td style="text-align:right"><b>{{ Format::menge($segel->menge) }}</b> {{ $segel->einheit }}</td>
+                    </tr>
+                @endforeach
+                <tr style="background:#f1f5f9">
+                    <td colspan="4" style="text-align:right;color:#47586b">Gesamt · Tuchfläche {{ number_format($segelFlaeche, 2, ',', '.') }} m²</td>
+                    <td></td>
+                    <td style="text-align:right"><b>{{ $segelStueck }} Stück</b></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    @endif
+
     @if ($materialPositionen->isNotEmpty())
         <div class="karte karte-teilbar">
             <div class="karte-kopf">Material-Positionen</div>
