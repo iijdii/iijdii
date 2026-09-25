@@ -14,10 +14,15 @@
             <span class="ctas">
                 <a class="btn btns" href="{{ route('kunden.edit', $kunde) }}">
                     <svg class="i"><use href="#ic-edit"/></svg>Bearbeiten</a>
-                <form method="POST" action="{{ route('kunden.loeschen', $kunde) }}" style="display:contents"
-                      onsubmit="return confirm('Kunde {{ $kunde->kunden_nr }} wirklich löschen?')">
+                <form method="POST" action="{{ route('kunden.loeschen', $kunde) }}"
+                      class="fx ac gap8" style="flex-wrap:wrap">
                     @csrf
-                    <button class="btn btns" type="submit" style="color:var(--red)">
+                    <label class="fx ac gap8" style="font-size:12px;color:var(--ink3);cursor:pointer">
+                        <input type="checkbox" name="bestaetigt" value="1"
+                               onchange="document.getElementById('kunde-loeschen').disabled = !this.checked">
+                        Ich verstehe: alles wird endgültig gelöscht
+                    </label>
+                    <button class="btn btns" id="kunde-loeschen" type="submit" disabled style="color:var(--red)">
                         <svg class="i"><use href="#ic-x"/></svg>Löschen</button>
                 </form>
                 <a class="btn btns btnp" href="{{ route('anfragen.create', ['kunde' => $kunde->kunden_nr]) }}">

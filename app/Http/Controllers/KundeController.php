@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Abnahmeprotokoll;
 use App\Models\Bestellung;
 use App\Models\Kunde;
+use App\Models\Wareneingang;
 use App\Support\Format;
 use App\Support\Nummern;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -47,24 +51,60 @@ class KundeController extends Controller
     }
 
     /**
-     * Löschen nur ohne verknüpfte Vorgänge — sonst blockiert der Guard
-     * (Anfragen über die Absage entfernen, Projekte/Angebote hängen dran).
+     * Löscht den Kunden ENDGÜLTIG aus der Datenbank — mitsamt aller
+     * Vorgänge (Anfragen, Angebote, Projekte, Bestellungen inkl.
+     * Wareneingängen) und der abgelegten Dateien. Die Checkbox
+     * «bestaetigt» ist Pflicht (im Formular schaltet sie den Knopf frei).
      */
-    public function loesche(Kunde $kunde): RedirectResponse
+    public function loesche(Request $request, Kunde $kunde): RedirectResponse
     {
-        $verknuepft = $kunde->anfragen()->count()
-            + $kunde->angebote()->count()
-            + $kunde->projekte()->count()
-            + Bestellung::query()->where('kunde_id', $kunde->id)->count();
-        if ($verknuepft > 0) {
+        if (! $request->boolean('bestaetigt')) {
             return redirect()->route('kunden.show', $kunde)
-                ->with('toast', 'Kunde hat '.$verknuepft.' verknüpfte Vorgänge — zuerst Anfragen/Projekte entfernen');
+                ->with('toast', 'Bitte zuerst bestätigen, dass endgültig gelöscht wird');
         }
 
         $nr = $kunde->kunden_nr;
-        $kunde->delete();
+        DB::transaction(function () use ($kunde) {
+            $projektIds = $kunde->projekte()->pluck('id');
 
-        return redirect()->route('kunden')->with('toast', 'Kunde '.$nr.' gelöscht');
+            // Bestellungen des Kunden bzw. seiner Projekte: Wareneingänge
+            // zuerst (kein DB-Cascade), Positionen/Tour-Links kaskadieren.
+            $bestellungen = Bestellung::query()
+                ->where('kunde_id', $kunde->id)
+                ->orWhereIn('projekt_id', $projektIds)
+                ->get();
+            foreach ($bestellungen as $bestellung) {
+                Wareneingang::query()->where('bestellung_id', $bestellung->id)->delete();
+                $bestellung->delete();
+            }
+
+            // Projekte: Abnahmen (Mängel kaskadieren), Dokument-Dateien vom
+            // Disk, dann das Projekt (Positionen/Aktivitäten/Reservierungen/
+            // Montage-Daten kaskadieren).
+            foreach ($kunde->projekte()->with('dokumente')->get() as $projekt) {
+                Abnahmeprotokoll::query()->where('projekt_id', $projekt->id)->delete();
+                foreach ($projekt->dokumente as $dokument) {
+                    if ($dokument->pfad !== null) {
+                        Storage::delete($dokument->pfad);
+                    }
+                }
+                $projekt->delete();
+            }
+
+            // Angebote vor Anfragen (FK angebote.anfrage_id); Foto-Dateien
+            // der Anfragen vom Disk, die Zeilen kaskadieren.
+            $kunde->angebote()->delete();
+            foreach ($kunde->anfragen()->with('fotos')->get() as $anfrage) {
+                foreach ($anfrage->fotos as $foto) {
+                    Storage::delete(array_filter([$foto->pfad, $foto->thumbnail_pfad]));
+                }
+                $anfrage->delete();
+            }
+
+            $kunde->delete();
+        });
+
+        return redirect()->route('kunden')->with('toast', 'Kunde '.$nr.' mit allen Vorgängen endgültig gelöscht');
     }
 
     /** @return array<string, mixed> Whitelist + Normalisierung (tags: Komma-Text → Array). */

@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Bestellung;
 use App\Models\Kunde;
+use App\Models\Projekt;
 use App\Models\User;
 use App\Support\Nummern;
 use Database\Seeders\DatabaseSeeder;
@@ -41,25 +43,34 @@ class KundenTest extends TestCase
         $this->assertSame($neu->kunden_nr, $antwort->viewData('kunden')->first()->kunden_nr);
     }
 
-    public function test_kunde_loeschen_mit_guard_fuer_verknuepfte_vorgaenge(): void
+    public function test_kunde_loeschen_endgueltig_mit_allen_vorgaengen(): void
     {
-        // Frei angelegter Kunde ohne Vorgänge → löschbar
-        $frei = Kunde::factory()->create(['anzeigename' => 'Ohne Vorgänge']);
-        $this->actingAs($this->benutzer)->post('/kunden/'.$frei->kunden_nr.'/loeschen')
-            ->assertRedirect(route('kunden'))
-            ->assertSessionHas('toast', 'Kunde '.$frei->kunden_nr.' gelöscht');
-        $this->assertNull(Kunde::query()->find($frei->id));
-
-        // Kunde mit Anfragen/Projekten → blockiert
+        // Ohne Bestätigungs-Checkbox passiert nichts
         $this->actingAs($this->benutzer)->post('/kunden/K-1071/loeschen')
             ->assertRedirect(route('kunden.show', 'K-1071'));
-        $this->assertStringContainsString('verknüpfte Vorgänge', session('toast'));
         $this->assertNotNull(Kunde::query()->where('kunden_nr', 'K-1071')->first());
+
+        // Mit Bestätigung: Kunde samt Anfragen, Angeboten, Projekten und
+        // Bestellungen (inkl. Wareneingängen) endgültig aus der Datenbank.
+        $kunde = Kunde::query()->where('kunden_nr', 'K-1071')->firstOrFail();
+        $projektIds = $kunde->projekte()->pluck('id');
+        $this->assertTrue($projektIds->isNotEmpty());
+        $this->assertTrue(Bestellung::query()->whereIn('projekt_id', $projektIds)->exists());
+
+        $this->actingAs($this->benutzer)->post('/kunden/K-1071/loeschen', ['bestaetigt' => 1])
+            ->assertRedirect(route('kunden'))
+            ->assertSessionHas('toast', 'Kunde K-1071 mit allen Vorgängen endgültig gelöscht');
+
+        $this->assertNull(Kunde::query()->where('kunden_nr', 'K-1071')->first());
+        $this->assertSame(0, $kunde->anfragen()->count());
+        $this->assertSame(0, $kunde->angebote()->count());
+        $this->assertSame(0, Projekt::query()->whereIn('id', $projektIds)->count());
+        $this->assertSame(0, Bestellung::query()->whereIn('projekt_id', $projektIds)->count());
 
         // Monteur darf nicht löschen
         $monteur = User::query()->where('email', 'monteur@lea.test')->firstOrFail();
         $zweiter = Kunde::factory()->create();
-        $this->actingAs($monteur)->post('/kunden/'.$zweiter->kunden_nr.'/loeschen')->assertForbidden();
+        $this->actingAs($monteur)->post('/kunden/'.$zweiter->kunden_nr.'/loeschen', ['bestaetigt' => 1])->assertForbidden();
     }
 
     public function test_detail_shows_contact_subtables_and_timeline(): void
