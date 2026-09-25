@@ -10,6 +10,12 @@ namespace App\Support;
  */
 final class Stueckliste
 {
+    /** Sparren/Träger: Zuschnitt = Dachtiefe − 110 mm. */
+    public const SPARREN_ABZUG = 110;
+
+    /** Eckleiste und Rundleiste: Zuschnitt = Dachtiefe − 50 mm. */
+    public const LEISTEN_ABZUG = 50;
+
     /**
      * @param  array  $kalk  Ergebnis von KonfiguratorRechner::berechne()
      * @return list<array{name: string, menge: int, einheit: string, typ: string, breite_mm?: int, hoehe_mm?: int, laenge_mm?: int}>
@@ -61,12 +67,14 @@ final class Stueckliste
         };
         $breitProfil('Gigarinne (Profil 35732)');
         $breitProfil('Wandprofil (Profil 35721)');
-        $zeile('Sparren/Träger (Profil 47047)', $kalk['rafters'], 'Stück', ['laenge_mm' => $D, 'such' => 'Dachsparren 80×60 mm']);
+        // Zuschnitt nach Betreiber-Vorgabe: Sparren 110 mm, Abdeckleisten
+        // 50 mm kürzer als die Dachtiefe.
+        $zeile('Sparren/Träger (Profil 47047)', $kalk['rafters'], 'Stück', ['laenge_mm' => $D - self::SPARREN_ABZUG, 'such' => 'Dachsparren 80×60 mm']);
         $zeile('Alu-Pfosten 110×110 (Profil 35722) · '.$p['color'], $kalk['pn'], 'Stück', ['such' => 'Pfosten 110×110']);
         $breitProfil('Wandblende (Profil 35715)');
-        $zeile('Seitenabdeckprofil / Eckleiste (Profil 35720)', 2, 'Stück', ['laenge_mm' => $D]);
+        $zeile('Seitenabdeckprofil / Eckleiste (Profil 35720)', 2, 'Stück', ['laenge_mm' => $D - self::LEISTEN_ABZUG]);
         if ($kalk['rafters'] > 2) {
-            $zeile('Abdeckprofil Rundleiste (Profil 35720)', $kalk['rafters'] - 2, 'Stück', ['laenge_mm' => $D]);
+            $zeile('Abdeckprofil Rundleiste (Profil 35720)', $kalk['rafters'] - 2, 'Stück', ['laenge_mm' => $D - self::LEISTEN_ABZUG]);
         }
 
         // Kappen, Halterungen, Wasserablauf.

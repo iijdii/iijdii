@@ -83,7 +83,9 @@ class BestellungAusPositionenTest extends TestCase
         $teil = fn (string $name) => $teile->first(fn ($t) => str_starts_with($t['name'], $name));
         $this->assertSame(3, $teil('Alu-Pfosten 110×110')['menge']);
         $this->assertSame(9, $teil('Sparren/Träger')['menge']);
-        $this->assertSame(3000, $teil('Sparren/Träger')['laenge_mm']);
+        $this->assertSame(2890, $teil('Sparren/Träger')['laenge_mm']); // Tiefe − 110
+        $this->assertSame(2950, $teil('Abdeckprofil Rundleiste')['laenge_mm']); // Tiefe − 50
+        $this->assertSame(2950, $teil('Seitenabdeckprofil / Eckleiste')['laenge_mm']);
         $this->assertSame(7, $teil('Abdeckprofil Rundleiste')['menge']);
         $this->assertSame(6000, $teil('Gigarinne')['laenge_mm']);
         $this->assertSame(1, $teil('LED-Set 12 Spots')['menge']);
