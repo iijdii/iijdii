@@ -125,7 +125,7 @@ class AngeboteTest extends TestCase
 
         $this->actingAs($this->benutzer)->get('/angebote/'.$projekt->angebot->nr)
             ->assertOk()
-            ->assertSee('Markise 4500×3000 mm')
+            ->assertSee('Markise · Breite 4.500 mm · Ausfall 3.000 mm')
             ->assertSee('Dachfeld VSG-Glas 8 mm'); // Dach-Rechenkern weiterhin dabei
 
         $this->actingAs($this->benutzer)->get('/angebote/'.$projekt->angebot->nr.'/pdf')
