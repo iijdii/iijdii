@@ -37,6 +37,11 @@ Route::get('/einrichtung/{token}', function (string $token) {
         $ausgabe = Artisan::output();
         Artisan::call('migrate', ['--force' => true, '--seed' => true]);
         $ausgabe .= Artisan::output();
+        // Views vorkompilieren: spart pro Request PHP-Zeit auf dem
+        // Shared Hosting (kein config:cache — .env-Änderungen wie das
+        // Entfernen des SETUP_TOKEN müssen sofort greifen).
+        Artisan::call('view:cache');
+        $ausgabe .= Artisan::output();
     } catch (Throwable $e) {
         // Fehler lesbar machen statt nacktem 500 (Shared Hosting ohne Log-Zugriff).
         return response(

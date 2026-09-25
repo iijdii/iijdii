@@ -116,7 +116,10 @@ return [
         /**
          * Whether to enable font subsetting or not.
          */
-        'enable_font_subsetting' => false,
+        // LEA: nur die tatsächlich genutzten Glyphen einbetten — die PDFs
+        // schrumpfen von ~900 KB auf einen Bruchteil, weniger Arbeit für
+        // den Shared-Hosting-PHP-Prozess (502-Vorbeugung).
+        'enable_font_subsetting' => true,
 
         /**
          * The PDF rendering backend to use
