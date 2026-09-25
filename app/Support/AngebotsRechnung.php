@@ -154,6 +154,7 @@ final class AngebotsRechnung
                 'p'.$position->id,
                 $position->produkt->label()
                     .($masse !== [] ? ' · '.implode(' · ', $masse) : '')
+                    .((($f['einbauort'] ?? '') !== '') ? ' · '.$f['einbauort'] : '')
                     .(isset($f['glas']) ? ' · '.$f['glas'] : '')
                     .(isset($f['groesse']) ? ' '.$f['groesse'] : ''),
                 [],

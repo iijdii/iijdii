@@ -40,7 +40,7 @@ class EndmasseZyklusTest extends TestCase
         ]);
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/positionen', [
             'position' => ['produkt' => 'schiebe', 'felder' => [
-                'breite_mm' => 4000, 'hoehe_mm' => 2200, 'anzahl' => 3,
+                'breite_mm' => 4000, 'hoehe_mm' => 2200, 'anzahl' => 3, 'einbauort' => 'Vorne links',
             ]],
         ]);
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/positionen', [
@@ -116,10 +116,12 @@ class EndmasseZyklusTest extends TestCase
         $this->assertSame(2420, $panels[2]->details['hR']);
         $this->assertSame($wand->id, $panels[0]->projekt_position_id);
 
-        // Schiebe → Schiebe-Position mit Endmaß
+        // Schiebe → Schiebe-Position mit Endmaß und Einbauort
         $sp = $bestellung->positionen()->where('typ', 'schiebe')->firstOrFail();
         $this->assertSame(4050, $sp->breite_mm);
         $this->assertSame($schiebe->id, $sp->projekt_position_id);
+        $this->assertStringContainsString('(Vorne links)', $sp->bezeichnung);
+        $this->assertSame('Vorne links', $sp->details['einbauort']);
 
         // Keil → Glas-Position (Trapez) mit Skizze, Höhen hinten/vorn
         $kp = $bestellung->positionen()->where('typ', 'glas')

@@ -230,6 +230,14 @@
                     <option @selected($v('richtung', 'Nach links') === $richtung)>{{ $richtung }}</option>
                 @endforeach
             </select></div>
+        <div class="fld"><label>Einbauort</label>
+            <input class="inp" type="text" name="{{ $prefix }}[felder][einbauort]" value="{{ $v('einbauort') }}"
+                   list="einbauorte" placeholder="z. B. Vorne links">
+            <datalist id="einbauorte">
+                @foreach (['Links', 'Rechts', 'Vorne', 'Vorne links', 'Vorne Mitte', 'Vorne rechts'] as $ort)
+                    <option value="{{ $ort }}"></option>
+                @endforeach
+            </datalist></div>
         <div class="fld"><label>Verglasung</label><input class="inp" type="text" name="{{ $prefix }}[felder][glas]" value="{{ $v('glas', 'VSG 8 mm klar') }}"></div>
     </div>
 

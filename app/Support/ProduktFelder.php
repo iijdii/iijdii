@@ -97,6 +97,9 @@ final class ProduktFelder
                 ProjektProdukt::Schiebe => [
                     'breite_mm' => $mm, 'hoehe_mm' => $mm, 'anzahl' => $mm,
                     'richtung' => ['nullable', Rule::in(['Nach links', 'Nach rechts', 'Mittig'])],
+                    // Einbauort frei (Links/Rechts/Vorne links/… — bei mehr
+                    // Pfosten auch «Vorne Feld 2» u. Ä.).
+                    'einbauort' => ['nullable', 'string', 'max:40'],
                     'glas' => ['nullable', 'string', 'max:64'],
                 ],
                 ProjektProdukt::Keil => [

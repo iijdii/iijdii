@@ -9,7 +9,7 @@
     $posLabels = [
         'anzahl' => 'Anzahl', 'reihen' => 'Reihen', 'breite_mm' => 'Breite', 'hoehe_mm' => 'Höhe', 'h_links_mm' => 'Höhe links',
         'h_rechts_mm' => 'Höhe rechts', 'h_hinten_mm' => 'Höhe hinten', 'h_vorn_mm' => 'Höhe vorn', 'laenge_mm' => 'Länge',
-        'ausfall_mm' => 'Ausfall', 'felder_n' => 'Felder', 'richtung' => 'Laufrichtung', 'glas' => 'Verglasung',
+        'ausfall_mm' => 'Ausfall', 'felder_n' => 'Felder', 'richtung' => 'Laufrichtung', 'einbauort' => 'Einbauort', 'glas' => 'Verglasung',
         'seite' => 'Seite', 'material' => 'Material', 'transparenz' => 'Transparenz', 'modell' => 'Modell',
         'antrieb' => 'Antrieb', 'groesse' => 'Größe', 'farbe' => 'Farbe',
     ];

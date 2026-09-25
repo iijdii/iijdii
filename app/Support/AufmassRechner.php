@@ -107,12 +107,14 @@ final class AufmassRechner
                         'Nach links' => 'left', 'Nach rechts' => 'right', default => '',
                     };
 
-                    return ['schiebe', $n.' Flügel · '.strtolower($f['richtung'] ?? 'mittig'), [
+                    $einbauort = trim((string) ($f['einbauort'] ?? ''));
+
+                    return ['schiebe', ($einbauort !== '' ? $einbauort.' · ' : '').$n.' Flügel · '.strtolower($f['richtung'] ?? 'mittig'), [
                         $feld('A', 'Anlage Breite', 'breite_mm', $sw),
                         $feld('B', 'Anlage Höhe', 'hoehe_mm', $sh),
                         $feld('C', 'Flügelbreite', 'fluegel_mm', $fl),
                         $feld('D', 'Laufschiene', 'laufschiene_mm', $sw),
-                    ], 'Laufschiene auf Waage prüfen — max. 2 mm über die Gesamtbreite. Füllung '.($f['glas'] ?? '–').'.',
+                    ], ($einbauort !== '' ? 'Einbauort: '.$einbauort.'. ' : '').'Laufschiene auf Waage prüfen — max. 2 mm über die Gesamtbreite. Füllung '.($f['glas'] ?? '–').'.',
                         ['dir' => $dir, 'qty' => $n]];
                 })(),
                 'keil' => (function () use ($feld, $f, $I, $n, $kalk) {

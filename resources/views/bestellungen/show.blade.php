@@ -198,6 +198,7 @@
                                     <span class="pk"><span>Elemente</span><b>{{ $schiebe['anzahl'] }} Stück</b></span>
                                     <span class="pk"><span>Glas</span><b>{{ $schiebe['glas'] }}</b></span>
                                     <span class="pk"><span>Richtung</span><b>{{ $schiebe['richtung'] }}</b></span>
+                                    <span class="pk"><span>Einbauort</span><b>{{ $schiebe['einbauort'] !== '' ? $schiebe['einbauort'] : '–' }}</b></span>
                                     <span class="pk"><span>Quelle</span>
                                         <span class="badge {{ $schiebe['quelle'] === 'live' ? 'b-blue' : 'b-gray' }}">{{ $schiebe['quelle'] === 'live' ? 'aus Projekt' : 'manuell' }}</span></span>
                                 </div>
@@ -265,6 +266,12 @@
                     <input class="inp mono" type="number" name="hoehe_mm" placeholder="Höhe mm" style="width:100px" required>
                     <input class="inp mono" type="number" name="count" placeholder="Elemente" style="width:90px" required>
                     <input class="inp" name="glas" placeholder="Glas" style="width:130px">
+                    <input class="inp" name="einbauort" placeholder="Einbauort" list="einbauorte-bst" style="width:130px">
+                    <datalist id="einbauorte-bst">
+                        @foreach (['Links', 'Rechts', 'Vorne', 'Vorne links', 'Vorne Mitte', 'Vorne rechts'] as $ort)
+                            <option value="{{ $ort }}"></option>
+                        @endforeach
+                    </datalist>
                     <button class="btn btns" type="submit"><svg class="i"><use href="#ic-plus"/></svg>Hinzufügen</button>
                 </form>
 
@@ -339,6 +346,8 @@
                                         <input class="inp mono" type="number" name="count" value="{{ (int) ($d['count'] ?? $position->menge) }}" required></div>
                                     <div class="fld"><label>Glas</label>
                                         <input class="inp" name="glas" value="{{ $d['glas'] ?? '' }}"></div>
+                                    <div class="fld"><label>Einbauort</label>
+                                        <input class="inp" name="einbauort" value="{{ $d['einbauort'] ?? '' }}" list="einbauorte-bst" placeholder="z. B. Vorne links"></div>
                                 </div>
                             @else
                                 <div class="fld"><label>Menge</label>

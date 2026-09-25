@@ -155,6 +155,7 @@
                             <td style="width:50%"><table class="kvz">
                                 <tr><td class="k">Öffnung Höhe</td><td class="w">{{ number_format((int) $s['position']->hoehe_mm, 0, ',', '.') }} mm</td></tr>
                                 <tr><td class="k">Öffnungsrichtung</td><td class="w">{{ $s['richtung'] }}</td></tr>
+                                <tr><td class="k">Einbauort</td><td class="w">{{ ($s['einbauort'] ?? '') !== '' ? $s['einbauort'] : '–' }}</td></tr>
                                 <tr><td class="k">Maße</td><td class="w">{{ $s['quelle'] === 'live' ? 'aus Projekt' : 'manuell erfasst' }}</td></tr>
                             </table></td>
                         </tr></table>

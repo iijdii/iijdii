@@ -252,13 +252,14 @@ class BestellungController extends Controller
                 }
 
                 if ($position->produkt === ProjektProdukt::Schiebe && (int) ($m['breite_mm'] ?? 0) > 0) {
+                    $einbauort = trim((string) ($m['einbauort'] ?? ''));
                     $bestellung->positionen()->create([
                         'typ' => 'schiebe', 'pos' => ++$pos,
-                        'bezeichnung' => 'Schiebeanlage nach Endmaß — Pos. '.$position->pos,
+                        'bezeichnung' => 'Schiebeanlage nach Endmaß'.($einbauort !== '' ? ' ('.$einbauort.')' : '').' — Pos. '.$position->pos,
                         'menge' => $anzahl, 'einheit' => 'Stück',
                         'breite_mm' => (int) $m['breite_mm'], 'hoehe_mm' => (int) ($m['hoehe_mm'] ?? 0),
                         'projekt_position_id' => $position->id,
-                        'details' => ['count' => $anzahl, 'glas' => (string) ($m['glas'] ?? ''), 'quelle' => 'live'],
+                        'details' => ['count' => $anzahl, 'glas' => (string) ($m['glas'] ?? ''), 'einbauort' => $einbauort, 'quelle' => 'live'],
                     ]);
 
                     continue;
@@ -466,6 +467,7 @@ class BestellungController extends Controller
             'hoehe_mm' => ['required', 'integer', 'min:100', 'max:20000'],
             'count' => ['required', 'integer', 'min:1', 'max:12'],
             'glas' => ['nullable', 'string', 'max:80'],
+            'einbauort' => ['nullable', 'string', 'max:40'],
         ]);
 
         return [
@@ -474,7 +476,8 @@ class BestellungController extends Controller
             'menge' => $d['count'], 'einheit' => 'Stück',
             'breite_mm' => (int) $d['breite_mm'], 'hoehe_mm' => (int) $d['hoehe_mm'],
             'details' => [
-                'count' => (int) $d['count'], 'glas' => $d['glas'] ?? '', 'quelle' => 'manuell',
+                'count' => (int) $d['count'], 'glas' => $d['glas'] ?? '',
+                'einbauort' => trim((string) ($d['einbauort'] ?? '')), 'quelle' => 'manuell',
             ],
         ];
     }
@@ -614,6 +617,7 @@ class BestellungController extends Controller
                     'glas' => $d['glas'] ?? '–',
                     'anzahl' => $anzahl,
                     'richtung' => $d['dir'] ?? '–',
+                    'einbauort' => $d['einbauort'] ?? '',
                     'quelle' => $d['quelle'] ?? 'manuell',
                     'skizze' => GlasSkizze::schiebe((int) $p->breite_mm, (int) $p->hoehe_mm, max(1, $anzahl), $richtung),
                 ];
