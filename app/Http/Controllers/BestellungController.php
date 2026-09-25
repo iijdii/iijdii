@@ -306,7 +306,7 @@ class BestellungController extends Controller
                         $breite = $segelBreiten[$i] ?? (int) ($m['breite_mm'] ?? 0);
                         $bestellung->positionen()->create([
                             'typ' => 'material', 'pos' => ++$pos,
-                            'bezeichnung' => 'Sonnensegel '.$i.' — '.$breite.' × '.$laenge.' mm — Pos. '.$position->pos,
+                            'bezeichnung' => 'Sonnensegel '.$i.' — Breite '.$breite.' mm × Länge '.$laenge.' mm — Pos. '.$position->pos,
                             'menge' => 1, 'einheit' => 'Stück',
                             'breite_mm' => $breite ?: null, 'hoehe_mm' => $laenge ?: null,
                             'projekt_position_id' => $position->id,
@@ -317,14 +317,24 @@ class BestellungController extends Controller
                     continue;
                 }
 
-                $masse = array_filter([
-                    $m['breite_mm'] ?? $m['laenge_mm'] ?? null,
-                    $m['hoehe_mm'] ?? $m['ausfall_mm'] ?? $m['h_hinten_mm'] ?? $m['h_vorn_mm'] ?? null,
-                ]);
+                // Maße mit Namen in der Bezeichnung (Breite/Länge/Höhe/Ausfall).
+                $masse = [];
+                if (isset($m['breite_mm'])) {
+                    $masse[] = 'Breite '.(int) $m['breite_mm'].' mm';
+                } elseif (isset($m['laenge_mm'])) {
+                    $masse[] = 'Länge '.(int) $m['laenge_mm'].' mm';
+                }
+                if (isset($m['hoehe_mm'])) {
+                    $masse[] = 'Höhe '.(int) $m['hoehe_mm'].' mm';
+                } elseif (isset($m['ausfall_mm'])) {
+                    $masse[] = 'Ausfall '.(int) $m['ausfall_mm'].' mm';
+                } elseif (isset($m['h_hinten_mm']) || isset($m['h_vorn_mm'])) {
+                    $masse[] = 'Höhe hinten/vorn '.(int) ($m['h_hinten_mm'] ?? 0).'/'.(int) ($m['h_vorn_mm'] ?? 0).' mm';
+                }
                 $bestellung->positionen()->create([
                     'typ' => 'material', 'pos' => ++$pos,
                     'bezeichnung' => $position->produkt->label().' nach Endmaß'
-                        .($masse !== [] ? ' '.implode('×', $masse).' mm' : '').' — Pos. '.$position->pos,
+                        .($masse !== [] ? ' · '.implode(' · ', $masse) : '').' — Pos. '.$position->pos,
                     'menge' => $anzahl, 'einheit' => 'Stück',
                     'projekt_position_id' => $position->id,
                     'details' => $position->endmasse,

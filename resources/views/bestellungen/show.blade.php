@@ -148,10 +148,20 @@
                             <td><span class="posn">{{ $glas['nr'] }}</span></td>
                             <td>@include('bestellungen.partials.glas-skizze', ['glas' => $glas])</td>
                             <td>
+                                @php
+                                    $gd = $glas['position']->details ?? [];
+                                    $ghL = (int) ($gd['hL'] ?? $glas['position']->hoehe_mm);
+                                    $ghR = (int) ($gd['hR'] ?? $ghL);
+                                @endphp
                                 <div class="pinfo">
                                     <span class="pk"><span>Bezeichnung</span><b>{{ $glas['position']->bezeichnung }}</b></span>
                                     <span class="pk"><span>Form</span><b>{{ $glas['form'] }}</b></span>
-                                    <span class="pk"><span>Maße</span><b class="mono">{{ $glas['skizze']['mass'] }}</b></span>
+                                    <span class="pk"><span>Breite</span><b class="mono">{{ number_format((int) $glas['position']->breite_mm, 0, ',', '.') }} mm</b></span>
+                                    @if ($glas['form'] === 'Trapez')
+                                        <span class="pk"><span>Höhe links/rechts</span><b class="mono">{{ number_format($ghL, 0, ',', '.') }} / {{ number_format($ghR, 0, ',', '.') }} mm</b></span>
+                                    @else
+                                        <span class="pk"><span>Höhe</span><b class="mono">{{ number_format($ghL, 0, ',', '.') }} mm</b></span>
+                                    @endif
                                     <span class="pk"><span>Menge</span><b>{{ Format::menge($glas['position']->menge) }} Stück</b></span>
                                     <span class="pk"><span>Glas</span><b>{{ $glas['glas'] }}</b></span>
                                     <span class="pk"><span>Quelle</span>
@@ -183,7 +193,8 @@
                             <td>
                                 <div class="pinfo">
                                     <span class="pk"><span>Bezeichnung</span><b>{{ $schiebe['position']->bezeichnung }}</b></span>
-                                    <span class="pk"><span>Öffnung</span><b class="mono">{{ $schiebe['position']->breite_mm }} × {{ $schiebe['position']->hoehe_mm }} mm</b></span>
+                                    <span class="pk"><span>Öffnung Breite</span><b class="mono">{{ number_format((int) $schiebe['position']->breite_mm, 0, ',', '.') }} mm</b></span>
+                                    <span class="pk"><span>Öffnung Höhe</span><b class="mono">{{ number_format((int) $schiebe['position']->hoehe_mm, 0, ',', '.') }} mm</b></span>
                                     <span class="pk"><span>Elemente</span><b>{{ $schiebe['anzahl'] }} Stück</b></span>
                                     <span class="pk"><span>Glas</span><b>{{ $schiebe['glas'] }}</b></span>
                                     <span class="pk"><span>Richtung</span><b>{{ $schiebe['richtung'] }}</b></span>

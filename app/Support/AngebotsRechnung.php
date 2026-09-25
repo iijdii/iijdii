@@ -118,19 +118,31 @@ final class AngebotsRechnung
                 continue;
             }
             $f = $position->felder ?? [];
-            // Keil führt zwei Höhen (hinten/vorn) — beide in den Titel;
-            // Segel führt Breite × Länge.
-            $hoehe = $f['hoehe_mm'] ?? $f['ausfall_mm'] ?? $f['h_links_mm'] ?? null;
-            if ($hoehe === null && (isset($f['h_hinten_mm']) || isset($f['h_vorn_mm']))) {
-                $hoehe = implode('/', array_filter([$f['h_hinten_mm'] ?? null, $f['h_vorn_mm'] ?? null]));
+            // Maße mit Namen in den Titel (Betreiber-Wunsch): Breite,
+            // Höhe, Länge, Ausfall … statt nackter Zahlenpaare. Keil
+            // führt beide Höhen (hinten/vorn), Segel Breite × Länge.
+            $mm = fn ($wert) => number_format((int) $wert, 0, ',', '.').' mm';
+            $masse = [];
+            if (isset($f['breite_mm'])) {
+                $masse[] = 'Breite '.$mm($f['breite_mm']);
+            } elseif (isset($f['laenge_mm'])) {
+                $masse[] = 'Länge '.$mm($f['laenge_mm']);
             }
-            if ($hoehe === null && isset($f['breite_mm'], $f['laenge_mm'])) {
-                $hoehe = $f['laenge_mm'];
+            if (isset($f['h_links_mm']) || isset($f['h_rechts_mm'])) {
+                $links = (int) ($f['h_links_mm'] ?? $f['h_rechts_mm']);
+                $rechts = (int) ($f['h_rechts_mm'] ?? $links);
+                $masse[] = $links === $rechts
+                    ? 'Höhe '.$mm($links)
+                    : 'Höhe links/rechts '.number_format($links, 0, ',', '.').'/'.number_format($rechts, 0, ',', '.').' mm';
+            } elseif (isset($f['h_hinten_mm']) || isset($f['h_vorn_mm'])) {
+                $masse[] = 'Höhe hinten/vorn '.number_format((int) ($f['h_hinten_mm'] ?? 0), 0, ',', '.').'/'.number_format((int) ($f['h_vorn_mm'] ?? 0), 0, ',', '.').' mm';
+            } elseif (isset($f['hoehe_mm'])) {
+                $masse[] = 'Höhe '.$mm($f['hoehe_mm']);
+            } elseif (isset($f['ausfall_mm'])) {
+                $masse[] = 'Ausfall '.$mm($f['ausfall_mm']);
+            } elseif (isset($f['breite_mm'], $f['laenge_mm'])) {
+                $masse[] = 'Länge '.$mm($f['laenge_mm']);
             }
-            $masse = array_filter([
-                $f['breite_mm'] ?? $f['laenge_mm'] ?? null,
-                $hoehe,
-            ]);
             // Sonnensegel ohne eigene Stückzahl: Anzahl der Dachfelder.
             $menge = (int) ($f['anzahl'] ?? 0);
             if ($menge < 1) {
@@ -141,7 +153,7 @@ final class AngebotsRechnung
             $positionen[] = $zeile(
                 'p'.$position->id,
                 $position->produkt->label()
-                    .($masse !== [] ? ' '.implode('×', $masse).' mm' : '')
+                    .($masse !== [] ? ' · '.implode(' · ', $masse) : '')
                     .(isset($f['glas']) ? ' · '.$f['glas'] : '')
                     .(isset($f['groesse']) ? ' '.$f['groesse'] : ''),
                 [],
