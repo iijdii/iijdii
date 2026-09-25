@@ -118,9 +118,14 @@ final class AngebotsRechnung
                 continue;
             }
             $f = $position->felder ?? [];
+            // Keil führt zwei Höhen (hinten/vorn) — beide in den Titel.
+            $hoehe = $f['hoehe_mm'] ?? $f['ausfall_mm'] ?? $f['h_links_mm'] ?? null;
+            if ($hoehe === null && (isset($f['h_hinten_mm']) || isset($f['h_vorn_mm']))) {
+                $hoehe = implode('/', array_filter([$f['h_hinten_mm'] ?? null, $f['h_vorn_mm'] ?? null]));
+            }
             $masse = array_filter([
                 $f['breite_mm'] ?? $f['laenge_mm'] ?? null,
-                $f['hoehe_mm'] ?? $f['ausfall_mm'] ?? $f['h_links_mm'] ?? null,
+                $hoehe,
             ]);
             $positionen[] = $zeile(
                 'p'.$position->id,

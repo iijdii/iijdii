@@ -116,9 +116,12 @@ final class AufmassRechner
                         ['dir' => $dir, 'qty' => $n]];
                 })(),
                 'keil' => (function () use ($feld, $f, $I, $n, $kalk) {
-                    $D = $I($kalk['pcfg']['depth'] ?? 0);
+                    // Eingegebene Maße der Position gewinnen; ohne Eingabe
+                    // wie bisher aus Dachtiefe und Gefälle abgeleitet.
+                    $D = $I($f['breite_mm'] ?? 0) ?: $I($kalk['pcfg']['depth'] ?? 0);
                     $hv = $I($f['h_vorn_mm'] ?? 0) ?: 120;
-                    $hh = max(0, $I($kalk['wallHEff']) - $I($kalk['gutterHEff'])) + $hv;
+                    $hh = $I($f['h_hinten_mm'] ?? 0)
+                        ?: max(0, $I($kalk['wallHEff']) - $I($kalk['gutterHEff'])) + $hv;
 
                     return ['keil', $n.' × '.($f['seite'] ?? '–'), [
                         $feld('A', 'Breite unten', 'breite_unten_mm', $D),

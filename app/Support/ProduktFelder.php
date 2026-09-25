@@ -100,7 +100,7 @@ final class ProduktFelder
                     'glas' => ['nullable', 'string', 'max:64'],
                 ],
                 ProjektProdukt::Keil => [
-                    'anzahl' => $mm, 'h_vorn_mm' => $mm,
+                    'anzahl' => $mm, 'breite_mm' => $mm, 'h_hinten_mm' => $mm, 'h_vorn_mm' => $mm,
                     'seite' => ['nullable', Rule::in(['Links', 'Rechts', 'Beidseitig'])],
                     'material' => ['nullable', Rule::in(['Glas', 'Aluminium', 'Polycarbonat'])],
                     'transparenz' => ['nullable', Rule::in(['Klar', 'Opal', 'Matt'])],

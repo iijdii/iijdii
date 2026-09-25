@@ -264,7 +264,7 @@ class BestellungController extends Controller
 
                 $masse = array_filter([
                     $m['breite_mm'] ?? $m['laenge_mm'] ?? null,
-                    $m['hoehe_mm'] ?? $m['ausfall_mm'] ?? $m['h_vorn_mm'] ?? null,
+                    $m['hoehe_mm'] ?? $m['ausfall_mm'] ?? $m['h_hinten_mm'] ?? $m['h_vorn_mm'] ?? null,
                 ]);
                 $bestellung->positionen()->create([
                     'typ' => 'material', 'pos' => ++$pos,

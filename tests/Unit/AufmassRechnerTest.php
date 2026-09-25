@@ -2,7 +2,9 @@
 
 namespace Tests\Unit;
 
+use App\Models\ProjektPosition;
 use App\Support\AufmassRechner;
+use App\Support\KonfiguratorRechner;
 use PHPUnit\Framework\TestCase;
 
 class AufmassRechnerTest extends TestCase
@@ -27,6 +29,26 @@ class AufmassRechnerTest extends TestCase
         $this->assertSame(520, $felder['B']['soll']);
         $this->assertSame(120, $felder['C']['soll']);
         $this->assertSame((int) round(sqrt(3500 ** 2 + 400 ** 2)), $felder['D']['soll']);
+    }
+
+    public function test_keil_position_nutzt_eingegebene_breite_und_beide_hoehen(): void
+    {
+        // Betreiber-Vorgabe: Keil trägt drei eigene Maße — Breite,
+        // Höhe hinten, Höhe vorn. Die Sollwerte folgen der Eingabe,
+        // nicht mehr der Ableitung aus Dachtiefe/Gefälle.
+        $position = new ProjektPosition([
+            'pos' => 1, 'gruppe' => 'extra', 'produkt' => 'keil', 'phase' => 2,
+            'felder' => ['anzahl' => 2, 'breite_mm' => 3200, 'h_hinten_mm' => 450, 'h_vorn_mm' => 150],
+        ]);
+        $kalk = KonfiguratorRechner::berechne($this->pcfg());
+
+        $keil = collect(AufmassRechner::gruppenAusPositionen([$position], $kalk, 5, 15))->first();
+        $felder = collect($keil['fields'])->keyBy('tag');
+
+        $this->assertSame(3200, $felder['A']['soll']);
+        $this->assertSame(450, $felder['B']['soll']);
+        $this->assertSame(150, $felder['C']['soll']);
+        $this->assertSame((int) round(sqrt(3200 ** 2 + 300 ** 2)), $felder['D']['soll']);
     }
 
     public function test_schiebe_fluegelbreite_and_segel_diagonals(): void

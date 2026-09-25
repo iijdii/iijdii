@@ -234,6 +234,8 @@
 
     <div data-produkt-felder="keil" class="fgrid2" style="margin-top:10px">
         <div class="fld"><label>Anzahl</label><input class="inp" type="number" name="{{ $prefix }}[felder][anzahl]" value="{{ $v('anzahl', 1) }}"></div>
+        <div class="fld"><label>Breite (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][breite_mm]" value="{{ $v('breite_mm') }}" placeholder="leer = Dachtiefe"></div>
+        <div class="fld"><label>Höhe hinten (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][h_hinten_mm]" value="{{ $v('h_hinten_mm') }}" placeholder="leer = aus Gefälle"></div>
         <div class="fld"><label>Höhe vorn (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][h_vorn_mm]" value="{{ $v('h_vorn_mm') }}"></div>
         <div class="fld"><label>Seite</label>
             <select class="inp" name="{{ $prefix }}[felder][seite]">
