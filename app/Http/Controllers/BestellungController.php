@@ -292,8 +292,10 @@ class BestellungController extends Controller
                 }
 
                 if ($position->produkt === ProjektProdukt::Sonnensegel) {
-                    // Je Segel eine Position: Breite aus dem Endmaß des
-                    // jeweiligen Segels (breite_i_mm), Länge gilt für alle.
+                    // Sonnenschutz (Tuch): gleiche Maße werden zu EINER
+                    // Position mit Stückzahl zusammengefasst — Breite je
+                    // Segel aus dem Endmaß (breite_i_mm), Länge gilt für
+                    // alle, Farbe aus dem Konfigurator.
                     $segelBreiten = [];
                     for ($i = 1; $i <= 24; $i++) {
                         if (isset($m['breite_'.$i.'_mm'])) {
@@ -302,15 +304,22 @@ class BestellungController extends Controller
                     }
                     $stueck = max(1, count($segelBreiten) ?: (int) ($m['anzahl'] ?? 1));
                     $laenge = (int) ($m['laenge_mm'] ?? 0);
+                    $farbe = trim((string) ($m['farbe'] ?? ''));
+
+                    $gruppen = [];
                     for ($i = 1; $i <= $stueck; $i++) {
                         $breite = $segelBreiten[$i] ?? (int) ($m['breite_mm'] ?? 0);
+                        $gruppen[$breite] = ($gruppen[$breite] ?? 0) + 1;
+                    }
+                    foreach ($gruppen as $breite => $menge) {
                         $bestellung->positionen()->create([
                             'typ' => 'material', 'pos' => ++$pos,
-                            'bezeichnung' => 'Sonnensegel '.$i.' — Breite '.$breite.' mm × Länge '.$laenge.' mm — Pos. '.$position->pos,
-                            'menge' => 1, 'einheit' => 'Stück',
+                            'bezeichnung' => 'Sonnenschutz (Tuch) Sonnensegel · Breite '.$breite.' mm × Länge '.$laenge.' mm'
+                                .($farbe !== '' ? ' · Farbe '.$farbe : '').' — Pos. '.$position->pos,
+                            'menge' => $menge, 'einheit' => 'Stück',
                             'breite_mm' => $breite ?: null, 'hoehe_mm' => $laenge ?: null,
                             'projekt_position_id' => $position->id,
-                            'details' => ['breite_mm' => $breite, 'laenge_mm' => $laenge] + ($position->endmasse ?? []),
+                            'details' => ['breite_mm' => $breite, 'laenge_mm' => $laenge, 'farbe' => $farbe] + ($position->endmasse ?? []),
                         ]);
                     }
 

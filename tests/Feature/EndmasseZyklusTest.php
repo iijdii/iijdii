@@ -44,7 +44,7 @@ class EndmasseZyklusTest extends TestCase
             ]],
         ]);
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/positionen', [
-            'position' => ['produkt' => 'sonnensegel', 'felder' => ['anzahl' => 2]],
+            'position' => ['produkt' => 'sonnensegel', 'felder' => ['anzahl' => 2, 'farbe' => 'Sandbeige']],
         ]);
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/positionen', [
             'position' => ['produkt' => 'keil', 'felder' => [
@@ -96,7 +96,7 @@ class EndmasseZyklusTest extends TestCase
             'endmasse' => [
                 $wand->id => ['breite_mm' => 3000, 'h_links_mm' => 2000, 'h_rechts_mm' => 2420],
                 $schiebe->id => ['breite_mm' => 4050, 'hoehe_mm' => 2210],
-                $segel->id => ['breite_1_mm' => 650, 'breite_2_mm' => 640, 'laenge_mm' => 2950],
+                $segel->id => ['breite_1_mm' => 650, 'breite_2_mm' => 650, 'laenge_mm' => 2950],
                 $keil->id => ['breite_unten_mm' => 3010, 'hoehe_hinten_mm' => 525, 'h_vorn_mm' => 118],
             ],
         ]);
@@ -128,12 +128,15 @@ class EndmasseZyklusTest extends TestCase
         $this->assertSame(['form' => 'Trapez', 'hL' => 525, 'hR' => 118, 'glas' => 'Glas Klar', 'quelle' => 'live'], $kp->details);
         $this->assertSame($keil->id, $kp->projekt_position_id);
 
-        // Sonnensegel → je Segel eine Position, Breiten einzeln, Länge für alle
+        // Sonnensegel → Sonnenschutz (Tuch): gleiche Maße zu einer Position
+        // mit Stückzahl summiert, Maße + Farbe in der Bezeichnung.
         $segelPositionen = $bestellung->positionen()
-            ->where('bezeichnung', 'like', 'Sonnensegel%')->orderBy('pos')->get();
-        $this->assertCount(2, $segelPositionen);
-        $this->assertSame([650, 640], $segelPositionen->pluck('breite_mm')->all());
-        $this->assertSame([2950, 2950], $segelPositionen->pluck('hoehe_mm')->all());
+            ->where('bezeichnung', 'like', 'Sonnenschutz%')->orderBy('pos')->get();
+        $this->assertCount(1, $segelPositionen);
+        $this->assertSame(2.0, (float) $segelPositionen[0]->menge);
+        $this->assertSame(650, $segelPositionen[0]->breite_mm);
+        $this->assertSame(2950, $segelPositionen[0]->hoehe_mm);
+        $this->assertStringContainsString('Breite 650 mm × Länge 2950 mm · Farbe Sandbeige', $segelPositionen[0]->bezeichnung);
         $this->assertSame($segel->id, $segelPositionen[0]->projekt_position_id);
 
         // Zweiter Klick dupliziert nicht, sondern baut die Auto-Positionen
