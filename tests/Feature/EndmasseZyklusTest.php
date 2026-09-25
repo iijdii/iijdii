@@ -46,6 +46,12 @@ class EndmasseZyklusTest extends TestCase
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/positionen', [
             'position' => ['produkt' => 'sonnensegel', 'felder' => ['anzahl' => 2]],
         ]);
+        $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/positionen', [
+            'position' => ['produkt' => 'keil', 'felder' => [
+                'anzahl' => 1, 'seite' => 'Links', 'material' => 'Glas', 'transparenz' => 'Klar',
+                'breite_mm' => 3000, 'h_hinten_mm' => 520, 'h_vorn_mm' => 120,
+            ]],
+        ]);
 
         return $projekt;
     }
@@ -85,11 +91,13 @@ class EndmasseZyklusTest extends TestCase
             ->assertSessionHas('toast', 'Keine Endmaße erfasst — zuerst im Montage-Modus eintragen');
 
         $segel = $projekt->positionen()->where('produkt', 'sonnensegel')->firstOrFail();
+        $keil = $projekt->positionen()->where('produkt', 'keil')->firstOrFail();
         $this->actingAs($this->monteur)->post('/projekte/'.$projekt->nr.'/montage/endmasse', [
             'endmasse' => [
                 $wand->id => ['breite_mm' => 3000, 'h_links_mm' => 2000, 'h_rechts_mm' => 2420],
                 $schiebe->id => ['breite_mm' => 4050, 'hoehe_mm' => 2210],
                 $segel->id => ['breite_1_mm' => 650, 'breite_2_mm' => 640, 'laenge_mm' => 2950],
+                $keil->id => ['breite_unten_mm' => 3010, 'hoehe_hinten_mm' => 525, 'h_vorn_mm' => 118],
             ],
         ]);
 
@@ -99,7 +107,8 @@ class EndmasseZyklusTest extends TestCase
         $this->assertNull($bestellung->lieferant_id);
 
         // Wand → 3 Zuschnitt-Panels (SeitenwandRechner: 985/970/985, Trapez)
-        $panels = $bestellung->positionen()->where('typ', 'glas')->orderBy('pos')->get();
+        $panels = $bestellung->positionen()->where('typ', 'glas')
+            ->where('bezeichnung', 'like', 'Seitenwand%')->orderBy('pos')->get();
         $this->assertCount(3, $panels);
         $this->assertSame([985, 970, 985], $panels->pluck('breite_mm')->all());
         $this->assertSame('Trapez', $panels[0]->details['form']);
@@ -111,6 +120,13 @@ class EndmasseZyklusTest extends TestCase
         $sp = $bestellung->positionen()->where('typ', 'schiebe')->firstOrFail();
         $this->assertSame(4050, $sp->breite_mm);
         $this->assertSame($schiebe->id, $sp->projekt_position_id);
+
+        // Keil → Glas-Position (Trapez) mit Skizze, Höhen hinten/vorn
+        $kp = $bestellung->positionen()->where('typ', 'glas')
+            ->where('bezeichnung', 'like', 'Keil%')->firstOrFail();
+        $this->assertSame(3010, $kp->breite_mm);
+        $this->assertSame(['form' => 'Trapez', 'hL' => 525, 'hR' => 118, 'glas' => 'Glas Klar', 'quelle' => 'live'], $kp->details);
+        $this->assertSame($keil->id, $kp->projekt_position_id);
 
         // Sonnensegel → je Segel eine Position, Breiten einzeln, Länge für alle
         $segelPositionen = $bestellung->positionen()

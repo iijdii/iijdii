@@ -263,6 +263,33 @@ class BestellungController extends Controller
                     continue;
                 }
 
+                // Keil = rechtwinkliges Trapez → Glas-Position, damit die
+                // Zuschnittskizze in Bestellkarte und PDF gezeichnet wird.
+                // Endmaß-Schlüssel: breite_unten_mm / hoehe_hinten_mm /
+                // h_vorn_mm (AufmassRechner), Konfigurator-Felder füllen
+                // Lücken. Seite Rechts spiegelt die Höhen.
+                $keilBreite = (int) ($m['breite_unten_mm'] ?? $m['breite_mm'] ?? 0);
+                if ($position->produkt === ProjektProdukt::Keil && $keilBreite > 0) {
+                    $hh = (int) ($m['hoehe_hinten_mm'] ?? $m['h_hinten_mm'] ?? 0);
+                    $hv = (int) ($m['h_vorn_mm'] ?? 0);
+                    $rechts = ($m['seite'] ?? '') === 'Rechts';
+                    $fuellung = trim(($m['material'] ?? 'Glas').' '.($m['transparenz'] ?? ''));
+                    $bestellung->positionen()->create([
+                        'typ' => 'glas', 'pos' => ++$pos,
+                        'bezeichnung' => 'Keil '.($m['seite'] ?? '').' nach Endmaß (Trapez) — Pos. '.$position->pos,
+                        'menge' => $anzahl, 'einheit' => 'Stück',
+                        'breite_mm' => $keilBreite, 'hoehe_mm' => max($hh, $hv),
+                        'projekt_position_id' => $position->id,
+                        'details' => [
+                            'form' => 'Trapez',
+                            'hL' => $rechts ? $hv : $hh, 'hR' => $rechts ? $hh : $hv,
+                            'glas' => $fuellung, 'quelle' => 'live',
+                        ],
+                    ]);
+
+                    continue;
+                }
+
                 if ($position->produkt === ProjektProdukt::Sonnensegel) {
                     // Je Segel eine Position: Breite aus dem Endmaß des
                     // jeweiligen Segels (breite_i_mm), Länge gilt für alle.
