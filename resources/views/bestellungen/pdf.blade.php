@@ -33,9 +33,6 @@
     .skiztab tr { page-break-inside: avoid; }
     .spez { background: #eef4fb; border-left: 3px solid #2f6bb0; border-radius: 3px; padding: 7px 10px; margin-top: 7px; font-size: 10px; }
     .spez-t { color: #2f6bb0; font-weight: bold; margin-bottom: 3px; }
-    .checkbox { display: inline-block; width: 9px; height: 9px; border: 1.4px solid #47586b; border-radius: 2px;
-                margin-right: 6px; vertical-align: -1px; }
-    .checkkasten { display: inline-block; border: 1px solid #dbe2ea; border-radius: 6px; padding: 8px 12px; margin: 2px 8px 2px 0; font-size: 10.5px; color: #1f2937; }
     .sigtab { width: 100%; border-collapse: collapse; margin-top: 30px; page-break-inside: avoid; }
     .sigtab td { width: 46%; border-top: 1.4px solid #243447; padding-top: 5px; font-size: 9.5px; color: #47586b; }
     .sigtab td.zw { width: 8%; border-top: none; }
@@ -45,23 +42,6 @@
     use App\Support\Format;
     use App\Support\PdfSkizze;
 
-    // Zusammenfassung: Stückzahl + Glasfläche (Trapez: mittlere Höhe),
-    // Gewicht über Glasstärke (2,5 kg/m² je mm), wo die Stärke im
-    // Glas-Text steht.
-    $gesamtStueck = 0; $gesamtFlaeche = 0.0; $gesamtGewicht = 0.0;
-    foreach ($glasPositionen as $g) {
-        $d = $g['position']->details ?? [];
-        $hL = (int) ($d['hL'] ?? $g['position']->hoehe_mm); $hR = (int) ($d['hR'] ?? $hL);
-        $menge = (float) $g['position']->menge;
-        $flaeche = ((int) $g['position']->breite_mm / 1000) * ((($hL + $hR) / 2) / 1000) * $menge;
-        $gesamtStueck += (int) $menge; $gesamtFlaeche += $flaeche;
-        if (preg_match('/(\d+)\s*mm/', (string) $g['glas'], $m)) { $gesamtGewicht += $flaeche * 2.5 * (int) $m[1]; }
-    }
-    foreach ($schiebePositionen as $s) {
-        $flaeche = ((int) $s['position']->breite_mm / 1000) * ((int) $s['position']->hoehe_mm / 1000);
-        $gesamtStueck += $s['anzahl']; $gesamtFlaeche += $flaeche;
-        if (preg_match('/VSG\s*(\d+)|(\d+)\s*mm/', (string) $s['glas'], $m)) { $gesamtGewicht += $flaeche * 2.5 * (int) ($m[1] !== '' ? $m[1] : $m[2]); }
-    }
     $logoPfad = public_path('images/logo-lea.png');
 @endphp
 <body>
@@ -201,31 +181,6 @@
             </table>
         </div>
     @endif
-
-    <table class="paar"><tr>
-        <td style="width:48.5%">
-            <div class="karte">
-                <div class="karte-kopf">Kontrolle vor Versand</div>
-                <div class="karte-korp">
-                    <span class="checkkasten"><span class="checkbox"></span>Maße geprüft</span>
-                    <span class="checkkasten"><span class="checkbox"></span>Skizzen geprüft</span>
-                    <span class="checkkasten"><span class="checkbox"></span>Glas-Spezifikation geprüft</span>
-                </div>
-            </div>
-        </td>
-        <td style="width:3%"></td>
-        <td style="width:48.5%">
-            <div class="karte">
-                <div class="karte-kopf">Zusammenfassung</div>
-                <div class="karte-korp"><table class="kvz">
-                    <tr><td class="k">Gesamtanzahl</td><td class="w">{{ $gesamtStueck }} Stück</td></tr>
-                    <tr><td class="k">Gesamtfläche</td><td class="w">{{ number_format($gesamtFlaeche, 1, ',', '.') }} m²</td></tr>
-                    <tr><td class="k">Gewicht ca.</td><td class="w">{{ $gesamtGewicht > 0 ? number_format($gesamtGewicht, 0, ',', '.').' kg' : '–' }}</td></tr>
-                    <tr><td class="k">Bearbeiter</td><td class="w">{{ $bestellung->ersteller?->name ?? '–' }}</td></tr>
-                </table></div>
-            </div>
-        </td>
-    </tr></table>
 
     @if ($bestellung->notizen)
         <div class="karte">
