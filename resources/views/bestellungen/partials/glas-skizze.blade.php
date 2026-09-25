@@ -5,8 +5,6 @@
             <rect class="rohm" x="{{ $s['drx'] }}" y="{{ $s['dry'] }}" width="{{ $s['drw'] }}" height="{{ $s['drh'] }}"/>
         @endif
         <polygon class="glp" points="{{ $s['dpts'] }}"/>
-        <line class="sheen" x1="{{ $s['shx1'] }}" y1="{{ $s['shy1'] }}" x2="{{ $s['shx2'] }}" y2="{{ $s['shy2'] }}"/>
-        <line class="sheen2" x1="{{ $s['sh2x1'] }}" y1="{{ $s['sh2y1'] }}" x2="{{ $s['sh2x2'] }}" y2="{{ $s['sh2y2'] }}"/>
         @foreach ($s['dl'] as $l)
             <line class="dln" x1="{{ $l['x1'] }}" y1="{{ $l['y1'] }}" x2="{{ $l['x2'] }}" y2="{{ $l['y2'] }}"/>
         @endforeach

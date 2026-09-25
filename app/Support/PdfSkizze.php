@@ -34,8 +34,6 @@ final class PdfSkizze
             $svg .= self::text($sk['lRoh']['x'], $sk['lRoh']['y'], $sk['dRt'], self::MASS, 10, 'middle');
         }
         $svg .= '<polygon points="'.$sk['dpts'].'" fill="'.self::GLASFUELLUNG.'" stroke="'.self::TINTE.'" stroke-width="1.5"/>';
-        $svg .= '<line x1="'.$sk['shx1'].'" y1="'.$sk['shy1'].'" x2="'.$sk['shx2'].'" y2="'.$sk['shy2'].'" stroke="#c3d0de" stroke-width="2"/>';
-        $svg .= '<line x1="'.$sk['sh2x1'].'" y1="'.$sk['sh2y1'].'" x2="'.$sk['sh2x2'].'" y2="'.$sk['sh2y2'].'" stroke="#c3d0de" stroke-width="1.2"/>';
         $svg .= self::massketten($sk['dl'], $sk['ar']);
         $svg .= self::text($sk['lW']['x'], $sk['lW']['y'], number_format($w, 0, ',', '.'), self::TINTE, 11, 'middle');
         $svg .= self::text($sk['lHL']['x'], $sk['lHL']['y'], number_format($hL, 0, ',', '.'), self::TINTE, 11, 'end');
