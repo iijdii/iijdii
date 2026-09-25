@@ -232,10 +232,11 @@ class BestellungController extends Controller
                 if ($position->produkt === ProjektProdukt::Wand && (int) ($m['breite_mm'] ?? 0) > 0) {
                     $hL = (int) ($m['h_links_mm'] ?? 0);
                     $hR = (int) ($m['h_rechts_mm'] ?? $hL);
-                    foreach (SeitenwandRechner::panels((int) $m['breite_mm'], $hL, $hR, $anzahl) as $panel) {
+                    $reihen = max(1, (int) ($m['reihen'] ?? 1));
+                    foreach (SeitenwandRechner::raster((int) $m['breite_mm'], $hL, $hR, $anzahl, $reihen) as $panel) {
                         $bestellung->positionen()->create([
                             'typ' => 'glas', 'pos' => ++$pos,
-                            'bezeichnung' => 'Seitenwand Panel '.$panel['nr'].' ('.$panel['form'].') — Pos. '.$position->pos,
+                            'bezeichnung' => 'Seitenwand Feld '.$panel['spalte'].'.'.$panel['reihe'].' ('.$panel['form'].') — Pos. '.$position->pos,
                             'menge' => 1, 'einheit' => 'Feld',
                             'breite_mm' => $panel['breite'], 'hoehe_mm' => max($panel['hLinks'], $panel['hRechts']),
                             'projekt_position_id' => $position->id,
@@ -325,6 +326,23 @@ class BestellungController extends Controller
         });
 
         return redirect()->route('bestellungen.show', $bestellung)->with('toast', 'Position hinzugefügt');
+    }
+
+    /** Bestehende Position ändern — Validierung wie beim Anlegen, Pos.-Nr. bleibt. */
+    public function aenderePosition(Request $request, Bestellung $bestellung, BestellungPosition $position): RedirectResponse
+    {
+        abort_unless($position->bestellung_id === $bestellung->id, 404);
+        if (! $this->bearbeitbar($bestellung)) {
+            return $this->nurEntwurf($bestellung);
+        }
+
+        $position->update(match ($position->typ) {
+            BestellungPositionTyp::Glas => $this->glasPosition($request, (int) $position->pos),
+            BestellungPositionTyp::Schiebe => $this->schiebePosition($request, (int) $position->pos),
+            BestellungPositionTyp::Material => $this->materialPosition($request, (int) $position->pos),
+        });
+
+        return redirect()->route('bestellungen.show', $bestellung)->with('toast', 'Position '.$position->pos.' aktualisiert');
     }
 
     public function loeschePosition(Bestellung $bestellung, BestellungPosition $position): RedirectResponse

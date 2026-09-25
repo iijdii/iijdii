@@ -212,7 +212,8 @@
 
     {{-- ——— Extras ——— --}}
     <div data-produkt-felder="wand" class="fgrid2" style="margin-top:10px">
-        <div class="fld"><label>Anzahl</label><input class="inp" type="number" name="{{ $prefix }}[felder][anzahl]" value="{{ $v('anzahl', 1) }}"></div>
+        <div class="fld"><label>Elemente nebeneinander</label><input class="inp" type="number" name="{{ $prefix }}[felder][anzahl]" value="{{ $v('anzahl', 1) }}"></div>
+        <div class="fld"><label>Reihen übereinander</label><input class="inp" type="number" name="{{ $prefix }}[felder][reihen]" value="{{ $v('reihen', 1) }}"></div>
         <div class="fld"><label>Breite (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][breite_mm]" value="{{ $v('breite_mm') }}"></div>
         <div class="fld"><label>Höhe links (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][h_links_mm]" value="{{ $v('h_links_mm') }}"></div>
         <div class="fld"><label>Höhe rechts (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][h_rechts_mm]" value="{{ $v('h_rechts_mm') }}"></div>

@@ -7,7 +7,7 @@
     $k = $kalk['pcfg'];
     $dachPosition = $projekt->positionen->firstWhere('gruppe', 'dach');
     $posLabels = [
-        'anzahl' => 'Anzahl', 'breite_mm' => 'Breite', 'hoehe_mm' => 'Höhe', 'h_links_mm' => 'Höhe links',
+        'anzahl' => 'Anzahl', 'reihen' => 'Reihen', 'breite_mm' => 'Breite', 'hoehe_mm' => 'Höhe', 'h_links_mm' => 'Höhe links',
         'h_rechts_mm' => 'Höhe rechts', 'h_hinten_mm' => 'Höhe hinten', 'h_vorn_mm' => 'Höhe vorn', 'laenge_mm' => 'Länge',
         'ausfall_mm' => 'Ausfall', 'felder_n' => 'Felder', 'richtung' => 'Laufrichtung', 'glas' => 'Verglasung',
         'seite' => 'Seite', 'material' => 'Material', 'transparenz' => 'Transparenz', 'modell' => 'Modell',
@@ -239,16 +239,17 @@
                         $f = $position->felder ?? [];
                         $wandPanels = $position->produkt === \App\Enums\ProjektProdukt::Wand
                             && (int) ($f['breite_mm'] ?? 0) > 0 && (int) ($f['h_links_mm'] ?? 0) > 0
-                            ? \App\Support\SeitenwandRechner::panels(
+                            ? \App\Support\SeitenwandRechner::raster(
                                 (int) $f['breite_mm'], (int) $f['h_links_mm'],
                                 (int) ($f['h_rechts_mm'] ?? $f['h_links_mm']), (int) ($f['anzahl'] ?? 1),
+                                (int) ($f['reihen'] ?? 1),
                             )
                             : [];
                     @endphp
                     @if ($wandPanels !== [])
                         <div class="specsec" style="margin-top:10px">Glaszuschnitt (Fuge 30 mm)</div>
                         @foreach ($wandPanels as $panel)
-                            <div class="spec-row"><span class="spec-k">Panel {{ $panel['nr'] }} · {{ $panel['form'] }}</span>
+                            <div class="spec-row"><span class="spec-k">Feld {{ $panel['spalte'] }}.{{ $panel['reihe'] }} · {{ $panel['form'] }}</span>
                                 <span class="spec-v mono">{{ number_format($panel['breite'], 0, ',', '.') }} × {{ number_format($panel['hLinks'], 0, ',', '.') }}/{{ number_format($panel['hRechts'], 0, ',', '.') }} mm</span></div>
                         @endforeach
                     @endif

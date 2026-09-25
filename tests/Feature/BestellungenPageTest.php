@@ -181,8 +181,22 @@ class BestellungenPageTest extends TestCase
             ->assertSee('Keilfeld links')
             ->assertSee('polygon', false); // GlasSkizze
 
+        // Bearbeiten: Maße/Glas ändern, Pos.-Nr. bleibt
+        $this->actingAs($this->benutzer)->post('/bestellungen/BST-2026-113/positionen/'.$glas->id, [
+            'bezeichnung' => 'Keilfeld links (korrigiert)', 'form' => 'Trapez',
+            'breite_mm' => 2100, 'hL' => 2250, 'hR' => 1850, 'menge' => 2, 'glas' => 'VSG 10 mm klar',
+        ])->assertSessionHas('toast', 'Position '.$glas->pos.' aktualisiert');
+        $glas->refresh();
+        $this->assertSame('Keilfeld links (korrigiert)', $glas->bezeichnung);
+        $this->assertSame(2100, $glas->breite_mm);
+        $this->assertSame(['form' => 'Trapez', 'hL' => 2250, 'hR' => 1850, 'glas' => 'VSG 10 mm klar', 'quelle' => 'manuell'], $glas->details);
+
         // Löschen + Ownership-Guard
         $fremd = Bestellung::query()->where('nr', 'BST-2026-111')->firstOrFail()->positionen()->firstOrFail();
+        $this->actingAs($this->benutzer)
+            ->post('/bestellungen/BST-2026-113/positionen/'.$fremd->id, [
+                'bezeichnung' => 'x', 'menge' => 1,
+            ])->assertNotFound();
         $this->actingAs($this->benutzer)
             ->post('/bestellungen/BST-2026-113/positionen/'.$fremd->id.'/loeschen')->assertNotFound();
         $this->actingAs($this->benutzer)

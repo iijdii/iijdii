@@ -272,10 +272,13 @@
                                 <td class="b">{{ $position->bezeichnung }}</td>
                                 <td class="num mono">{{ \App\Support\Format::menge($position->menge) }} {{ $position->einheit }}</td>
                                 <td class="num">
-                                    <form method="POST" action="{{ route('bestellungen.positionen.loeschen', [$bestellung, $position]) }}">
-                                        @csrf
-                                        <button class="btn btns" type="submit" style="color:var(--red)">Entfernen</button>
-                                    </form>
+                                    <span class="fx ac gap8" style="justify-content:flex-end">
+                                        <button class="btn btns" type="button" data-modal-target="pos-edit-{{ $position->id }}">Bearbeiten</button>
+                                        <form method="POST" action="{{ route('bestellungen.positionen.loeschen', [$bestellung, $position]) }}">
+                                            @csrf
+                                            <button class="btn btns" type="submit" style="color:var(--red)">Entfernen</button>
+                                        </form>
+                                    </span>
                                 </td>
                             </tr>
                         @endforeach
@@ -284,6 +287,61 @@
                 @endif
             </div>
         </div>
+
+        {{-- Bearbeiten-Fenster je Position (Validierung wie beim Anlegen) --}}
+        @foreach ($bestellung->positionen->sortBy('pos') as $position)
+            @php $d = $position->details ?? []; @endphp
+            <div class="modal" id="pos-edit-{{ $position->id }}" hidden>
+                <div class="modalc">
+                    <div class="modalh">Position {{ $position->pos }} · {{ ucfirst($position->typ->value) }} bearbeiten
+                        <button class="btn btns" type="button" data-modal-close aria-label="Schließen">✕</button></div>
+                    <div class="modalb">
+                        <form method="POST" action="{{ route('bestellungen.positionen.update', [$bestellung, $position]) }}" class="colstack" style="gap:10px">
+                            @csrf
+                            <div class="fld"><label>Bezeichnung</label>
+                                <input class="inp" name="bezeichnung" value="{{ $position->bezeichnung }}" required></div>
+                            @if ($position->typ->value === 'glas')
+                                <div class="fgrid2">
+                                    <div class="fld"><label>Form</label>
+                                        <select class="inp" name="form">
+                                            <option @selected(($d['form'] ?? 'Rechteck') === 'Rechteck')>Rechteck</option>
+                                            <option @selected(($d['form'] ?? '') === 'Trapez')>Trapez</option>
+                                        </select></div>
+                                    <div class="fld"><label>Breite (mm)</label>
+                                        <input class="inp mono" type="number" name="breite_mm" value="{{ (int) $position->breite_mm }}" required></div>
+                                    <div class="fld"><label>Höhe links (mm)</label>
+                                        <input class="inp mono" type="number" name="hL" value="{{ (int) ($d['hL'] ?? $position->hoehe_mm) }}" required></div>
+                                    <div class="fld"><label>Höhe rechts (mm)</label>
+                                        <input class="inp mono" type="number" name="hR" value="{{ (int) ($d['hR'] ?? $d['hL'] ?? $position->hoehe_mm) }}"></div>
+                                    <div class="fld"><label>Menge</label>
+                                        <input class="inp mono" type="number" step="0.5" min="0.5" name="menge" value="{{ rtrim(rtrim(number_format((float) $position->menge, 1, '.', ''), '0'), '.') }}" required></div>
+                                    <div class="fld"><label>Glas</label>
+                                        <input class="inp" name="glas" value="{{ $d['glas'] ?? '' }}"></div>
+                                </div>
+                            @elseif ($position->typ->value === 'schiebe')
+                                <div class="fgrid2">
+                                    <div class="fld"><label>Breite (mm)</label>
+                                        <input class="inp mono" type="number" name="breite_mm" value="{{ (int) $position->breite_mm }}" required></div>
+                                    <div class="fld"><label>Höhe (mm)</label>
+                                        <input class="inp mono" type="number" name="hoehe_mm" value="{{ (int) $position->hoehe_mm }}" required></div>
+                                    <div class="fld"><label>Elemente</label>
+                                        <input class="inp mono" type="number" name="count" value="{{ (int) ($d['count'] ?? $position->menge) }}" required></div>
+                                    <div class="fld"><label>Glas</label>
+                                        <input class="inp" name="glas" value="{{ $d['glas'] ?? '' }}"></div>
+                                </div>
+                            @else
+                                <div class="fld"><label>Menge</label>
+                                    <input class="inp mono" type="number" step="0.5" min="0.5" name="menge" value="{{ rtrim(rtrim(number_format((float) $position->menge, 1, '.', ''), '0'), '.') }}" required></div>
+                            @endif
+                            <div class="jb">
+                                <span class="hint">Änderungen gelten für PDF und Skizzen sofort.</span>
+                                <button class="btn btnp" type="submit">Speichern</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endforeach
     @endif
 
 </div>

@@ -91,7 +91,7 @@ final class ProduktFelder
             ]
             : match ($produkt) {
                 ProjektProdukt::Wand => [
-                    'anzahl' => $mm, 'breite_mm' => $mm, 'h_links_mm' => $mm, 'h_rechts_mm' => $mm,
+                    'anzahl' => $mm, 'reihen' => $mm, 'breite_mm' => $mm, 'h_links_mm' => $mm, 'h_rechts_mm' => $mm,
                     'glas' => ['nullable', 'string', 'max:64'],
                 ],
                 ProjektProdukt::Schiebe => [

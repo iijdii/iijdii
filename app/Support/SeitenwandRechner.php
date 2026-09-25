@@ -42,4 +42,55 @@ final class SeitenwandRechner
 
         return $panels;
     }
+
+    /**
+     * Raster-Zuschnitt: Spalten nebeneinander (wie panels()) UND Reihen
+     * übereinander. Die Schnittlinien der Reihen laufen waagerecht —
+     * untere Reihen sind Rechtecke, die oberste Reihe trägt die Schräge.
+     * Reihenhöhe = min(hLinks, hRechts) der Spalte geteilt durch die
+     * Reihenzahl; Fugenabzug in der Höhe wie in der Breite (Ränder G/2,
+     * innen G). Mit reihen = 1 bleibt das Ergebnis von panels() erhalten
+     * (volle Höhen, nur um spalte/reihe ergänzt).
+     *
+     * @return list<array{nr: int, spalte: int, reihe: int, breite: int, hLinks: int, hRechts: int, form: string}>
+     */
+    public static function raster(int $breite, int $hLinks, int $hRechts, int $spalten, int $reihen, int $fuge = 30): array
+    {
+        $reihen = max(1, $reihen);
+        $ergebnis = [];
+        $nr = 0;
+
+        foreach (self::panels($breite, $hLinks, $hRechts, $spalten, $fuge) as $spalte) {
+            if ($reihen === 1) {
+                $ergebnis[] = ['nr' => ++$nr, 'spalte' => $spalte['nr'], 'reihe' => 1] + $spalte;
+
+                continue;
+            }
+
+            $stufe = intdiv(min($spalte['hLinks'], $spalte['hRechts']), $reihen);
+            for ($r = 1; $r <= $reihen; $r++) {
+                if ($r < $reihen) {
+                    $hl = $hr = $stufe;
+                } else {
+                    $unten = ($reihen - 1) * $stufe;
+                    $hl = $spalte['hLinks'] - $unten;
+                    $hr = $spalte['hRechts'] - $unten;
+                }
+                $abzug = ($r === 1 || $r === $reihen) ? intdiv($fuge, 2) : $fuge;
+                $hl = max(0, $hl - $abzug);
+                $hr = max(0, $hr - $abzug);
+                $ergebnis[] = [
+                    'nr' => ++$nr,
+                    'spalte' => $spalte['nr'],
+                    'reihe' => $r,
+                    'breite' => $spalte['breite'],
+                    'hLinks' => $hl,
+                    'hRechts' => $hr,
+                    'form' => abs($hl - $hr) > 2 ? 'Trapez' : 'Rechteck',
+                ];
+            }
+        }
+
+        return $ergebnis;
+    }
 }
