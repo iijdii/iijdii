@@ -118,15 +118,26 @@ final class AngebotsRechnung
                 continue;
             }
             $f = $position->felder ?? [];
-            // Keil führt zwei Höhen (hinten/vorn) — beide in den Titel.
+            // Keil führt zwei Höhen (hinten/vorn) — beide in den Titel;
+            // Segel führt Breite × Länge.
             $hoehe = $f['hoehe_mm'] ?? $f['ausfall_mm'] ?? $f['h_links_mm'] ?? null;
             if ($hoehe === null && (isset($f['h_hinten_mm']) || isset($f['h_vorn_mm']))) {
                 $hoehe = implode('/', array_filter([$f['h_hinten_mm'] ?? null, $f['h_vorn_mm'] ?? null]));
+            }
+            if ($hoehe === null && isset($f['breite_mm'], $f['laenge_mm'])) {
+                $hoehe = $f['laenge_mm'];
             }
             $masse = array_filter([
                 $f['breite_mm'] ?? $f['laenge_mm'] ?? null,
                 $hoehe,
             ]);
+            // Sonnensegel ohne eigene Stückzahl: Anzahl der Dachfelder.
+            $menge = (int) ($f['anzahl'] ?? 0);
+            if ($menge < 1) {
+                $menge = $position->produkt->value === 'sonnensegel' && isset($kalk)
+                    ? max(1, (int) ($kalk['fields'] ?? 1))
+                    : 1;
+            }
             $positionen[] = $zeile(
                 'p'.$position->id,
                 $position->produkt->label()
@@ -134,7 +145,7 @@ final class AngebotsRechnung
                     .(isset($f['glas']) ? ' · '.$f['glas'] : '')
                     .(isset($f['groesse']) ? ' '.$f['groesse'] : ''),
                 [],
-                (int) ($f['anzahl'] ?? 1),
+                $menge,
             );
         }
 

@@ -334,10 +334,13 @@ class MontageController extends Controller
     {
         return [
             'shape' => $gruppe['shape'],
-            'fields' => array_column($gruppe['fields'], 'soll'),
+            // zfields: eigene Zeichnungs-Maße, wenn die Gruppen-Zeilen
+            // nicht 1:1 der Zeichnungs-Reihenfolge entsprechen (Segel).
+            'fields' => $gruppe['zfields'] ?? array_column($gruppe['fields'], 'soll'),
             'side' => $gruppe['side'] ?? '',
             'dir' => $gruppe['dir'] ?? '',
             'qty' => $gruppe['qty'] ?? 0,
+            'noWall' => $gruppe['noWall'] ?? false,
             'unterzug' => $gruppe['unterzug'] ?? '110×110',
         ];
     }

@@ -286,8 +286,9 @@
     </div>
 
     <div data-produkt-felder="sonnensegel" class="fgrid2" style="margin-top:10px">
-        <div class="fld"><label>Anzahl</label><input class="inp" type="number" name="{{ $prefix }}[felder][anzahl]" value="{{ $v('anzahl', 1) }}"></div>
-        <div class="fld"><label>Größe</label><input class="inp" type="text" name="{{ $prefix }}[felder][groesse]" value="{{ $v('groesse', '4×4 m') }}"></div>
+        <div class="fld"><label>Anzahl</label><input class="inp" type="number" name="{{ $prefix }}[felder][anzahl]" value="{{ $v('anzahl') }}" placeholder="leer = Anzahl Dachfelder"></div>
+        <div class="fld"><label>Breite (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][breite_mm]" value="{{ $v('breite_mm') }}" placeholder="leer = wie Wandblende"></div>
+        <div class="fld"><label>Länge (mm)</label><input class="inp" type="number" name="{{ $prefix }}[felder][laenge_mm]" value="{{ $v('laenge_mm') }}" placeholder="leer = Dachtiefe"></div>
         <div class="fld"><label>Farbe</label><input class="inp" type="text" name="{{ $prefix }}[felder][farbe]" value="{{ $v('farbe', 'Sandbeige') }}"></div>
     </div>
 </div>

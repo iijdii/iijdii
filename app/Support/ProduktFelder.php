@@ -114,6 +114,14 @@ final class ProduktFelder
                     'ausfall_mm' => $mm, 'felder_n' => $mm,
                     'antrieb' => ['nullable', Rule::in(['Motor', 'Kurbel'])],
                 ],
+                // Sonnensegel: Betreiber-Standard — Stückzahl = Dachfelder,
+                // Breite wie die Wandblende (Achsmaß − 60 mm), Länge =
+                // Dachtiefe; leere Felder werden aus dem Dach abgeleitet.
+                ProjektProdukt::Sonnensegel => [
+                    'anzahl' => $mm, 'breite_mm' => $mm, 'laenge_mm' => $mm,
+                    'farbe' => ['nullable', 'string', 'max:32'],
+                    'groesse' => ['nullable', 'string', 'max:32'],
+                ],
                 default => [
                     'anzahl' => $mm,
                     'groesse' => ['nullable', 'string', 'max:32'], 'farbe' => ['nullable', 'string', 'max:32'],

@@ -51,6 +51,34 @@ class AufmassRechnerTest extends TestCase
         $this->assertSame((int) round(sqrt(3200 ** 2 + 300 ** 2)), $felder['D']['soll']);
     }
 
+    public function test_sonnensegel_position_je_dachfeld_mit_blendenbreite_und_dachtiefe(): void
+    {
+        // Betreiber-Standard: Stückzahl = Dachfelder, Breite wie die
+        // Wandblende (Achsmaß − 60 mm), Länge = Dachtiefe. pcfg-Referenz:
+        // 12 Felder, Achsmaß 714 → Blende 654, Tiefe 3500.
+        $kalk = KonfiguratorRechner::berechne($this->pcfg());
+        $position = new ProjektPosition([
+            'pos' => 1, 'gruppe' => 'sonnenschutz', 'produkt' => 'sonnensegel', 'phase' => 2,
+            'felder' => [],
+        ]);
+
+        $segel = collect(AufmassRechner::gruppenAusPositionen([$position], $kalk, 5, 15))->first();
+        $felder = collect($segel['fields'])->keyBy('tag');
+
+        $this->assertCount(13, $segel['fields']); // 12 Segel + Länge
+        $this->assertSame(654, $felder['1']['soll']);
+        $this->assertSame(654, $felder['12']['soll']);
+        $this->assertSame(3500, $felder['L']['soll']);
+
+        // Eingaben in der Position übersteuern alle Segel auf einmal.
+        $position->felder = ['anzahl' => 3, 'breite_mm' => 700, 'laenge_mm' => 3000];
+        $segel = collect(AufmassRechner::gruppenAusPositionen([$position], $kalk, 5, 15))->first();
+        $felder = collect($segel['fields'])->keyBy('tag');
+        $this->assertCount(4, $segel['fields']);
+        $this->assertSame(700, $felder['3']['soll']);
+        $this->assertSame(3000, $felder['L']['soll']);
+    }
+
     public function test_schiebe_fluegelbreite_and_segel_diagonals(): void
     {
         $gruppen = collect(AufmassRechner::gruppen($this->pcfg(), [], 5, 15));

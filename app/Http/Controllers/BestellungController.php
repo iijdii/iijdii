@@ -263,6 +263,32 @@ class BestellungController extends Controller
                     continue;
                 }
 
+                if ($position->produkt === ProjektProdukt::Sonnensegel) {
+                    // Je Segel eine Position: Breite aus dem Endmaß des
+                    // jeweiligen Segels (breite_i_mm), Länge gilt für alle.
+                    $segelBreiten = [];
+                    for ($i = 1; $i <= 24; $i++) {
+                        if (isset($m['breite_'.$i.'_mm'])) {
+                            $segelBreiten[$i] = (int) $m['breite_'.$i.'_mm'];
+                        }
+                    }
+                    $stueck = max(1, count($segelBreiten) ?: (int) ($m['anzahl'] ?? 1));
+                    $laenge = (int) ($m['laenge_mm'] ?? 0);
+                    for ($i = 1; $i <= $stueck; $i++) {
+                        $breite = $segelBreiten[$i] ?? (int) ($m['breite_mm'] ?? 0);
+                        $bestellung->positionen()->create([
+                            'typ' => 'material', 'pos' => ++$pos,
+                            'bezeichnung' => 'Sonnensegel '.$i.' — '.$breite.' × '.$laenge.' mm — Pos. '.$position->pos,
+                            'menge' => 1, 'einheit' => 'Stück',
+                            'breite_mm' => $breite ?: null, 'hoehe_mm' => $laenge ?: null,
+                            'projekt_position_id' => $position->id,
+                            'details' => ['breite_mm' => $breite, 'laenge_mm' => $laenge] + ($position->endmasse ?? []),
+                        ]);
+                    }
+
+                    continue;
+                }
+
                 $masse = array_filter([
                     $m['breite_mm'] ?? $m['laenge_mm'] ?? null,
                     $m['hoehe_mm'] ?? $m['ausfall_mm'] ?? $m['h_hinten_mm'] ?? $m['h_vorn_mm'] ?? null,

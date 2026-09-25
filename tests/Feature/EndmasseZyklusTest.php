@@ -43,6 +43,9 @@ class EndmasseZyklusTest extends TestCase
                 'breite_mm' => 4000, 'hoehe_mm' => 2200, 'anzahl' => 3,
             ]],
         ]);
+        $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/positionen', [
+            'position' => ['produkt' => 'sonnensegel', 'felder' => ['anzahl' => 2]],
+        ]);
 
         return $projekt;
     }
@@ -81,10 +84,12 @@ class EndmasseZyklusTest extends TestCase
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/nachbestellung')
             ->assertSessionHas('toast', 'Keine Endmaße erfasst — zuerst im Montage-Modus eintragen');
 
+        $segel = $projekt->positionen()->where('produkt', 'sonnensegel')->firstOrFail();
         $this->actingAs($this->monteur)->post('/projekte/'.$projekt->nr.'/montage/endmasse', [
             'endmasse' => [
                 $wand->id => ['breite_mm' => 3000, 'h_links_mm' => 2000, 'h_rechts_mm' => 2420],
                 $schiebe->id => ['breite_mm' => 4050, 'hoehe_mm' => 2210],
+                $segel->id => ['breite_1_mm' => 650, 'breite_2_mm' => 640, 'laenge_mm' => 2950],
             ],
         ]);
 
@@ -106,6 +111,14 @@ class EndmasseZyklusTest extends TestCase
         $sp = $bestellung->positionen()->where('typ', 'schiebe')->firstOrFail();
         $this->assertSame(4050, $sp->breite_mm);
         $this->assertSame($schiebe->id, $sp->projekt_position_id);
+
+        // Sonnensegel → je Segel eine Position, Breiten einzeln, Länge für alle
+        $segelPositionen = $bestellung->positionen()
+            ->where('bezeichnung', 'like', 'Sonnensegel%')->orderBy('pos')->get();
+        $this->assertCount(2, $segelPositionen);
+        $this->assertSame([650, 640], $segelPositionen->pluck('breite_mm')->all());
+        $this->assertSame([2950, 2950], $segelPositionen->pluck('hoehe_mm')->all());
+        $this->assertSame($segel->id, $segelPositionen[0]->projekt_position_id);
 
         // Idempotent: zweiter Klick öffnet den bestehenden Entwurf.
         $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/nachbestellung')

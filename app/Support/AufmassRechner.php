@@ -144,6 +144,26 @@ final class AufmassRechner
                         $feld('D', 'Höhe Vorderkante', 'hoehe_vorderkante_mm', max(0, $I($kalk['gutterHEff']) - 250)),
                     ], $kn.' Konsolen · nur an Sparren oder Unterzug befestigen. Neigung 12–15°.', []];
                 })(),
+                'sonnensegel' => (function () use ($feld, $f, $I, $kalk) {
+                    // Betreiber-Standard: Stückzahl = Anzahl der Dachfelder,
+                    // Breite wie die Wandblende (Achsmaß − 60 mm), Länge =
+                    // Dachtiefe. Positionsfelder übersteuern («alle sofort»),
+                    // die Endmaße-Zeilen jedes Segel einzeln.
+                    $stueck = min(24, $I($f['anzahl'] ?? 0) ?: max(1, (int) ($kalk['fields'] ?? 1)));
+                    $breite = $I($f['breite_mm'] ?? 0) ?: (int) ($kalk['blende'] ?? 0);
+                    $laenge = $I($f['laenge_mm'] ?? 0) ?: $I($kalk['pcfg']['depth'] ?? 0);
+
+                    $felder = [];
+                    for ($i = 1; $i <= $stueck; $i++) {
+                        $felder[] = $feld((string) $i, 'Segel '.$i.' Breite', 'breite_'.$i.'_mm', $breite);
+                    }
+                    $felder[] = $feld('L', 'Länge (alle)', 'laenge_mm', $laenge);
+
+                    return ['fest', $stueck.' Stück · '.$breite.' × '.$laenge.' mm', $felder,
+                        'Breite wie Wandblende (Achsmaß − 60 mm), Länge = Dachtiefe. Jedes Segel einzeln messbar — die Länge gilt für alle.',
+                        ['qty' => $stueck, 'noWall' => true,
+                            'zfields' => [$breite, $laenge, $laenge, (int) round(sqrt($breite ** 2 + $laenge ** 2))]]];
+                })(),
                 default => (function () use ($feld, $f, $I, $n) {
                     $b = $I($f['breite_mm'] ?? $f['laenge_mm'] ?? 0);
                     $h = $I($f['hoehe_mm'] ?? 0);
