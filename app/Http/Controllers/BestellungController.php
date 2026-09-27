@@ -205,7 +205,7 @@ class BestellungController extends Controller
             'nr' => Nummern::bestellung(),
             'titel' => $titel,
             // Fester Lieferant je Gruppe (Markisen → Varisol), sonst wählt der Verkäufer.
-            'lieferant_id' => $lieferant !== null ? Lieferant::query()->where('name', $lieferant)->value('id') : null,
+            'lieferant_id' => $lieferant !== null ? Lieferant::query()->where('name', 'like', '%'.$lieferant.'%')->orderBy('id')->value('id') : null,
             'kategorie' => $kategorie,
             'projekt_id' => $projekt->id,
             'kunde_id' => $projekt->kunde_id,
@@ -236,7 +236,7 @@ class BestellungController extends Controller
         // manuell ergänzte bleiben stehen).
         $gruppen = [
             'glas' => ['Phase 2 · Glas & Schiebe', 'glas'],
-            'markise' => ['Phase 2 · Markisen', 'markise', 'Rödelbronn GmbH (Varisol)'],
+            'markise' => ['Phase 2 · Markisen', 'markise', 'Varisol'],
             'sonnensegel' => ['Phase 2 · Sonnensegel (Tuch)', 'sonnensegel'],
             'sonstiges' => ['Phase 2 · Sonstiges', 'gemischt'],
         ];

@@ -7,6 +7,7 @@ use App\Models\Artikel;
 use App\Models\Lieferant;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\LieferantSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -62,5 +63,84 @@ class LieferantenTest extends TestCase
         $this->actingAs($benutzer)->get('/lieferanten')
             ->assertOk()
             ->assertSee('Lieferanten');
+    }
+
+    public function test_verkaeufer_legt_lieferant_an_monteur_darf_nicht(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $verkauf = User::query()->where('email', 'verkauf@lea.test')->firstOrFail();
+        $monteur = User::query()->where('email', 'monteur@lea.test')->firstOrFail();
+        $daten = [
+            'name' => 'Glas Müller', 'kundennummer' => 'K-777', 'sortiment' => 'VSG-Glas',
+            'email' => 'bestellung@glas-mueller.example', 'plz' => '10115', 'stadt' => 'Berlin',
+        ];
+
+        $this->actingAs($monteur)->post('/lieferanten', $daten)->assertForbidden();
+
+        $this->actingAs($verkauf)->post('/lieferanten', $daten)
+            ->assertRedirect(route('lieferanten'))
+            ->assertSessionHas('toast', 'Lieferant Glas Müller angelegt');
+
+        $this->actingAs($verkauf)->get('/lieferanten')
+            ->assertSee('Glas Müller')
+            ->assertSee('Kundennr. K-777')
+            ->assertSee('10115 Berlin');
+    }
+
+    public function test_bearbeiten_prueft_eindeutigen_namen_und_speichert(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $admin = User::query()->where('email', 'admin@lea.test')->firstOrFail();
+        $solarlux = Lieferant::query()->where('name', 'Solarlux')->firstOrFail();
+
+        $this->actingAs($admin)->from('/lieferanten')->post('/lieferanten/'.$solarlux->id, ['name' => 'Sunshine'])
+            ->assertSessionHasErrorsIn('lieferant_'.$solarlux->id, 'name');
+
+        $this->actingAs($admin)->post('/lieferanten/'.$solarlux->id, [
+            'name' => 'Solarlux AG', 'kundennummer' => 'SX-1', 'email' => 'neu@solarlux.example', 'telefon' => '0800 1', 'strasse' => '',
+        ])->assertSessionHas('toast', 'Lieferant Solarlux AG gespeichert');
+
+        $solarlux->refresh();
+        $this->assertSame('SX-1', $solarlux->kundennummer);
+        $this->assertSame('neu@solarlux.example', $solarlux->email);
+        $this->assertNull($solarlux->strasse);
+    }
+
+    public function test_loeschen_nur_ohne_bestellungen_artikel_und_portal(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $admin = User::query()->where('email', 'admin@lea.test')->firstOrFail();
+        $sunshine = Lieferant::query()->where('name', 'Sunshine')->firstOrFail();
+        $leer = Lieferant::query()->create(['name' => 'Testlieferant']);
+
+        $this->actingAs($admin)->post('/lieferanten/'.$sunshine->id.'/loeschen')
+            ->assertSessionHas('toast', 'Sunshine hat Bestellungen, Artikel oder Portal-Zugänge — Löschen nicht möglich');
+        $this->assertModelExists($sunshine);
+
+        $this->actingAs($admin)->post('/lieferanten/'.$leer->id.'/loeschen')
+            ->assertSessionHas('toast', 'Lieferant Testlieferant gelöscht');
+        $this->assertModelMissing($leer);
+    }
+
+    public function test_einrichtung_ueberschreibt_und_erneuert_gepflegte_lieferanten_nicht(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $admin = User::query()->where('email', 'admin@lea.test')->firstOrFail();
+        $solarlux = Lieferant::query()->where('name', 'Solarlux')->firstOrFail();
+        $varisol = Lieferant::query()->where('name', 'like', '%Varisol%')->firstOrFail();
+
+        $this->actingAs($admin)->post('/lieferanten/'.$solarlux->id, ['name' => 'Solarlux AG']);
+        $this->actingAs($admin)->post('/lieferanten/'.$varisol->id, [
+            'name' => $varisol->name, 'email' => 'eigene@varisol.example', 'kundennummer' => 'D.1',
+        ]);
+        $anzahl = Lieferant::query()->count();
+
+        $this->seed(LieferantSeeder::class);
+
+        $this->assertSame($anzahl, Lieferant::query()->count());
+        $this->assertFalse(Lieferant::query()->where('name', 'Solarlux')->exists());
+        $varisol->refresh();
+        $this->assertSame('eigene@varisol.example', $varisol->email);
+        $this->assertSame('D.1', $varisol->kundennummer);
     }
 }

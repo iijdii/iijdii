@@ -101,6 +101,11 @@ Route::middleware(['auth', 'benutzer.aktiv', 'lieferant.portal'])->group(functio
     Route::get('/kalender/termin', [KalenderController::class, 'terminFormular'])->name('kalender.termin');
     Route::post('/kalender/termin', [KalenderController::class, 'speichereTermin'])->middleware('role:verkaeufer,projektleiter')->name('kalender.termin.speichern');
     Route::get('/lieferanten', [LieferantController::class, 'index'])->name('lieferanten');
+    Route::middleware('role:verkaeufer,projektleiter,lager')->group(function () {
+        Route::post('/lieferanten', [LieferantController::class, 'store'])->name('lieferanten.store');
+        Route::post('/lieferanten/{lieferant}', [LieferantController::class, 'update'])->name('lieferanten.update');
+        Route::post('/lieferanten/{lieferant}/loeschen', [LieferantController::class, 'loesche'])->name('lieferanten.loeschen');
+    });
 
     Route::get('/kunden', [KundeController::class, 'index'])->name('kunden');
     Route::get('/kunden/neu', [KundeController::class, 'create'])->name('kunden.create');
