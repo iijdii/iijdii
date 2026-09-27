@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Rolle;
+use App\Models\Lieferant;
 use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -11,15 +14,20 @@ use Illuminate\View\View;
  * Einstellungen (role:projektleiter). Im Prototyp nicht entworfen;
  * fachlich gefordert ist die Konfigurierbarkeit der Aufmaß-Toleranzen
  * (README: «Schwellen sind Geschäftsregeln — konfigurierbar halten»).
- * Genau die zwei geseedeten Schlüssel werden hier gepflegt.
+ * Genau die zwei geseedeten Schlüssel werden hier gepflegt. Der Admin
+ * sieht zusätzlich die Benutzerverwaltung (BenutzerController).
  */
 class EinstellungenController extends Controller
 {
-    public function zeige(): View
+    public function zeige(Request $request): View
     {
+        $istAdmin = $request->user()->role === Rolle::Admin;
+
         return view('einstellungen.index', [
             'gruen' => (int) Setting::wert('toleranz_gruen_mm', 5),
             'gelb' => (int) Setting::wert('toleranz_gelb_mm', 15),
+            'benutzer' => $istAdmin ? User::query()->with('lieferant')->orderBy('role')->orderBy('name')->get() : null,
+            'lieferanten' => $istAdmin ? Lieferant::query()->orderBy('name')->pluck('name', 'id') : collect(),
         ]);
     }
 

@@ -4,6 +4,7 @@ use App\Http\Controllers\AbnahmeController;
 use App\Http\Controllers\AnfrageController;
 use App\Http\Controllers\AngebotAnnahmeController;
 use App\Http\Controllers\AngebotController;
+use App\Http\Controllers\BenutzerController;
 use App\Http\Controllers\BestellungController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DokumentController;
@@ -79,7 +80,7 @@ Route::get('/einrichtung/{token}', function (string $token) {
 Route::get('/angebot-annahme/{token}', [AngebotAnnahmeController::class, 'zeige'])->name('angebote.annahme');
 Route::post('/angebot-annahme/{token}', [AngebotAnnahmeController::class, 'antwort'])->name('angebote.annahme.bestaetigen');
 
-Route::middleware(['auth', 'lieferant.portal'])->group(function () {
+Route::middleware(['auth', 'benutzer.aktiv', 'lieferant.portal'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Logistik: /logistik/touren/* VOR dem {bestellung:nr}-Wildcard registrieren.
@@ -205,4 +206,12 @@ Route::middleware(['auth', 'lieferant.portal'])->group(function () {
     Route::post('/einstellungen', [EinstellungenController::class, 'speichere'])
         ->middleware('role:projektleiter')
         ->name('einstellungen.speichern');
+
+    // Benutzer & Passwörter: nur Admin.
+    Route::middleware('role:admin')->prefix('einstellungen/benutzer')->name('benutzer.')->group(function () {
+        Route::post('/', [BenutzerController::class, 'store'])->name('store');
+        Route::post('/{benutzer}', [BenutzerController::class, 'update'])->name('update');
+        Route::post('/{benutzer}/sperren', [BenutzerController::class, 'sperre'])->name('sperren');
+        Route::post('/{benutzer}/loeschen', [BenutzerController::class, 'loesche'])->name('loeschen');
+    });
 });

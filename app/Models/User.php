@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'lieferant_id'])]
+#[Fillable(['name', 'email', 'password', 'role', 'lieferant_id', 'aktiv'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -29,6 +29,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => Rolle::class,
+            'aktiv' => 'boolean',
         ];
     }
 
@@ -41,6 +42,12 @@ class User extends Authenticatable
     public function lieferant(): BelongsTo
     {
         return $this->belongsTo(Lieferant::class);
+    }
+
+    /** Gesperrt nur bei explizitem aktiv = false (Spalte fehlt vor der Migration). */
+    public function istGesperrt(): bool
+    {
+        return $this->aktiv === false;
     }
 
     public function istLieferant(): bool

@@ -29,6 +29,14 @@ class LoginController extends Controller
             ]);
         }
 
+        if ($request->user()->istGesperrt()) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Dieser Zugang ist gesperrt.',
+            ]);
+        }
+
         $request->session()->regenerate();
 
         // Lieferanten-Portal (M14): direkt in die eigene Bestellliste.

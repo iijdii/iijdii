@@ -46,4 +46,10 @@
     </div>
 
 </div>
+
+@if ($benutzer)
+    <div style="margin-top:16px">
+        @include('einstellungen.partials.benutzer')
+    </div>
+@endif
 @endsection
