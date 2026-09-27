@@ -5,7 +5,8 @@ namespace App\Enums;
 /**
  * Status einer Lieferantenbestellung, in Reihenfolge:
  * entwurf → geprueft → bestellt → bereit → geliefert → montiert,
- * plus storniert.
+ * plus storniert. Der Lieferant sieht ab «geprüft» (Portal) und meldet
+ * selbst «in Arbeit» (bestellt) und «abholbereit» (bereit).
  */
 enum BestellungStatus: string
 {
@@ -28,6 +29,36 @@ enum BestellungStatus: string
             self::Montiert => 'Montiert',
             self::Storniert => 'Storniert',
         };
+    }
+
+    /** Bezeichnung aus Sicht des Lieferanten (Portal). */
+    public function portalLabel(): string
+    {
+        return match ($this) {
+            self::Geprueft => 'Neu',
+            self::Bestellt => 'In Arbeit',
+            self::Bereit => 'Abholbereit',
+            self::Geliefert => 'Abgeholt / geliefert',
+            self::Montiert => 'Abgeschlossen',
+            default => $this->label(),
+        };
+    }
+
+    public function anzeige(bool $portal): string
+    {
+        return $portal ? $this->portalLabel() : $this->label();
+    }
+
+    /**
+     * Portal-Übergänge: aus Neu / In Arbeit / Abholbereit darf der
+     * Lieferant «In Arbeit» oder «Abholbereit» melden (auch zurück,
+     * falls er sich vertan hat) — alles Weitere pflegt LEA.
+     */
+    public function portalDarf(self $ziel): bool
+    {
+        return $this !== $ziel
+            && in_array($this, [self::Geprueft, self::Bestellt, self::Bereit], true)
+            && in_array($ziel, [self::Bestellt, self::Bereit], true);
     }
 
     public function badgeClass(): string

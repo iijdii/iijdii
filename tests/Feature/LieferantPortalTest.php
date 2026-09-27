@@ -30,7 +30,7 @@ class LieferantPortalTest extends TestCase
             ->where('status', $status)->firstOrFail();
     }
 
-    public function test_portal_zeigt_nur_eigene_bestellte_vorgaenge(): void
+    public function test_portal_zeigt_eigene_vorgaenge_ab_geprueft(): void
     {
         $eigene = $this->eigene(BestellungStatus::Bestellt);
         $eigenerEntwurf = $this->eigene(BestellungStatus::Entwurf);
@@ -38,10 +38,16 @@ class LieferantPortalTest extends TestCase
             ->where('lieferant_id', '!=', $this->portal->lieferant_id)
             ->whereNotNull('lieferant_id')->firstOrFail();
 
+        // Sobald LEA «geprüft» setzt, erscheint die Bestellung als «Neu».
+        $eigenerEntwurf->update(['status' => BestellungStatus::Geprueft]);
+
         $this->actingAs($this->portal)->get('/bestellungen')
             ->assertOk()
             ->assertSee($eigene->nr)
-            ->assertDontSee($eigenerEntwurf->nr)
+            ->assertSee($eigenerEntwurf->nr)
+            ->assertSee('Neu')
+            ->assertSee('In Arbeit')
+            ->assertSee('Abholbereit')
             ->assertDontSee($fremde->nr)
             ->assertSee('Meine Bestellungen')
             ->assertDontSee('Neue Bestellung');
@@ -72,28 +78,58 @@ class LieferantPortalTest extends TestCase
         $eigene = $this->eigene(BestellungStatus::Bestellt);
         $this->actingAs($this->portal)->get('/bestellungen/'.$eigene->nr)
             ->assertOk()
-            ->assertSee('Bereit melden')
+            ->assertSee('Ihr Status')
+            ->assertSee('Fertig · abholbereit')
             ->assertDontSee($eigene->kunde->anzeigename);
     }
 
-    public function test_lieferant_meldet_bereit_aber_nichts_anderes(): void
+    public function test_lieferant_meldet_in_arbeit_und_abholbereit(): void
+    {
+        $neu = $this->eigene(BestellungStatus::Entwurf);
+        $neu->update(['status' => BestellungStatus::Geprueft]);
+        $this->travelTo(now()->setDate(2026, 9, 28)->setTime(8, 15));
+
+        $this->actingAs($this->portal)
+            ->post('/bestellungen/'.$neu->nr.'/status', ['status' => 'bestellt'])
+            ->assertSessionHas('toast', 'Gemeldet: In Arbeit — LEA sieht es sofort');
+        $neu->refresh();
+        $this->assertSame(BestellungStatus::Bestellt, $neu->status);
+        $this->assertNotNull($neu->in_arbeit_am);
+
+        $this->travel(2)->days();
+        $this->actingAs($this->portal)
+            ->post('/bestellungen/'.$neu->nr.'/status', ['status' => 'bereit'])
+            ->assertSessionHas('toast', 'Gemeldet: Abholbereit — LEA sieht es sofort');
+        $neu->refresh();
+        $this->assertSame(BestellungStatus::Bereit, $neu->status);
+
+        // LEA sieht beide Meldungen mit Zeitpunkt (deutsche Zeit)
+        $verkauf = User::query()->where('email', 'verkauf@lea.test')->firstOrFail();
+        $this->actingAs($verkauf)->get('/bestellungen/'.$neu->nr)
+            ->assertSee('In Arbeit / bestellt seit 28.09.2026 10:15')
+            ->assertSee('Abholbereit seit 30.09.2026 10:15');
+
+        // Versehen: zurück auf «In Arbeit» nimmt die Abholbereit-Meldung zurück
+        $this->actingAs($this->portal)->post('/bestellungen/'.$neu->nr.'/status', ['status' => 'bestellt']);
+        $this->assertNull($neu->fresh()->bereit_am);
+    }
+
+    public function test_lieferant_darf_keine_internen_status_setzen(): void
     {
         $eigene = $this->eigene(BestellungStatus::Bestellt);
 
-        // Nur Bestellt → Bereit ist erlaubt …
-        $this->actingAs($this->portal)
-            ->post('/bestellungen/'.$eigene->nr.'/status', ['status' => 'geliefert'])
-            ->assertSessionHas('toast', 'Im Portal nur möglich: Bestellt → Bereit melden');
+        foreach (['geliefert', 'montiert', 'storniert', 'entwurf', 'geprueft'] as $status) {
+            $this->actingAs($this->portal)
+                ->post('/bestellungen/'.$eigene->nr.'/status', ['status' => $status])
+                ->assertSessionHas('toast', 'Im Portal nur möglich: «In Arbeit» oder «Abholbereit» melden');
+        }
         $this->assertSame(BestellungStatus::Bestellt, $eigene->fresh()->status);
 
-        $this->actingAs($this->portal)
-            ->post('/bestellungen/'.$eigene->nr.'/status', ['status' => 'bereit']);
-        $this->assertSame(BestellungStatus::Bereit, $eigene->fresh()->status);
-
-        // … und auf einer bereits gemeldeten Bestellung gar nichts mehr.
+        // Nach der Abholung (intern «geliefert») ist das Portal raus.
+        $eigene->update(['status' => BestellungStatus::Geliefert]);
         $this->actingAs($this->portal)
             ->post('/bestellungen/'.$eigene->nr.'/status', ['status' => 'bereit'])
-            ->assertSessionHas('toast', 'Im Portal nur möglich: Bestellt → Bereit melden');
+            ->assertSessionHas('toast', 'Im Portal nur möglich: «In Arbeit» oder «Abholbereit» melden');
     }
 
     public function test_login_leitet_lieferanten_ins_portal(): void

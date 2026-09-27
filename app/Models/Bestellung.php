@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'nr', 'lieferant_id', 'titel', 'kategorie', 'projekt_id', 'kunde_id',
-    'ersteller_id', 'liefertermin', 'status', 'notizen',
+    'ersteller_id', 'liefertermin', 'status', 'notizen', 'in_arbeit_am', 'bereit_am',
 ])]
 class Bestellung extends Model
 {
@@ -25,6 +25,8 @@ class Bestellung extends Model
         return [
             'status' => BestellungStatus::class,
             'liefertermin' => 'date',
+            'in_arbeit_am' => 'datetime',
+            'bereit_am' => 'datetime',
         ];
     }
 

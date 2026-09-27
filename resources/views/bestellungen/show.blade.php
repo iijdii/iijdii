@@ -5,8 +5,8 @@
 @php
     use App\Enums\BestellungStatus;
     use App\Support\Format;
-    // Lieferanten-Portal (M14): schlanke Sicht — kein Kundenbezug, kein
-    // Status-Stepper, keine internen Links; stattdessen «Bereit melden».
+    // Lieferanten-Portal: schlanke Sicht — kein Kundenbezug, keine internen
+    // Links; eigener Status-Stepper Neu → In Arbeit → Abholbereit.
     $portal = auth()->user()->istLieferant();
 @endphp
 
@@ -29,7 +29,7 @@
         </div>
         <div class="fx" style="margin-top:14px">
             <span class="anf-nr mono">{{ $bestellung->nr }}</span>
-            <span class="badge {{ $bestellung->status->badgeClass() }}">{{ $bestellung->status->label() }}</span>
+            <span class="badge {{ $bestellung->status->badgeClass() }}">{{ $bestellung->status->anzeige($portal) }}</span>
             <span class="pill {{ $bestellung->kategoriePillClass() }}">{{ $bestellung->kategorieLabel() }}</span>
         </div>
         <h2 class="serif" style="margin:8px 0 14px;font-size:23px">{{ $bestellung->titel }}</h2>
@@ -45,19 +45,35 @@
         </div>
 
         @if ($portal)
-            @if ($bestellung->status === BestellungStatus::Bestellt)
-                <form method="POST" action="{{ route('bestellungen.status', $bestellung) }}" style="margin-top:14px">
-                    @csrf
-                    <input type="hidden" name="status" value="bereit">
-                    <button class="btn btns btnp" type="submit"
-                            onclick="return confirm('Bestellung als „Bereit zur Abholung/Lieferung“ melden?')">
-                        <svg class="i"><use href="#ic-check"/></svg>Bereit melden</button>
-                </form>
-                <p class="hint" style="margin-top:8px">Damit melden Sie der LEA-Disposition, dass die Ware
-                    produziert und bereit ist.</p>
+            <div class="stp">
+                <span class="stp-l">Ihr Status</span>
+                <span class="stp-bs">
+                    @foreach ([BestellungStatus::Geprueft, BestellungStatus::Bestellt, BestellungStatus::Bereit] as $status)
+                        @php $aktuell = $status === $bestellung->status; @endphp
+                        <form method="POST" action="{{ route('bestellungen.status', $bestellung) }}">
+                            @csrf
+                            <input type="hidden" name="status" value="{{ $status->value }}">
+                            <button class="stp-b {{ $status->stepClass() }} {{ $aktuell ? 'cur' : '' }}" type="submit"
+                                    @disabled(! $bestellung->status->portalDarf($status))
+                                    @if ($status === BestellungStatus::Bereit && ! $aktuell) onclick="return confirm('Ware fertig und abholbereit melden?')" @endif>
+                                @if ($aktuell)<svg class="i"><use href="#ic-check"/></svg>@endif
+                                {{ match ($status) {
+                                    BestellungStatus::Geprueft => 'Neu',
+                                    BestellungStatus::Bestellt => 'In Arbeit / bestellt',
+                                    default => 'Fertig · abholbereit',
+                                } }}
+                            </button>
+                        </form>
+                    @endforeach
+                </span>
+            </div>
+            @if (in_array($bestellung->status, [BestellungStatus::Geprueft, BestellungStatus::Bestellt, BestellungStatus::Bereit], true))
+                <p class="hint" style="margin-top:8px">«In Arbeit» — Sie haben die Bestellung übernommen bzw. beim Hersteller bestellt.
+                    «Fertig · abholbereit» — die Ware liegt bereit und kann abgeholt werden. LEA sieht jede Meldung sofort.</p>
             @else
-                <p class="hint" style="margin-top:14px">Statuspflege übernimmt ab hier die LEA-Disposition.</p>
+                <p class="hint" style="margin-top:8px">Status: {{ $bestellung->status->portalLabel() }} — ab hier pflegt LEA den Vorgang.</p>
             @endif
+            @include('bestellungen.partials.meldungen')
         @else
         <div class="stp">
             <span class="stp-l">Status</span>
@@ -77,6 +93,7 @@
                 @endforeach
             </span>
         </div>
+        @include('bestellungen.partials.meldungen')
         @endif
     </div>
 

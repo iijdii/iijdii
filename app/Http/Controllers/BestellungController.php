@@ -24,6 +24,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -39,25 +40,25 @@ class BestellungController extends Controller
 
         // Optionaler Lieferanten-Filter (Deep-Link aus der Lieferanten-Übersicht);
         // die Status-Chips zählen innerhalb des gefilterten Satzes.
-        // Portal (M14): Lieferanten sehen nur die eigenen, bereits
-        // bestellten Vorgänge — interne Entwürfe bleiben unsichtbar.
+        // Portal: Lieferanten sehen nur die eigenen Vorgänge ab «geprüft» —
+        // interne Entwürfe bleiben unsichtbar.
         $alle = Bestellung::query()
             ->with(['lieferant', 'projekt', 'kunde', 'positionen'])
             ->when($portal ? 0 : $request->integer('lieferant'), fn ($q, $id) => $q->where('lieferant_id', $id))
             ->when($portal, fn ($q) => $q
                 ->where('lieferant_id', $request->user()->lieferant_id)
-                ->whereNotIn('status', [BestellungStatus::Entwurf, BestellungStatus::Geprueft]))
+                ->where('status', '!=', BestellungStatus::Entwurf))
             ->orderByDesc('nr')
             ->get();
 
         $chipStatus = $portal
-            ? [BestellungStatus::Bestellt, BestellungStatus::Bereit, BestellungStatus::Geliefert]
+            ? [BestellungStatus::Geprueft, BestellungStatus::Bestellt, BestellungStatus::Bereit, BestellungStatus::Geliefert]
             : [
                 BestellungStatus::Entwurf, BestellungStatus::Geprueft, BestellungStatus::Bestellt,
                 BestellungStatus::Bereit, BestellungStatus::Geliefert,
             ];
         $chips = collect([['alle', 'Alle']])
-            ->concat(collect($chipStatus)->map(fn ($s) => [$s->value, $s->label()]))
+            ->concat(collect($chipStatus)->map(fn ($s) => [$s->value, $s->anzeige($portal)]))
             ->map(fn (array $chip) => [
                 'key' => $chip[0],
                 'label' => $chip[1],
@@ -714,14 +715,19 @@ class BestellungController extends Controller
                 ->with('toast', 'Bitte zuerst einen Lieferanten wählen');
         }
 
-        // Portal (M14): der Lieferant meldet ausschließlich «Bereit» auf
-        // einer bestellten Bestellung — alle anderen Übergänge sind intern.
-        if ($request->user()->istLieferant()
-            && ! ($bestellung->status === BestellungStatus::Bestellt && $status === BestellungStatus::Bereit)) {
+        // Portal: der Lieferant meldet nur «In Arbeit» und «Abholbereit»
+        // (BestellungStatus::portalDarf) — alle anderen Übergänge sind intern.
+        $portal = $request->user()->istLieferant();
+        if ($portal && ! $bestellung->status->portalDarf($status)) {
             return redirect()->route('bestellungen.show', $bestellung)
-                ->with('toast', 'Im Portal nur möglich: Bestellt → Bereit melden');
+                ->with('toast', 'Im Portal nur möglich: «In Arbeit» oder «Abholbereit» melden');
         }
-        $bestellung->update(['status' => $status]);
+        $bestellung->update(['status' => $status] + $this->meldeZeitpunkte($bestellung, $status));
+
+        if ($portal) {
+            return redirect()->route('bestellungen.show', $bestellung)
+                ->with('toast', 'Gemeldet: '.$status->portalLabel().' — LEA sieht es sofort');
+        }
 
         // Zentrale Regel: Geliefert/Montiert lagert automatisch ein.
         if (in_array($status, [BestellungStatus::Geliefert, BestellungStatus::Montiert], true)
@@ -733,6 +739,27 @@ class BestellungController extends Controller
         }
 
         return redirect()->route('bestellungen.show', $bestellung)->with('toast', $toast);
+    }
+
+    /**
+     * Zeitpunkte «in Arbeit seit» / «abholbereit seit»: gesetzt beim
+     * Erreichen des Status, «abholbereit» fällt beim Zurückstellen weg.
+     * Ohne Migration (Spalten fehlen) bleibt alles wie bisher.
+     *
+     * @return array<string, mixed>
+     */
+    private function meldeZeitpunkte(Bestellung $bestellung, BestellungStatus $status): array
+    {
+        if (! Schema::hasColumn('bestellungen', 'bereit_am')) {
+            return [];
+        }
+
+        return match ($status) {
+            BestellungStatus::Bestellt => ['in_arbeit_am' => $bestellung->in_arbeit_am ?? now(), 'bereit_am' => null],
+            BestellungStatus::Bereit => ['in_arbeit_am' => $bestellung->in_arbeit_am ?? now(), 'bereit_am' => now()],
+            BestellungStatus::Entwurf, BestellungStatus::Geprueft => ['in_arbeit_am' => null, 'bereit_am' => null],
+            default => [],
+        };
     }
 
     private function karte(Bestellung $bestellung): array

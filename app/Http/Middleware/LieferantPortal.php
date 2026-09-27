@@ -12,8 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Lieferanten-Portal (M14): Benutzer mit Rolle «lieferant» bewegen sich
  * ausschließlich in ihren eigenen Bestellungen — jede andere Seite leitet
- * zur Bestellliste um, fremde oder interne Bestellungen (Entwurf/Geprüft)
- * existieren für sie nicht (404). Läuft auf der gesamten Auth-Gruppe.
+ * zur Bestellliste um, fremde Bestellungen und interne Entwürfe
+ * existieren für sie nicht (404); ab «geprüft» ist die Bestellung sichtbar. Läuft auf der gesamten Auth-Gruppe.
  */
 class LieferantPortal
 {
@@ -38,7 +38,7 @@ class LieferantPortal
         if ($bestellung instanceof Bestellung) {
             abort_if($user->lieferant_id === null
                 || $bestellung->lieferant_id !== $user->lieferant_id
-                || in_array($bestellung->status, [BestellungStatus::Entwurf, BestellungStatus::Geprueft], true), 404);
+                || $bestellung->status === BestellungStatus::Entwurf, 404);
         }
 
         return $next($request);
