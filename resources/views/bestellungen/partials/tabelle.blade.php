@@ -19,7 +19,7 @@
                     <td>{{ $b->lieferant?->name ?? '— wählen —' }}</td>
                     <td><span class="pill {{ $b->kategoriePillClass() }}">{{ $b->kategorieLabel() }}</span></td>
                     <td class="mono">{{ Format::datumKurz($b->liefertermin) }}</td>
-                    <td class="num"><span class="badge {{ $b->status->badgeClass() }}">{{ $b->status->anzeige(auth()->user()->istLieferant()) }}</span></td>
+                    <td class="num">@include('bestellungen.partials.status', ['b' => $b])</td>
                 </tr>
             @endforeach
             </tbody>

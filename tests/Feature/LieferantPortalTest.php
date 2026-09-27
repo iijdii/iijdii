@@ -103,15 +103,26 @@ class LieferantPortalTest extends TestCase
         $neu->refresh();
         $this->assertSame(BestellungStatus::Bereit, $neu->status);
 
-        // LEA sieht beide Meldungen mit Zeitpunkt (deutsche Zeit)
+        // LEA sieht beide Meldungen mit Zeitpunkt (deutsche Zeit) — in der
+        // Bestellung, in der Bestellliste und im Projekt.
         $verkauf = User::query()->where('email', 'verkauf@lea.test')->firstOrFail();
         $this->actingAs($verkauf)->get('/bestellungen/'.$neu->nr)
+            ->assertSee('Vom Lieferanten gemeldet:')
             ->assertSee('In Arbeit / bestellt seit 28.09.2026 10:15')
             ->assertSee('Abholbereit seit 30.09.2026 10:15');
+        $this->actingAs($verkauf)->get('/bestellungen?ansicht=tabelle')
+            ->assertSee('✓ Bereit')
+            ->assertSee('Lieferant · seit 30.09. 10:15');
+        $this->actingAs($verkauf)->get('/projekte/'.$neu->projekt->nr.'?tab=material')
+            ->assertSee('Lieferant · seit 30.09. 10:15');
 
         // Versehen: zurück auf «In Arbeit» nimmt die Abholbereit-Meldung zurück
         $this->actingAs($this->portal)->post('/bestellungen/'.$neu->nr.'/status', ['status' => 'bestellt']);
         $this->assertNull($neu->fresh()->bereit_am);
+
+        // Setzt LEA den Status selbst, entfällt die Lieferanten-Kennzeichnung.
+        $this->actingAs($verkauf)->post('/bestellungen/'.$neu->nr.'/status', ['status' => 'bereit']);
+        $this->assertFalse($neu->fresh()->vom_lieferanten);
     }
 
     public function test_lieferant_darf_keine_internen_status_setzen(): void

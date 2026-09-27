@@ -111,7 +111,7 @@
                                 <span class="b mono" style="color:var(--ink)">{{ $bestellung->nr }}</span><br>
                                 <span>{{ $bestellung->lieferant?->name ?? '— Lieferant wählen —' }}</span>
                             </span>
-                            <span class="badge {{ $bestellung->status->badgeClass() }}" style="flex:none">{{ $bestellung->status->label() }}</span>
+                            <span style="flex:none;text-align:right">@include('bestellungen.partials.status', ['b' => $bestellung])</span>
                         </a>
                     @endforeach
                     <button class="btn btns btn-block" type="button" style="margin-top:10px"
@@ -141,7 +141,7 @@
                         <td>{{ $bestellung->lieferant?->name ?? '— wählen —' }}</td>
                         <td class="mono">{{ $bestellung->positionen->count() }}</td>
                         <td class="mono">{{ Format::datumKurz($bestellung->liefertermin) }}</td>
-                        <td class="num"><span class="badge {{ $bestellung->status->badgeClass() }}">{{ $bestellung->status->label() }}</span></td>
+                        <td class="num">@include('bestellungen.partials.status', ['b' => $bestellung])</td>
                     </tr>
                 @endforeach
                 </tbody>

@@ -9,7 +9,7 @@
              onclick="window.location='{{ route('bestellungen.show', $b) }}'">
             <div class="anf-top">
                 <span class="anf-nr mono">{{ $b->nr }}</span>
-                <span class="badge {{ $b->status->badgeClass() }}">{{ $b->status->anzeige(auth()->user()->istLieferant()) }}</span>
+                <span style="text-align:right">@include('bestellungen.partials.status', ['b' => $b])</span>
             </div>
             <div class="anf-b">
                 <div class="fx">

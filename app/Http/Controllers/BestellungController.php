@@ -722,7 +722,7 @@ class BestellungController extends Controller
             return redirect()->route('bestellungen.show', $bestellung)
                 ->with('toast', 'Im Portal nur möglich: «In Arbeit» oder «Abholbereit» melden');
         }
-        $bestellung->update(['status' => $status] + $this->meldeZeitpunkte($bestellung, $status));
+        $bestellung->update(['status' => $status] + $this->meldeZeitpunkte($bestellung, $status, $portal));
 
         if ($portal) {
             return redirect()->route('bestellungen.show', $bestellung)
@@ -743,18 +743,20 @@ class BestellungController extends Controller
 
     /**
      * Zeitpunkte «in Arbeit seit» / «abholbereit seit»: gesetzt beim
-     * Erreichen des Status, «abholbereit» fällt beim Zurückstellen weg.
+     * Erreichen des Status, «abholbereit» fällt beim Zurückstellen weg;
+     * «vom_lieferanten» merkt, wer den aktuellen Status gesetzt hat.
      * Ohne Migration (Spalten fehlen) bleibt alles wie bisher.
      *
      * @return array<string, mixed>
      */
-    private function meldeZeitpunkte(Bestellung $bestellung, BestellungStatus $status): array
+    private function meldeZeitpunkte(Bestellung $bestellung, BestellungStatus $status, bool $portal): array
     {
         if (! Schema::hasColumn('bestellungen', 'bereit_am')) {
             return [];
         }
+        $quelle = Schema::hasColumn('bestellungen', 'vom_lieferanten') ? ['vom_lieferanten' => $portal] : [];
 
-        return match ($status) {
+        return $quelle + match ($status) {
             BestellungStatus::Bestellt => ['in_arbeit_am' => $bestellung->in_arbeit_am ?? now(), 'bereit_am' => null],
             BestellungStatus::Bereit => ['in_arbeit_am' => $bestellung->in_arbeit_am ?? now(), 'bereit_am' => now()],
             BestellungStatus::Entwurf, BestellungStatus::Geprueft => ['in_arbeit_am' => null, 'bereit_am' => null],

@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'nr', 'lieferant_id', 'titel', 'kategorie', 'projekt_id', 'kunde_id',
-    'ersteller_id', 'liefertermin', 'status', 'notizen', 'in_arbeit_am', 'bereit_am',
+    'ersteller_id', 'liefertermin', 'status', 'notizen', 'in_arbeit_am', 'bereit_am', 'vom_lieferanten',
 ])]
 class Bestellung extends Model
 {
@@ -27,6 +27,7 @@ class Bestellung extends Model
             'liefertermin' => 'date',
             'in_arbeit_am' => 'datetime',
             'bereit_am' => 'datetime',
+            'vom_lieferanten' => 'boolean',
         ];
     }
 
@@ -40,6 +41,24 @@ class Bestellung extends Model
             'sonnensegel' => 'Sonnensegel (Tuch)',
             default => $this->kategorie ?? '–',
         };
+    }
+
+    /**
+     * Kurzzeile unter dem Status in den Listen: seit wann bestellt / in
+     * Arbeit bzw. abholbereit — und ob der Lieferant es selbst gemeldet hat.
+     */
+    public function meldungKurz(): ?string
+    {
+        $zeitpunkt = match ($this->status) {
+            BestellungStatus::Bestellt => $this->in_arbeit_am,
+            BestellungStatus::Bereit => $this->bereit_am,
+            default => null,
+        };
+        if ($zeitpunkt === null) {
+            return null;
+        }
+
+        return ($this->vom_lieferanten ? 'Lieferant · ' : '').'seit '.$zeitpunkt->timezone('Europe/Berlin')->format('d.m. H:i');
     }
 
     public function kategoriePillClass(): string
