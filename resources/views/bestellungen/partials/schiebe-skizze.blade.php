@@ -6,10 +6,10 @@
             <line class="divln" x1="{{ $l['x1'] }}" y1="{{ $l['y1'] }}" x2="{{ $l['x2'] }}" y2="{{ $l['y2'] }}"/>
         @endforeach
         @foreach ($s['slines'] as $l)
-            <line class="slln" x1="{{ $l['x1'] }}" y1="{{ $l['y1'] }}" x2="{{ $l['x2'] }}" y2="{{ $l['y2'] }}"/>
+            <line class="slln" style="stroke:#d9a441;stroke-width:2" x1="{{ $l['x1'] }}" y1="{{ $l['y1'] }}" x2="{{ $l['x2'] }}" y2="{{ $l['y2'] }}"/>
         @endforeach
         @foreach ($s['sheads'] as $punkte)
-            <polyline class="slln" points="{{ $punkte }}"/>
+            <polyline class="slln" style="stroke:#d9a441;stroke-width:2" points="{{ $punkte }}"/>
         @endforeach
         @foreach ($s['dl'] as $l)
             <line class="dln" x1="{{ $l['x1'] }}" y1="{{ $l['y1'] }}" x2="{{ $l['x2'] }}" y2="{{ $l['y2'] }}"/>
@@ -22,6 +22,9 @@
     @foreach ($s['nums'] as $num)
         <span class="skl skl-num" style="{{ $num['st'] }}">{{ $num['i'] }}</span>
     @endforeach
+    @isset($s['sR'])
+        <span class="skl skl-roh" style="{{ $s['sR'] }}">{{ $s['richtungText'] }}</span>
+    @endisset
     <span class="skl skl-dim" style="{{ $s['sW'] }}">{{ $schiebe['position']->breite_mm }}</span>
     <span class="skl skl-dim" style="{{ $s['sHL'] }}">{{ $schiebe['position']->hoehe_mm }}</span>
 </div>

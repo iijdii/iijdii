@@ -182,6 +182,54 @@ class EndmasseZyklusTest extends TestCase
             ->assertSee('Nachbestellung aus Endmaßen (Phase 2)');
     }
 
+    public function test_schiebe_zeichnung_und_oeffnungsrichtung_von_montage_bis_bestellung(): void
+    {
+        $projekt = $this->projektMitElementen();
+        // Zweite Anlage ohne Maße — die werden erst vor Ort gemessen.
+        $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/positionen', [
+            'position' => ['produkt' => 'schiebe', 'felder' => ['anzahl' => 3, 'richtung' => 'Mittig']],
+        ]);
+        $ohneMasse = $projekt->positionen()->where('produkt', 'schiebe')->reorder('id', 'desc')->firstOrFail();
+
+        // Zeichnung auch ohne Maße (schematisch, «?») mit Öffnungsrichtung
+        $this->actingAs($this->monteur)->get('/projekte/'.$projekt->nr.'/montage?gruppe=p'.$ohneMasse->id)
+            ->assertOk()
+            ->assertSee('3 Flügel · Ansicht außen')
+            ->assertSee('ÖFFNUNG ←  MITTIG  →')
+            ->assertSee('A  ? mm')
+            ->assertSee('name="optionen['.$ohneMasse->id.'][richtung]"', false);
+
+        // Monteur misst und korrigiert die Richtung
+        $this->actingAs($this->monteur)->post('/projekte/'.$projekt->nr.'/montage/endmasse', [
+            'endmasse' => [$ohneMasse->id => ['breite_mm' => 3000, 'hoehe_mm' => 2200]],
+            'optionen' => [$ohneMasse->id => ['richtung' => 'Nach links']],
+        ])->assertSessionHas('toast', 'Endmaße gespeichert · 1 Position(en)');
+        $this->assertSame('Nach links', $ohneMasse->fresh()->endmasse['richtung']);
+
+        // Zeichnung nutzt jetzt das Ist-Maß und die neue Richtung
+        $this->actingAs($this->monteur)->get('/projekte/'.$projekt->nr.'/montage?gruppe=p'.$ohneMasse->id)
+            ->assertSee('A  3.000 mm')
+            ->assertSee('ÖFFNUNG ←  NACH LINKS');
+
+        // Nachbestellung übernimmt die Richtung → Skizze, Karte und PDF
+        $this->actingAs($this->verkauf)->post('/projekte/'.$projekt->nr.'/nachbestellung');
+        $bestellung = $projekt->bestellungen()->where('titel', 'like', '%Glas & Schiebe')->firstOrFail();
+        $sp = $bestellung->positionen()->where('projekt_position_id', $ohneMasse->id)->firstOrFail();
+        $this->assertSame('Nach links', $sp->details['dir']);
+        $this->actingAs($this->verkauf)->get('/bestellungen/'.$bestellung->nr)
+            ->assertSee('ÖFFNUNG ←  NACH LINKS')
+            ->assertSee('Öffnungsrichtung (Ansicht außen)');
+        $pdf = $this->actingAs($this->verkauf)->get('/bestellungen/'.$bestellung->nr.'/pdf');
+        $pdf->assertOk();
+        $this->assertStringStartsWith('%PDF', $pdf->getContent());
+
+        // Richtung im Bestell-Entwurf änderbar
+        $this->actingAs($this->verkauf)->post('/bestellungen/'.$bestellung->nr.'/positionen/'.$sp->id, [
+            'bezeichnung' => $sp->bezeichnung, 'breite_mm' => 3000, 'hoehe_mm' => 2200, 'count' => 3, 'dir' => 'Nach rechts',
+        ]);
+        $this->assertSame('Nach rechts', $sp->fresh()->details['dir']);
+    }
+
     public function test_markisen_eigener_entwurf_und_alt_entwurf_wird_uebernommen(): void
     {
         $projekt = $this->projektMitElementen();

@@ -43,6 +43,17 @@
                                     <span class="badge {{ $feld['badge'] }} ex-d">{{ $feld['deltaText'] }}</span>
                                 </div>
                             @endforeach
+                            @if (! empty($gruppe['richtung']))
+                                <div class="ex-f">
+                                    <span class="ex-tag">↔</span>
+                                    <span class="ex-lab"><b>Öffnungsrichtung</b><span>Ansicht von außen</span></span>
+                                    <select class="inp" name="optionen[{{ $gruppe['richtung']['pid'] }}][richtung]" style="max-width:170px">
+                                        @foreach (['left' => 'Nach links', 'right' => 'Nach rechts', 'center' => 'Mittig'] as $k => $r)
+                                            <option value="{{ $r }}" @selected($gruppe['richtung']['wert'] === $k)>{{ $r }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endif
                             @if (! empty($gruppe['formular']))
                                 <div class="mm-sub" style="margin:14px 0 6px;font-weight:600">Bestellblatt Varisol — für die Bestellung beim Lieferanten</div>
                                 @include('projekte.partials.markise-formular', [

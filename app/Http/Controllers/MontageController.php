@@ -112,6 +112,7 @@ class MontageController extends Controller
 
         $eingaben = (array) $request->input('endmasse', []);
         $formulare = (array) $request->input('formular', []);
+        $optionen = (array) $request->input('optionen', []);
         $erfasst = 0;
 
         foreach ($projekt->positionen()->where('phase', 2)->get() as $position) {
@@ -135,6 +136,13 @@ class MontageController extends Controller
                 if ($neu != $bisher) {
                     $werte['formular'] = $neu;
                 }
+            }
+            // Öffnungsrichtung der Schiebeanlage (nur echte Änderung zählt).
+            $richtung = $optionen[$position->id]['richtung'] ?? null;
+            if ($position->produkt === ProjektProdukt::Schiebe
+                && in_array($richtung, ['Nach links', 'Nach rechts', 'Mittig'], true)
+                && $richtung !== ($position->endmasse['richtung'] ?? $position->felder['richtung'] ?? null)) {
+                $werte['richtung'] = $richtung;
             }
             if ($werte === []) {
                 continue;
@@ -345,14 +353,22 @@ class MontageController extends Controller
         ];
     }
 
-    /** Gruppen-Daten → MontageZeichnung-Eingabe. */
+    /**
+     * Gruppen-Daten → MontageZeichnung-Eingabe. Gemessene Ist-Werte
+     * gewinnen vor dem Soll — so zeichnet der Montage-Modus auch
+     * Positionen, deren Maße erst vor Ort erfasst werden.
+     */
     private function zeichnungsDaten(array $gruppe): array
     {
         return [
             'shape' => $gruppe['shape'],
             // zfields: eigene Zeichnungs-Maße, wenn die Gruppen-Zeilen
             // nicht 1:1 der Zeichnungs-Reihenfolge entsprechen (Segel).
-            'fields' => $gruppe['zfields'] ?? array_column($gruppe['fields'], 'soll'),
+            'fields' => $gruppe['zfields'] ?? array_map(
+                fn (array $feld) => $feld['ist'] ?? $feld['soll'],
+                $gruppe['fields'],
+            ),
+            'fluegel' => $gruppe['fluegel'] ?? 0,
             'side' => $gruppe['side'] ?? '',
             'dir' => $gruppe['dir'] ?? '',
             'qty' => $gruppe['qty'] ?? 0,

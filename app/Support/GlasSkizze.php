@@ -173,8 +173,33 @@ final class GlasSkizze
 
     /**
      * Schiebeanlagen-Skizze 360×260: Flügelteiler, Laufrichtungs-Pfeile,
-     * Maßketten (skSchiebe). $richtung: 'left' | 'right' | 'center' | null.
+     * Beschriftung der Öffnungsrichtung, Maßketten (skSchiebe). $richtung: 'left' | 'right' | 'center' | null.
      */
+    /** Laufrichtung aus Konfigurator/Bestellung («Nach rechts», «links», «center» …) → left|right|center|null. */
+    public static function richtungSchluessel(?string $wert): ?string
+    {
+        $wert = mb_strtolower(trim((string) $wert));
+
+        return match (true) {
+            $wert === '' => null,
+            str_contains($wert, 'links') || $wert === 'left' => 'left',
+            str_contains($wert, 'rechts') || $wert === 'right' => 'right',
+            str_contains($wert, 'mitt') || $wert === 'center' => 'center',
+            default => null,
+        };
+    }
+
+    /** Beschriftung der Öffnungsrichtung für Skizzen (Ansicht von außen). */
+    public static function richtungText(?string $richtung): string
+    {
+        return match ($richtung) {
+            'left' => 'ÖFFNUNG ←  NACH LINKS',
+            'right' => 'ÖFFNUNG  NACH RECHTS →',
+            'center' => 'ÖFFNUNG ←  MITTIG  →',
+            default => 'ÖFFNUNGSRICHTUNG OFFEN',
+        };
+    }
+
     public static function schiebe(int $w, int $h, int $n, ?string $richtung): array
     {
         $w = max(1, $w);
@@ -220,16 +245,16 @@ final class GlasSkizze
                 $hl = true;
                 $hr = true;
             }
-            $half = min(15, $segW / 3);
+            $half = min(24, $segW / 2.6);
             $ay = $cy + 12;
             $lX = $cx - $half;
             $rX = $cx + $half;
             $slines[] = ['x1' => self::f($lX), 'y1' => self::f($ay), 'x2' => self::f($rX), 'y2' => self::f($ay)];
             if ($hl) {
-                $sheads[] = self::f($lX + 4).','.self::f($ay - 3).' '.self::f($lX).','.self::f($ay).' '.self::f($lX + 4).','.self::f($ay + 3);
+                $sheads[] = self::f($lX + 7).','.self::f($ay - 5).' '.self::f($lX).','.self::f($ay).' '.self::f($lX + 7).','.self::f($ay + 5);
             }
             if ($hr) {
-                $sheads[] = self::f($rX - 4).','.self::f($ay - 3).' '.self::f($rX).','.self::f($ay).' '.self::f($rX - 4).','.self::f($ay + 3);
+                $sheads[] = self::f($rX - 7).','.self::f($ay - 5).' '.self::f($rX).','.self::f($ay).' '.self::f($rX - 7).','.self::f($ay + 5);
             }
         }
 
@@ -259,6 +284,10 @@ final class GlasSkizze
             'lW' => ['x' => self::f($oX + $pw / 2), 'y' => self::f($yD + 14)],
             'lHL' => ['x' => self::f($xL - 7), 'y' => self::f(($top + $bY) / 2)],
             'wert' => ['w' => $w, 'h' => $h, 'n' => $n, 'richtung' => $richtung],
+            // Öffnungsrichtung über der Anlage
+            'lR' => ['x' => self::f($oX + $pw / 2), 'y' => self::f($top - 12)],
+            'sR' => 'left:'.self::px($oX + $pw / 2).';top:'.self::px($top - 14).';transform:translate(-50%,-50%)',
+            'richtungText' => self::richtungText($richtung),
         ];
     }
 }

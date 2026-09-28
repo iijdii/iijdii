@@ -19,23 +19,38 @@ final class MontageZeichnung
 
     /**
      * @param array{shape:string, fields:list<int|float>, side?:string, dir?:string,
-     *              qty?:int, unterzug?:string, noWall?:bool, title?:string} $cur
+     *              qty?:int, fluegel?:int, unterzug?:string, noWall?:bool, title?:string} $cur
      * @return array{lines:array, polys:array, labels:array, viewBox:string, aspect:string, sub:string, note:string}
      */
     public static function extra(array $cur): array
     {
-        $F = fn ($n) => number_format(round($n), 0, ',', '.');
+        $F = fn ($n) => $n > 0 ? number_format(round($n), 0, ',', '.') : '?';
         $fl = $cur['fields'];
         $R = fn (int $i) => (float) ($fl[$i] ?? 0);
-        $bx = 150; $by = 96; $bw = 600; $bhMax = 390;
+        $bx = 150;
+        $by = 96;
+        $bw = 600;
+        $bhMax = 390;
 
-        $pts = []; $wallSide = ''; $sub = ''; $qty = $cur['qty'] ?? 0;
-        $divs = 0; $dir = ''; $cass = 0.0; $rohmass = false;
-        $oblique = []; $vDims = []; $hDims = []; $notes = []; $cons = [];
+        $pts = [];
+        $wallSide = '';
+        $sub = '';
+        $qty = $cur['qty'] ?? 0;
+        $divs = 0;
+        $dir = '';
+        $cass = 0.0;
+        $rohmass = false;
+        $oblique = [];
+        $vDims = [];
+        $hDims = [];
+        $notes = [];
+        $cons = [];
 
         switch ($cur['shape']) {
             case 'keil':
-                $A = $R(0); $B = $R(1); $C = $R(2);
+                $A = $R(0);
+                $B = $R(1);
+                $C = $R(2);
                 $mir = (bool) preg_match('/rechts/iu', $cur['side'] ?? '');
                 $pts = $mir
                     ? [[0, $B - $C], [$A, 0], [$A, $B], [0, $B]]
@@ -53,7 +68,9 @@ final class MontageZeichnung
                 break;
 
             case 'fest':
-                $A = $R(0); $B = $R(1); $C = $R(2) ?: $R(1);
+                $A = $R(0);
+                $B = $R(1);
+                $C = $R(2) ?: $R(1);
                 $mx = max($B, $C);
                 $tz = abs($B - $C) > 2;
                 $pts = [[0, $mx - $B], [$A, $mx - $C], [$A, $mx], [0, $mx]];
@@ -70,21 +87,31 @@ final class MontageZeichnung
                 break;
 
             case 'schiebe':
-                $A = $R(0); $B = $R(1); $C = $R(2);
+                // Ohne Maße (werden erst vor Ort gemessen) zeichnen wir die
+                // Anlage schematisch 3.000 × 2.200 — Beschriftung «?».
+                $A = $R(0) ?: 3000.0;
+                $B = $R(1) ?: 2200.0;
+                $divs = (int) ($cur['fluegel'] ?? 0) ?: max(1, (int) round($A / max(1, $R(2) ?: $A / 3)));
+                $divs = min(12, max(1, $divs));
+                $C = $R(2) ?: $A / $divs;
                 $pts = [[0, 0], [$A, 0], [$A, $B], [0, $B]];
-                $divs = max(1, (int) round($A / max(1, $C)));
                 $dir = $cur['dir'] ?? '';
                 $hDims = [
-                    ['a' => 0, 'b' => $A, 'l' => 'A', 'v' => $A, 'lvl' => 1],
-                    ['a' => 0, 'b' => $C, 'l' => 'C', 'v' => $C, 'lvl' => 0],
+                    ['a' => 0, 'b' => $A, 'l' => 'A', 'v' => $R(0), 'lvl' => 1],
+                    ['a' => 0, 'b' => $C, 'l' => 'C', 'v' => $R(2), 'lvl' => 0],
                 ];
-                $vDims = [['side' => 'left', 'a' => 0, 'b' => $B, 'l' => 'B', 'v' => $B]];
-                $notes = [['x' => $A * 0.5, 'y' => 0, 'dy' => -42, 't' => 'LAUFSCHIENE '.$F($R(3)).' MM']];
+                $vDims = [['side' => 'left', 'a' => 0, 'b' => $B, 'l' => 'B', 'v' => $R(1)]];
+                $notes = [
+                    ['x' => $A * 0.5, 'y' => 0, 'dy' => -42, 't' => 'LAUFSCHIENE '.$F($R(3)).' MM'],
+                    ['x' => $A * 0.5, 'y' => $B, 'dy' => 84, 't' => GlasSkizze::richtungText(in_array($dir, ['left', 'right', 'center'], true) ? $dir : null)],
+                ];
                 $sub = $divs.' Flügel · Ansicht außen';
                 break;
 
             case 'markise':
-                $A = $R(0); $B = $R(1); $C = $R(2);
+                $A = $R(0);
+                $B = $R(1);
+                $C = $R(2);
                 $pts = [[0, 0], [$A, 0], [$A, $B], [0, $B]];
                 $cass = max(140, $A * 0.05);
                 $hDims = [['a' => 0, 'b' => $A, 'l' => 'A', 'v' => $A, 'lvl' => 1]];
@@ -100,7 +127,10 @@ final class MontageZeichnung
                 break;
 
             default: // segel
-                $A = $R(0); $B = $R(1); $C = $R(2); $Dd = $R(3);
+                $A = $R(0);
+                $B = $R(1);
+                $C = $R(2);
+                $Dd = $R(3);
                 $pts = [[0, 20], [$A, 0], [$A - 16, $B], [28, $B - 26]];
                 $rohmass = true;
                 $oblique = [
@@ -117,7 +147,8 @@ final class MontageZeichnung
         // Skalierung ins Layout-Fenster
         $xs = array_column($pts, 0);
         $ys = array_column($pts, 1);
-        $mnx = min($xs); $mny = min($ys);
+        $mnx = min($xs);
+        $mny = min($ys);
         $w = (max($xs) - $mnx) ?: 1;
         $h = (max($ys) - $mny) ?: 1;
         $s = $bw / $w;
@@ -129,7 +160,9 @@ final class MontageZeichnung
         $X = fn ($v) => $ox + $v * $s;
         $Y = fn ($v) => $oy + $v * $s;
 
-        $lines = []; $polys = []; $labels = [];
+        $lines = [];
+        $polys = [];
+        $labels = [];
         $L = function ($x1, $y1, $x2, $y2, $c = null, $wd = null, $d = '') use (&$lines) {
             $lines[] = ['x1' => round($x1, 1), 'y1' => round($y1, 1), 'x2' => round($x2, 1), 'y2' => round($y2, 1),
                 'c' => $c ?? self::INK, 'w' => $wd ?? 0.9, 'd' => $d];
@@ -142,7 +175,10 @@ final class MontageZeichnung
         $P2 = array_map(fn ($p) => [$X($p[0]), $Y($p[1])], $pts);
         $px = array_column($P2, 0);
         $py = array_column($P2, 1);
-        $gx0 = min($px); $gx1 = max($px); $gy0 = min($py); $gy1 = max($py);
+        $gx0 = min($px);
+        $gx1 = max($px);
+        $gy0 = min($py);
+        $gy1 = max($py);
 
         if ($rohmass) {
             $L($gx0, $gy0, $gx1, $gy0, self::GOLD, 0.9, '5 4');
@@ -153,7 +189,8 @@ final class MontageZeichnung
         }
 
         if ($wallSide !== '') {
-            $bwd = 26; $gap = 11;
+            $bwd = 26;
+            $gap = 11;
             $xe = $wallSide === 'left' ? $gx0 : $gx1;
             $x1w = $wallSide === 'left' ? $xe - $gap - $bwd : $xe + $gap;
             $polys[] = ['pts' => collect([[$x1w, $gy0], [$x1w + $bwd, $gy0], [$x1w + $bwd, $gy1], [$x1w, $gy1]])
@@ -176,7 +213,7 @@ final class MontageZeichnung
             }
         }
 
-        if ($divs > 1) {
+        if ($divs >= 1 && $cur['shape'] === 'schiebe') {
             $seg = ($gx1 - $gx0) / $divs;
             $cy = ($gy0 + $gy1) / 2;
             $mid = ($divs + 1) / 2;
@@ -186,18 +223,21 @@ final class MontageZeichnung
             for ($i = 1; $i <= $divs; $i++) {
                 $cx = $gx0 + $seg * ($i - 0.5);
                 $T($cx, $cy - 8, (string) $i, ['cls' => 'dw-pnl']);
-                $half = min(20, $seg / 3);
-                $ay = $cy + 16; $lX = $cx - $half; $rX = $cx + $half;
+                // Öffnungsrichtung: goldene Pfeile je Flügel
+                $half = min(34, $seg / 2.8);
+                $ay = $cy + 18;
+                $lX = $cx - $half;
+                $rX = $cx + $half;
                 $hl = $dir === 'left' || ($dir === 'center' && $i <= $mid) || $dir === '';
                 $hr = $dir === 'right' || ($dir === 'center' && $i >= $mid) || $dir === '';
-                $L($lX, $ay, $rX, $ay, '#7a8aa3', 1);
+                $L($lX, $ay, $rX, $ay, self::GOLD, 2.2);
                 if ($hl) {
-                    $L($lX + 5, $ay - 4, $lX, $ay, '#7a8aa3', 1);
-                    $L($lX, $ay, $lX + 5, $ay + 4, '#7a8aa3', 1);
+                    $L($lX + 9, $ay - 6, $lX, $ay, self::GOLD, 2.2);
+                    $L($lX, $ay, $lX + 9, $ay + 6, self::GOLD, 2.2);
                 }
                 if ($hr) {
-                    $L($rX - 5, $ay - 4, $rX, $ay, '#7a8aa3', 1);
-                    $L($rX, $ay, $rX - 5, $ay + 4, '#7a8aa3', 1);
+                    $L($rX - 9, $ay - 6, $rX, $ay, self::GOLD, 2.2);
+                    $L($rX, $ay, $rX - 9, $ay + 6, self::GOLD, 2.2);
                 }
             }
         }
@@ -207,7 +247,8 @@ final class MontageZeichnung
             $lvl = $d['lvl'] ?? 0;
             $off = ($top ? -1 : 1) * (26 + $lvl * 30);
             $yb = $top ? $gy0 + $off : $gy1 + $off;
-            $xa = $X($d['a']); $xbb = $X($d['b']);
+            $xa = $X($d['a']);
+            $xbb = $X($d['b']);
             $L($xa, $top ? $gy0 : $gy1, $xa, $yb + ($top ? -5 : 5), self::GOLD, 0.8);
             $L($xbb, $top ? $gy0 : $gy1, $xbb, $yb + ($top ? -5 : 5), self::GOLD, 0.8);
             $L($xa, $yb, $xbb, $yb, self::GOLD, 0.9);
@@ -217,7 +258,8 @@ final class MontageZeichnung
         foreach ($vDims as $d) {
             $lf = $d['side'] === 'left';
             $xx = $lf ? $gx0 - ($wallSide === 'left' ? 54 : 22) : $gx1 + ($wallSide === 'right' ? 54 : 22);
-            $ya = $Y($d['a']); $yb = $Y($d['b']);
+            $ya = $Y($d['a']);
+            $yb = $Y($d['b']);
             $L($xx, $ya, $xx, $yb, self::INK, 0.8);
             $L($lf ? $gx0 : $gx1, $ya, $xx + ($lf ? -4 : 4), $ya, self::INK, 0.8);
             $L($lf ? $gx0 : $gx1, $yb, $xx + ($lf ? -4 : 4), $yb, self::INK, 0.8);
@@ -244,7 +286,8 @@ final class MontageZeichnung
             $nx = $dy / $ln;
             $ny = -$dx / $ln;
             if ($nx * ($mx2 - $cxm) + $ny * ($my - $cym) < 0) {
-                $nx = -$nx; $ny = -$ny;
+                $nx = -$nx;
+                $ny = -$ny;
             }
             $d2 = $dash ? -16 : 15;
             $ang = atan2($dy, $dx) * 180 / M_PI;
@@ -265,10 +308,15 @@ final class MontageZeichnung
         }
 
         // Auto-fit-viewBox inkl. geschätzter Label-Boxen (Prototyp-Heuristik).
-        $x0 = 1e9; $y0 = 1e9; $x1b = -1e9; $y1b = -1e9;
+        $x0 = 1e9;
+        $y0 = 1e9;
+        $x1b = -1e9;
+        $y1b = -1e9;
         $acc = function ($x, $y) use (&$x0, &$y0, &$x1b, &$y1b) {
-            $x0 = min($x0, $x); $x1b = max($x1b, $x);
-            $y0 = min($y0, $y); $y1b = max($y1b, $y);
+            $x0 = min($x0, $x);
+            $x1b = max($x1b, $x);
+            $y0 = min($y0, $y);
+            $y1b = max($y1b, $y);
         };
         foreach ($lines as $l) {
             $acc($l['x1'], $l['y1']);
@@ -284,7 +332,8 @@ final class MontageZeichnung
             $tw = mb_strlen((string) $l['t']) * 7 + 10;
             $th = 17;
             $r = ($l['rot'] ?? 0) * M_PI / 180;
-            $ca = abs(cos($r)); $sa = abs(sin($r));
+            $ca = abs(cos($r));
+            $sa = abs(sin($r));
             $hw = ($ca * $tw + $sa * $th) / 2;
             $hh = ($sa * $tw + $ca * $th) / 2;
             $cx2 = $l['al'] === 'end' ? $l['x'] - $tw / 2 : $l['x'];
@@ -292,7 +341,10 @@ final class MontageZeichnung
             $acc($cx2 + $hw, $l['y'] + $hh);
         }
         $pad = 14;
-        $x0 -= $pad; $y0 -= $pad; $x1b += $pad; $y1b += $pad;
+        $x0 -= $pad;
+        $y0 -= $pad;
+        $x1b += $pad;
+        $y1b += $pad;
         $SW = max(1, $x1b - $x0);
         $SH = max(1, $y1b - $y0);
 

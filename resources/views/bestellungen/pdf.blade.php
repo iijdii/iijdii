@@ -160,29 +160,29 @@
     @endif
 
     @if ($schiebePositionen->isNotEmpty())
-        <div class="karte">
-            <div class="karte-kopf">Schiebesystem(e)</div>
-            <div class="karte-korp">
+        {{-- Teilbar wie die Glas-Tabelle: jede Anlage ist eine Zeile (Skizze
+             links, Daten rechts) und bricht nur zwischen den Zeilen um. --}}
+        <div class="karte karte-teilbar">
+            <div class="karte-kopf">Schiebesystem(e) – Skizzen mit Öffnungsrichtung</div>
+            <table class="skiztab">
+                <thead><tr><th style="width:9mm">Pos.</th><th style="width:72mm">Skizze (Ansicht von außen)</th><th>Maße / Hinweise</th></tr></thead>
+                <tbody>
                 @foreach ($schiebePositionen as $s)
-                    <div class="pos-box">
-                        <div class="pos-titel">Pos. {{ $s['nr'] }} · {{ $s['position']->bezeichnung }}</div>
-                        <div style="text-align:center"><img src="{{ PdfSkizze::schiebe($s['skizze']) }}" style="width:96mm" alt="Skizze {{ $s['position']->bezeichnung }}"></div>
-                        <table class="kvz"><tr>
-                            <td style="width:50%;padding-right:10px"><table class="kvz">
-                                <tr><td class="k">Öffnung Breite</td><td class="w">{{ number_format((int) $s['position']->breite_mm, 0, ',', '.') }} mm</td></tr>
-                                <tr><td class="k">Anzahl Elemente</td><td class="w">{{ $s['anzahl'] }}</td></tr>
-                                <tr><td class="k">Glas</td><td class="w">{{ $s['glas'] }}</td></tr>
-                            </table></td>
-                            <td style="width:50%"><table class="kvz">
-                                <tr><td class="k">Öffnung Höhe</td><td class="w">{{ number_format((int) $s['position']->hoehe_mm, 0, ',', '.') }} mm</td></tr>
-                                <tr><td class="k">Öffnungsrichtung</td><td class="w">{{ $s['richtung'] }}</td></tr>
-                                <tr><td class="k">Einbauort</td><td class="w">{{ ($s['einbauort'] ?? '') !== '' ? $s['einbauort'] : '–' }}</td></tr>
-                                <tr><td class="k">Maße</td><td class="w">{{ $s['quelle'] === 'live' ? 'aus Projekt' : 'manuell erfasst' }}</td></tr>
-                            </table></td>
-                        </tr></table>
-                    </div>
+                    <tr>
+                        <td class="w" style="font-weight:bold">{{ $s['nr'] }}</td>
+                        <td style="text-align:center"><img src="{{ PdfSkizze::schiebe($s['skizze']) }}" style="width:68mm" alt="Skizze {{ $s['position']->bezeichnung }}"></td>
+                        <td>
+                            <div style="font-weight:bold;color:#243447">{{ $s['position']->bezeichnung }}</div>
+                            Öffnung B × H: <b>{{ number_format((int) $s['position']->breite_mm, 0, ',', '.') }} × {{ number_format((int) $s['position']->hoehe_mm, 0, ',', '.') }} mm</b><br>
+                            Elemente: <b>{{ $s['anzahl'] }}</b> · Einbauort: <b>{{ ($s['einbauort'] ?? '') !== '' ? $s['einbauort'] : '–' }}</b><br>
+                            Öffnungsrichtung: <b>{{ $s['richtung'] }}</b><br>
+                            Glasart: <b>{{ $s['glas'] }}</b><br>
+                            <span style="color:#64748b">Maße {{ $s['quelle'] === 'live' ? 'aus Projekt' : 'manuell erfasst' }}</span>
+                        </td>
+                    </tr>
                 @endforeach
-            </div>
+                </tbody>
+            </table>
         </div>
     @endif
 

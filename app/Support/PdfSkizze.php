@@ -55,11 +55,15 @@ final class PdfSkizze
         foreach ($sk['nums'] as $n) {
             $svg .= self::text($n['x'], $n['y'], (string) $n['i'], self::MASS, 10, 'middle');
         }
+        // Öffnungsrichtung: goldene Pfeile je Flügel + Beschriftung
         foreach ($sk['slines'] as $l) {
-            $svg .= '<line x1="'.$l['x1'].'" y1="'.$l['y1'].'" x2="'.$l['x2'].'" y2="'.$l['y2'].'" stroke="'.self::TINTE.'" stroke-width="1"/>';
+            $svg .= '<line x1="'.$l['x1'].'" y1="'.$l['y1'].'" x2="'.$l['x2'].'" y2="'.$l['y2'].'" stroke="'.self::GOLD.'" stroke-width="2"/>';
         }
         foreach ($sk['sheads'] as $p) {
-            $svg .= '<polyline points="'.$p.'" fill="none" stroke="'.self::TINTE.'" stroke-width="1"/>';
+            $svg .= '<polyline points="'.$p.'" fill="none" stroke="'.self::GOLD.'" stroke-width="2"/>';
+        }
+        if (isset($sk['lR'])) {
+            $svg .= self::text($sk['lR']['x'], $sk['lR']['y'], $sk['richtungText'], self::TINTE, 10, 'middle');
         }
         $svg .= self::massketten($sk['dl'], $sk['ar']);
         $svg .= self::text($sk['lW']['x'], $sk['lW']['y'], number_format($sk['wert']['w'], 0, ',', '.'), self::TINTE, 11, 'middle');

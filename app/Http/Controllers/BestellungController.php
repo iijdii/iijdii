@@ -301,7 +301,10 @@ class BestellungController extends Controller
                         'menge' => $anzahl, 'einheit' => 'Stück',
                         'breite_mm' => (int) $m['breite_mm'], 'hoehe_mm' => (int) ($m['hoehe_mm'] ?? 0),
                         'projekt_position_id' => $position->id,
-                        'details' => ['count' => $anzahl, 'glas' => ProduktFelder::fuellung($m), 'einbauort' => $einbauort, 'quelle' => 'live'],
+                        'details' => [
+                            'count' => $anzahl, 'glas' => ProduktFelder::fuellung($m), 'einbauort' => $einbauort,
+                            'dir' => (string) ($m['richtung'] ?? ''), 'quelle' => 'live',
+                        ],
                     ]);
 
                     continue;
@@ -532,6 +535,7 @@ class BestellungController extends Controller
             'count' => ['required', 'integer', 'min:1', 'max:12'],
             'glas' => ['nullable', 'string', 'max:80'],
             'einbauort' => ['nullable', 'string', 'max:40'],
+            'dir' => ['nullable', Rule::in(['Nach links', 'Nach rechts', 'Mittig'])],
         ]);
 
         return [
@@ -541,7 +545,7 @@ class BestellungController extends Controller
             'breite_mm' => (int) $d['breite_mm'], 'hoehe_mm' => (int) $d['hoehe_mm'],
             'details' => [
                 'count' => (int) $d['count'], 'glas' => $d['glas'] ?? '',
-                'einbauort' => trim((string) ($d['einbauort'] ?? '')), 'quelle' => 'manuell',
+                'einbauort' => trim((string) ($d['einbauort'] ?? '')), 'dir' => $d['dir'] ?? '', 'quelle' => 'manuell',
             ],
         ];
     }
@@ -668,19 +672,17 @@ class BestellungController extends Controller
             ->map(function ($p, $i) {
                 $d = $p->details ?? [];
                 $anzahl = (int) ($d['count'] ?? $p->menge);
-                $richtung = match (mb_strtolower($d['dir'] ?? '')) {
-                    'links', 'left' => 'left',
-                    'rechts', 'right' => 'right',
-                    'mittig', 'center' => 'center',
-                    default => null,
-                };
+                $richtung = GlasSkizze::richtungSchluessel($d['dir'] ?? null);
 
                 return [
                     'position' => $p,
                     'nr' => $i + 1,
                     'glas' => $d['glas'] ?? '–',
                     'anzahl' => $anzahl,
-                    'richtung' => $d['dir'] ?? '–',
+                    'richtung' => match ($richtung) {
+                        'left' => 'Nach links', 'right' => 'Nach rechts', 'center' => 'Mittig (nach links und rechts)',
+                        default => '–',
+                    },
                     'einbauort' => $d['einbauort'] ?? '',
                     'quelle' => $d['quelle'] ?? 'manuell',
                     'skizze' => GlasSkizze::schiebe((int) $p->breite_mm, (int) $p->hoehe_mm, max(1, $anzahl), $richtung),

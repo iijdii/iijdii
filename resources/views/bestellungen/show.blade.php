@@ -290,7 +290,7 @@
                                     <span class="pk"><span>Öffnung Höhe</span><b class="mono">{{ number_format((int) $schiebe['position']->hoehe_mm, 0, ',', '.') }} mm</b></span>
                                     <span class="pk"><span>Elemente</span><b>{{ $schiebe['anzahl'] }} Stück</b></span>
                                     <span class="pk"><span>Glas</span><b>{{ $schiebe['glas'] }}</b></span>
-                                    <span class="pk"><span>Richtung</span><b>{{ $schiebe['richtung'] }}</b></span>
+                                    <span class="pk"><span>Öffnung</span><b>{{ $schiebe['richtung'] }}</b></span>
                                     <span class="pk"><span>Einbauort</span><b>{{ $schiebe['einbauort'] !== '' ? $schiebe['einbauort'] : '–' }}</b></span>
                                     <span class="pk"><span>Quelle</span>
                                         <span class="badge {{ $schiebe['quelle'] === 'live' ? 'b-blue' : 'b-gray' }}">{{ $schiebe['quelle'] === 'live' ? 'aus Projekt' : 'manuell' }}</span></span>
@@ -360,6 +360,10 @@
                     <input class="inp mono" type="number" name="count" placeholder="Elemente" style="width:90px" required>
                     <input class="inp" name="glas" placeholder="Glas" style="width:130px">
                     <input class="inp" name="einbauort" placeholder="Einbauort" list="einbauorte-bst" style="width:130px">
+                    <select class="inp" name="dir" style="width:130px" title="Öffnungsrichtung">
+                        <option value="">Öffnung …</option>
+                        @foreach (['Nach links', 'Nach rechts', 'Mittig'] as $r)<option>{{ $r }}</option>@endforeach
+                    </select>
                     <datalist id="einbauorte-bst">
                         @foreach (['Links', 'Rechts', 'Vorne', 'Vorne links', 'Vorne Mitte', 'Vorne rechts'] as $ort)
                             <option value="{{ $ort }}"></option>
@@ -441,6 +445,14 @@
                                         <input class="inp" name="glas" value="{{ $d['glas'] ?? '' }}"></div>
                                     <div class="fld"><label>Einbauort</label>
                                         <input class="inp" name="einbauort" value="{{ $d['einbauort'] ?? '' }}" list="einbauorte-bst" placeholder="z. B. Vorne links"></div>
+                                    @php $dirSchluessel = \App\Support\GlasSkizze::richtungSchluessel($d['dir'] ?? null); @endphp
+                                    <div class="fld"><label>Öffnungsrichtung (Ansicht außen)</label>
+                                        <select class="inp" name="dir">
+                                            <option value="">–</option>
+                                            @foreach (['left' => 'Nach links', 'right' => 'Nach rechts', 'center' => 'Mittig'] as $k => $r)
+                                                <option value="{{ $r }}" @selected($dirSchluessel === $k)>{{ $r }}</option>
+                                            @endforeach
+                                        </select></div>
                                 </div>
                             @else
                                 <div class="fld"><label>Menge</label>

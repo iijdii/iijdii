@@ -99,23 +99,26 @@ final class AufmassRechner
                     ], 'Diagonale beidseitig prüfen — Differenz max. 4 mm. Bei H links ≠ H rechts als Trapez fertigen. Füllung '.($f['glas'] ?? '–').'.',
                         ['qty' => $n]];
                 })(),
-                'schiebe' => (function () use ($feld, $f, $I, $n) {
+                'schiebe' => (function () use ($feld, $f, $em, $I, $n, $position) {
                     $sw = $I($f['breite_mm'] ?? 0);
                     $sh = $I($f['hoehe_mm'] ?? 0);
-                    $fl = $n > 0 ? (int) round(($sw + ($n - 1) * 60) / $n) : 0;
-                    $dir = match ($f['richtung'] ?? '') {
-                        'Nach links' => 'left', 'Nach rechts' => 'right', default => '',
-                    };
+                    $fl = $n > 0 && $sw > 0 ? (int) round(($sw + ($n - 1) * 60) / $n) : 0;
+                    // Öffnungsrichtung: im Montage-Modus korrigiert gewinnt.
+                    $richtung = (string) ($em['richtung'] ?? $f['richtung'] ?? '');
+                    $dir = GlasSkizze::richtungSchluessel($richtung) ?? '';
 
                     $einbauort = trim((string) ($f['einbauort'] ?? ''));
 
-                    return ['schiebe', ($einbauort !== '' ? $einbauort.' · ' : '').$n.' Flügel · '.strtolower($f['richtung'] ?? 'mittig'), [
+                    return ['schiebe', ($einbauort !== '' ? $einbauort.' · ' : '').$n.' Flügel · öffnet '.mb_strtolower($richtung !== '' ? $richtung : 'mittig'), [
                         $feld('A', 'Anlage Breite', 'breite_mm', $sw),
                         $feld('B', 'Anlage Höhe', 'hoehe_mm', $sh),
                         $feld('C', 'Flügelbreite', 'fluegel_mm', $fl),
                         $feld('D', 'Laufschiene', 'laufschiene_mm', $sw),
                     ], ($einbauort !== '' ? 'Einbauort: '.$einbauort.'. ' : '').'Laufschiene auf Waage prüfen — max. 2 mm über die Gesamtbreite. Füllung '.(ProduktFelder::fuellung($f) ?: '–').'.',
-                        ['dir' => $dir, 'qty' => $n]];
+                        // Flügelzahl statt «× n Stk» (eine Anlage mit n Flügeln);
+                        // Öffnungsrichtung im Montage-Modus änderbar (optionen[pid][richtung]).
+                        ['dir' => $dir, 'fluegel' => $n, 'qty' => 1,
+                            'richtung' => ['pid' => $position->id, 'wert' => GlasSkizze::richtungSchluessel($richtung)]]];
                 })(),
                 'keil' => (function () use ($feld, $f, $I, $n, $kalk) {
                     // Eingegebene Maße der Position gewinnen; ohne Eingabe
@@ -265,7 +268,7 @@ final class AufmassRechner
                 $feld('schiebe', 'C', 'Flügelbreite', $fl),
                 $feld('schiebe', 'D', 'Laufschiene', $sw),
             ], 'Laufschiene auf Waage prüfen — max. 2 mm über die Gesamtbreite. Füllung '.($s['glas'] ?? '–').'.',
-                ['dir' => $s['dir'] ?? '', 'qty' => $n]);
+                ['dir' => $s['dir'] ?? '', 'fluegel' => $n, 'qty' => 1]);
         }
 
         if ($hat('Markisen')) {
