@@ -7,9 +7,13 @@
     ];
 @endphp
 
-<div class="colstack">
-    <div class="card">
-        <div class="mc-h"><svg class="i"><use href="#ic-plus"/></svg>Foto hochladen</div>
+{{-- Eine Karte: Hochladen oben, darunter Vorher/Nachher. --}}
+<div class="card p0">
+    <div class="card-h">
+        <span class="card-t">Baustellenfotos</span>
+        <span class="pill">{{ $fotos->count() }} Fotos</span>
+    </div>
+    <div class="card-b">
         <form method="POST" action="{{ route('projekte.fotos.upload', $projekt) }}"
               enctype="multipart/form-data" class="fx ac gap8 wrap">
             @csrf
@@ -18,37 +22,30 @@
                 <option value="nachher">Nach der Montage</option>
             </select>
             <input class="inp" type="file" name="foto" accept="image/*" style="flex:1;min-width:200px">
-            <button class="btn btns btnp" type="submit"><svg class="i"><use href="#ic-check"/></svg>Hochladen</button>
+            <button class="btn btns" type="submit"><svg class="i"><use href="#ic-plus"/></svg>Hochladen</button>
         </form>
         @error('foto')<p class="hint" style="color:var(--red);margin-top:8px">{{ $message }}</p>@enderror
         @error('phase')<p class="hint" style="color:var(--red);margin-top:8px">{{ $message }}</p>@enderror
-    </div>
 
-    @foreach ($gruppen as $typ => $titel)
-        @php $bilder = $fotos->where('typ', $typ)->values(); @endphp
-        <div class="card p0">
-            <div class="card-h">
-                <span class="card-t">{{ $titel }}</span>
-                <span class="pill">{{ $bilder->count() }} Fotos</span>
-            </div>
-            <div class="card-b">
-                @if ($bilder->isEmpty())
-                    <p class="hint">Noch keine Fotos {{ $typ === 'foto_vorher' ? 'vor' : 'nach' }} der Montage.</p>
-                @else
-                    <div class="fotogrid">
-                        @foreach ($bilder as $foto)
-                            <figure class="foto">
-                                <img src="{{ route('dokumente.ansicht', $foto) }}" alt="{{ $foto->dateiname }}"
-                                     loading="lazy" data-foto-preview="{{ route('dokumente.ansicht', $foto) }}"
-                                     data-foto-name="{{ $foto->dateiname }}">
-                                <figcaption class="hint">{{ \App\Support\Format::datumKurz($foto->datum) }}</figcaption>
-                            </figure>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
-        </div>
-    @endforeach
+        @foreach ($gruppen as $typ => $titel)
+            @php $bilder = $fotos->where('typ', $typ)->values(); @endphp
+            <div class="specsec" style="margin-top:16px">{{ $titel }} · {{ $bilder->count() }}</div>
+            @if ($bilder->isEmpty())
+                <p class="hint">Noch keine Fotos {{ $typ === 'foto_vorher' ? 'vor' : 'nach' }} der Montage.</p>
+            @else
+                <div class="fotogrid">
+                    @foreach ($bilder as $foto)
+                        <figure class="foto">
+                            <img src="{{ route('dokumente.ansicht', $foto) }}" alt="{{ $foto->dateiname }}"
+                                 loading="lazy" data-foto-preview="{{ route('dokumente.ansicht', $foto) }}"
+                                 data-foto-name="{{ $foto->dateiname }}">
+                            <figcaption class="hint">{{ \App\Support\Format::datumKurz($foto->datum) }}</figcaption>
+                        </figure>
+                    @endforeach
+                </div>
+            @endif
+        @endforeach
+    </div>
 </div>
 
 {{-- Vorschau-Fenster: JS setzt src aus data-foto-preview --}}

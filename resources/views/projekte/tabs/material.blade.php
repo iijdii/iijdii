@@ -1,7 +1,7 @@
 {{-- Material + Bestellungen: links die Vorbestell-Liste aus der
-     Konfiguration, rechts Aufmaß-Freigabe, reserviertes Lagermaterial
-     (kompakt) und die Bestellungen des Objekts — die volle
-     Bestell-Tabelle öffnet im Fenster. --}}
+     Konfiguration und die Bestellungen des Objekts, rechts Aufmaß-Freigabe
+     und reserviertes Lagermaterial — die volle Bestell-Tabelle öffnet im
+     Fenster. --}}
 @php
     use App\Support\Format;
     $geliefert = collect($materialListe)->where('status', 'Geliefert')->count();
@@ -40,6 +40,33 @@
                 <p class="hint" style="margin-top:10px">Hauptpositionen nach KD-Stückliste, automatisch aus dem
                     Konfigurator. Nach der Aufmaß-Bestätigung wird daraus per «Bestellung aus Positionen» der
                     Bestell-Entwurf; Kleinteile (Schrauben, Silikon, Dichtungen) ergänzen Sie dort.</p>
+            </div>
+        </div>
+
+        <div class="card p0">
+            <div class="card-h">
+                <span class="card-t">Bestellungen zu diesem Objekt</span>
+                <span class="pill">{{ $bestellungen->count() }}</span>
+            </div>
+            <div class="card-b">
+                @if ($bestellungen->isEmpty())
+                    <p class="hint">Noch keine Bestellungen — nach der Aufmaß-Bestätigung per
+                        «Bestellung aus Positionen» erzeugen.</p>
+                @else
+                    @foreach ($bestellungen as $bestellung)
+                        <a class="spec-row" style="text-decoration:none;color:inherit"
+                           href="{{ route('bestellungen.show', $bestellung) }}">
+                            <span class="spec-k" style="min-width:0">
+                                <span class="b mono" style="color:var(--ink)">{{ $bestellung->nr }}</span><br>
+                                <span>{{ $bestellung->lieferant?->name ?? '— Lieferant wählen —' }}</span>
+                            </span>
+                            <span style="flex:none;text-align:right">@include('bestellungen.partials.status', ['b' => $bestellung])</span>
+                        </a>
+                    @endforeach
+                    <button class="btn btns btn-block" type="button" style="margin-top:10px"
+                            data-modal-target="bestellungen-modal">
+                        <svg class="i"><use href="#ic-expand"/></svg>Übersicht im Fenster öffnen</button>
+                @endif
             </div>
         </div>
     </div>
@@ -91,33 +118,6 @@
                     </div>
                     <a class="hint" href="{{ route('lager', ['tab' => 'wareneingang']) }}" style="text-decoration:underline">Lager öffnen →</a>
                 </form>
-            </div>
-        </div>
-
-        <div class="card p0">
-            <div class="card-h">
-                <span class="card-t">Bestellungen zu diesem Objekt</span>
-                <span class="pill">{{ $bestellungen->count() }}</span>
-            </div>
-            <div class="card-b">
-                @if ($bestellungen->isEmpty())
-                    <p class="hint">Noch keine Bestellungen — nach der Aufmaß-Bestätigung per
-                        «Bestellung aus Positionen» erzeugen.</p>
-                @else
-                    @foreach ($bestellungen as $bestellung)
-                        <a class="spec-row" style="text-decoration:none;color:inherit"
-                           href="{{ route('bestellungen.show', $bestellung) }}">
-                            <span class="spec-k" style="min-width:0">
-                                <span class="b mono" style="color:var(--ink)">{{ $bestellung->nr }}</span><br>
-                                <span>{{ $bestellung->lieferant?->name ?? '— Lieferant wählen —' }}</span>
-                            </span>
-                            <span style="flex:none;text-align:right">@include('bestellungen.partials.status', ['b' => $bestellung])</span>
-                        </a>
-                    @endforeach
-                    <button class="btn btns btn-block" type="button" style="margin-top:10px"
-                            data-modal-target="bestellungen-modal">
-                        <svg class="i"><use href="#ic-expand"/></svg>Übersicht im Fenster öffnen</button>
-                @endif
             </div>
         </div>
     </div>

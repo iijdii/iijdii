@@ -8,10 +8,14 @@
         <span class="card-t">LED-Plan</span>
         <span class="card-akt">
             <span class="pill">{{ $ledKpi['gesetzt'] }} / {{ $ledKpi['total'] }} Spots</span>
-            <button class="btn btns btnp" type="button" data-led-modal-open>
+            <button class="btn btns" type="button" data-led-modal-open>
                 <svg class="i"><use href="#ic-expand"/></svg>LED-Positionen festlegen</button>
         </span>
     </div>
+    @if ($ledKpi['gesetzt'] === 0)
+        <div class="card-b"><p class="hint">Noch keine Lampen gesetzt — Positionen können schon jetzt vom Verkäufer
+            festgelegt werden, der Monteur passt sie vor Ort an.</p></div>
+    @else
     <div class="card-b">
         {{-- Kompakt auf der Übersicht — das große Fenster öffnet der Knopf oben. --}}
         <div style="position:relative;max-width:560px;margin:0 auto">
@@ -34,11 +38,8 @@
             @endforeach
         </div>
 
-        @if ($ledZeichnung['abstaende'] === [])
-            <p class="hint">Noch keine Lampen gesetzt — Positionen können schon jetzt vom Verkäufer
-                festgelegt werden, der Monteur passt sie vor Ort an.</p>
-        @endif
     </div>
+    @endif
 </div>
 
 @include('projekte.partials.led-modal', ['ledZurueck' => 'projekt'])

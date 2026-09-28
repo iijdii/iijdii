@@ -25,7 +25,8 @@
                     <svg class="i"><use href="#ic-zoom"/></svg>Bemaßung im Detail</button>
             </div>
             <div class="card-b">
-                <div class="draw-grid lg">
+                {{-- Hauptansicht groß, die übrigen als kleine Vorschauen (Klick = groß) --}}
+                <div class="draw-grid hero">
                     @foreach (\App\Support\RoofZeichnung::ANSICHTEN as $i => $ansicht)
                         <button class="dtile" type="button" data-roof-open="{{ $i }}">
                             <span class="dtl">{{ \App\Support\RoofZeichnung::TITEL[$ansicht] }}</span>
@@ -94,7 +95,7 @@
                                             'details' => [], 'menge' => $feld['menge'],
                                         ];
                                     @endphp
-                                    <div style="width:200px;flex:0 0 auto">
+                                    <div style="flex:0 1 auto;max-width:100%">
                                         @include('bestellungen.partials.glas-skizze', ['glas' => [
                                             'skizze' => \App\Support\GlasSkizze::position($feld['breite'], $kalk['glasT'], $kalk['glasT'], false),
                                             'position' => $skizzenPosition,
@@ -164,14 +165,13 @@
         @empty
             <div class="card"><p class="hint">Noch keine Dach-Position — über «Position hinzufügen» starten.</p></div>
         @endforelse
-    </div>
 
-    <div class="colstack prj-mitte">
-        {{-- LED-Plan in der Mittelspalte neben dem Produktpass --}}
+        {{-- LED-Plan unter dem Produktpass (ohne gesetzte Lampen kompakt) --}}
         @isset ($ledZeichnung)
             @include('projekte.partials.led-plan')
         @endisset
     </div>
+
 
     <div class="colstack prj-side">
         @if ($vorschau)
@@ -259,8 +259,8 @@
 
         <div class="card">
             <button class="btn btns btn-block" type="button" data-modal-target="posmodal-neu">
-                <svg class="i"><use href="#ic-plus"/></svg>Position hinzufügen
-                <span class="hint" style="margin-left:6px">Extras · Sonnenschutz{{ $dachPosition ? '' : ' · Dach' }}</span></button>
+                <svg class="i"><use href="#ic-plus"/></svg>Position hinzufügen</button>
+            <p class="hint" style="margin-top:6px;text-align:center">Extras · Sonnenschutz{{ $dachPosition ? '' : ' · Dach' }}</p>
         </div>
     </div>
 </div>

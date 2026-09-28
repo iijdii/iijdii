@@ -1,5 +1,5 @@
-{{-- Kunde & Termine: Stammdaten des Projekts an einem Ort — Kundenkarte,
-     Herkunft (Anfrage), Montage-Termine und Verantwortung. --}}
+{{-- Kunde & Termine: eine Kundenkarte (inkl. Herkunft und Notizen)
+     neben Montage-Terminen und Verantwortung. --}}
 <div class="cols-2">
     <div class="colstack">
         <div class="card">
@@ -14,25 +14,18 @@
                 @if ($projekt->kunde->email)
                     <span class="pk"><span>E-Mail</span><b>{{ $projekt->kunde->email }}</b></span>
                 @endif
+                @if ($projekt->anfrage)
+                    <span class="pk"><span>Herkunft</span><b>Anfrage
+                        <a href="{{ route('anfragen.show', $projekt->anfrage) }}" class="mono">{{ $projekt->anfrage->nummer }}</a></b></span>
+                @endif
             </div>
+            @if ($projekt->kunde->notizen)
+                <div class="mm-note" style="margin-top:12px"><svg class="i"><use href="#ic-anfragen"/></svg>{{ $projekt->kunde->notizen }}</div>
+            @endif
             <a class="btn btns" style="margin-top:12px" href="{{ route('kunden.show', $projekt->kunde) }}">
                 <svg class="i"><use href="#ic-kunden"/></svg>Kundenakte öffnen</a>
         </div>
 
-        @if ($projekt->anfrage)
-            <div class="card">
-                <div class="mc-h"><svg class="i"><use href="#ic-anfragen"/></svg>Herkunft</div>
-                <p class="hint">Dieses Projekt entstand aus der Anfrage
-                    <a href="{{ route('anfragen.show', $projekt->anfrage) }}" class="mono">{{ $projekt->anfrage->nummer }}</a>.</p>
-            </div>
-        @endif
-
-        @if ($projekt->kunde->notizen)
-            <div class="card">
-                <div class="mc-h"><svg class="i"><use href="#ic-anfragen"/></svg>Kunden-Notizen</div>
-                <p class="note">{{ $projekt->kunde->notizen }}</p>
-            </div>
-        @endif
     </div>
 
     <div class="colstack">

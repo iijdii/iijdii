@@ -7,28 +7,28 @@
 @section('content')
 <div class="colstack">
 
-    <div class="card">
-        <div class="jb wrap">
-            <a class="btn btns" href="{{ route('projekte') }}">
-                <svg class="i"><use href="#ic-aleft"/></svg>Zurück zur Projektliste</a>
-            <span class="ctas">
-                <a class="btn btns btnp" href="{{ route('projekte.montage', $projekt) }}">
-                    <svg class="i"><use href="#ic-layers"/></svg>Montage-Modus</a>
+    {{-- Kopf: Titel, Kerndaten, Ablauf. Status per Auswahlliste statt
+         Knopfreihe; hervorgehoben ist nur der Montage-Modus. --}}
+    <div class="card prj-kopf">
+        <div class="jb wrap" style="gap:10px">
+            <span class="fx ac gap8 wrap">
+                <a class="btn btns" href="{{ route('projekte') }}" title="Zurück zur Projektliste">
+                    <svg class="i"><use href="#ic-aleft"/></svg>Projekte</a>
+                <span class="anf-nr mono">{{ $projekt->nr }}</span>
+                <span class="badge {{ $projekt->status->badgeClass() }}">{{ $projekt->status->label() }}</span>
+                @if ($projekt->konfiguration === null && ! $vorschau)
+                    <span class="badge b-yellow">Standardkonfiguration — noch nicht erfasst</span>
+                @endif
             </span>
+            <a class="btn btns btnp" href="{{ route('projekte.montage', $projekt) }}">
+                <svg class="i"><use href="#ic-layers"/></svg>Montage-Modus</a>
         </div>
-        <div class="fx" style="margin-top:14px">
-            <span class="anf-nr mono">{{ $projekt->nr }}</span>
-            @if ($projekt->konfiguration === null && ! $vorschau)
-                <span class="badge b-yellow">Standardkonfiguration — noch nicht erfasst</span>
-            @endif
-            <span class="badge {{ $projekt->status->badgeClass() }}">{{ $projekt->status->label() }}</span>
-        </div>
-        <h2 class="serif" style="margin:8px 0 14px;font-size:23px">{{ $projekt->titel }}</h2>
-        <div class="metarow">
+        <h2 class="serif prj-titel" style="font-size:23px;margin:12px 0">{{ $projekt->titel }}</h2>
+        <div class="metarow prj-meta">
+            <span><span class="meta-k">Kunde</span><span class="meta-v">{{ $projekt->kunde->anzeigename }} <span class="mono" style="color:var(--ink3);font-weight:500">{{ $projekt->kunde->kunden_nr }}</span></span></span>
             <span><span class="meta-k">Projektleiter</span><span class="meta-v">{{ $projekt->projektleiter?->name ?? '–' }}</span></span>
-            <span><span class="meta-k">Erstellt am</span><span class="meta-v mono">{{ Format::datum($projekt->created_at) }}</span></span>
-            <span><span class="meta-k">Kundennummer</span><span class="meta-v mono">{{ $projekt->kunde->kunden_nr }}</span></span>
-            <span><span class="meta-k">Angebotsnummer</span><span class="meta-v mono">{{ $projekt->angebot?->nr ?? '—' }}</span></span>
+            <span><span class="meta-k">Montage</span><span class="meta-v mono">{{ $projekt->termin_von ? Format::datum($projekt->termin_von) : '–' }}</span></span>
+            <span><span class="meta-k">Angebot</span><span class="meta-v mono">{{ $projekt->angebot?->nr ?? '—' }}</span></span>
             <span><span class="meta-k">Auftragswert</span><span class="meta-v mono">{{ $projekt->angebot?->summe !== null && $projekt->angebot ? Format::eur($projekt->angebot->summe) : 'in Konfiguration' }}</span></span>
         </div>
         <div class="stepper">
@@ -45,17 +45,16 @@
             @endforeach
         </div>
 
-        <div class="fx ac gap8" style="margin-top:10px;flex-wrap:wrap">
-            <span class="hint">Status setzen:</span>
-            @foreach (\App\Enums\ProjektStatus::cases() as $status)
-                <form method="POST" action="{{ route('projekte.status', $projekt) }}">
-                    @csrf
-                    <input type="hidden" name="status" value="{{ $status->value }}">
-                    <button class="btn btns {{ $status === $projekt->status ? 'btnp' : '' }}"
-                            type="submit" @disabled($status === $projekt->status)>{{ $status->label() }}</button>
-                </form>
-            @endforeach
-        </div>
+        <form method="POST" action="{{ route('projekte.status', $projekt) }}" class="fx ac gap8 prj-status">
+            @csrf
+            <label class="hint" for="prj-status">Status setzen:</label>
+            <select class="inp" id="prj-status" name="status" onchange="this.form.submit()">
+                @foreach (\App\Enums\ProjektStatus::cases() as $status)
+                    <option value="{{ $status->value }}" @selected($status === $projekt->status)>{{ $status->label() }}</option>
+                @endforeach
+            </select>
+            <noscript><button class="btn btns" type="submit">Setzen</button></noscript>
+        </form>
     </div>
 
     @php
@@ -68,7 +67,7 @@
     {{-- Alle Bereiche auf einer Seite — die Tabs springen als Anker
          (Scrollspy in app.js hebt den aktiven Bereich hervor). --}}
     <div class="anf-tools prj-tabs" data-prj-tabs data-start="{{ $tab }}">
-        <div class="seg" style="flex-wrap:wrap">
+        <div class="seg prj-seg">
             @foreach ($bereiche as $key => $label)
                 <a class="{{ $key === 'uebersicht' ? 'on' : '' }}" data-sek="sek-{{ $key }}"
                    href="#sek-{{ $key }}">{{ $label }}</a>

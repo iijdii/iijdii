@@ -64,9 +64,12 @@ class ProjektePageTest extends TestCase
     {
         // Der LED-Plan (gleiche Zeichnung wie im Montage-Modus) liegt auf
         // der Übersicht; der Verkäufer darf Lampen setzen.
+        // Ohne gesetzte Lampen bleibt die Karte kompakt (keine leere Zeichnung).
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011?tab=uebersicht')
             ->assertSee('LED-Plan')
-            ->assertSee('LED-Positionen festlegen');
+            ->assertSee('LED-Positionen festlegen')
+            ->assertSee('Noch keine Lampen gesetzt')
+            ->assertDontSee('class="pl-lbl"', false);
 
         $this->actingAs($this->benutzer)
             ->post('/projekte/PRJ-2026-011/montage/led', ['pos' => 's2.0', 'zurueck' => 'projekt'])
@@ -242,7 +245,7 @@ class ProjektePageTest extends TestCase
         $this->assertSame('in_montage', $projekt->fresh()->status->value);
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-035')
             ->assertSee('Status setzen:')
-            ->assertSee('In Montage');
+            ->assertSee('<option value="in_montage" selected>In Montage</option>', false);
     }
 
     public function test_standardkonfigurations_hinweis(): void
