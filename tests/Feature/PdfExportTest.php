@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Bestellung;
 use App\Models\Dokument;
 use App\Models\Projekt;
 use App\Models\User;
@@ -10,6 +11,7 @@ use App\Support\PdfSkizze;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\View;
 use Tests\TestCase;
 
 class PdfExportTest extends TestCase
@@ -61,6 +63,23 @@ class PdfExportTest extends TestCase
         $antwort->assertOk()->assertDownload('Bestellung_BST-2026-112_DEMO-Demo.pdf');
         $this->assertStringStartsWith('%PDF', $antwort->getContent());
         $this->assertSame(1, Dokument::query()->where('dateiname', 'Bestellung_BST-2026-112_DEMO-Demo.pdf')->count());
+    }
+
+    public function test_bestellung_pdf_ohne_hinweise_und_unterschriften(): void
+    {
+        Bestellung::query()->where('nr', 'BST-2026-112')->update(['notizen' => 'Interne Notiz nur für LEA']);
+        $daten = null;
+        View::composer('bestellungen.pdf', function ($view) use (&$daten) {
+            $daten = $view->getData();
+        });
+
+        $this->actingAs($this->benutzer)->get('/bestellungen/BST-2026-112/pdf')->assertOk();
+        $html = view('bestellungen.pdf', $daten)->render();
+
+        $this->assertStringContainsString('BESTELLUNG', $html);
+        $this->assertStringNotContainsString('Interne Notiz nur für LEA', $html);
+        $this->assertStringNotContainsString('Bestätigung Produktion / Lieferant', $html);
+        $this->assertStringNotContainsString('Datum / Bearbeiter LEA', $html);
     }
 
     public function test_pdf_skizze_glas_traegt_masse_und_rohmass(): void

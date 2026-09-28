@@ -33,9 +33,6 @@
     .skiztab tr { page-break-inside: avoid; }
     .spez { background: #eef4fb; border-left: 3px solid #2f6bb0; border-radius: 3px; padding: 7px 10px; margin-top: 7px; font-size: 10px; }
     .spez-t { color: #2f6bb0; font-weight: bold; margin-bottom: 3px; }
-    .sigtab { width: 100%; border-collapse: collapse; margin-top: 30px; page-break-inside: avoid; }
-    .sigtab td { width: 46%; border-top: 1.4px solid #243447; padding-top: 5px; font-size: 9.5px; color: #47586b; }
-    .sigtab td.zw { width: 8%; border-top: none; }
     /* Varisol-Bestellblatt */
     .vb-kopf { width: 100%; border-collapse: collapse; }
     .vb-kopf td { padding: 2px 6px; font-size: 9.5px; border-bottom: 1px solid #dbe2ea; }
@@ -124,7 +121,7 @@
         <div class="karte karte-teilbar">
             <div class="karte-kopf">Dachglas – Einzelskizzen je Position</div>
             <table class="skiztab">
-                <thead><tr><th style="width:9mm">Pos.</th><th style="width:72mm">Skizze</th><th>Maße / Hinweise</th></tr></thead>
+                <thead><tr><th style="width:9mm">Pos.</th><th style="width:72mm">Skizze</th><th>Maße / Angaben</th></tr></thead>
                 <tbody>
                 @foreach ($glasPositionen as $g)
                     @php
@@ -165,7 +162,7 @@
         <div class="karte karte-teilbar">
             <div class="karte-kopf">Schiebesystem(e) – Skizzen mit Öffnungsrichtung</div>
             <table class="skiztab">
-                <thead><tr><th style="width:9mm">Pos.</th><th style="width:72mm">Skizze (Ansicht von außen)</th><th>Maße / Hinweise</th></tr></thead>
+                <thead><tr><th style="width:9mm">Pos.</th><th style="width:72mm">Skizze (Ansicht von außen)</th><th>Maße / Angaben</th></tr></thead>
                 <tbody>
                 @foreach ($schiebePositionen as $s)
                     <tr>
@@ -257,18 +254,6 @@
         </div>
     @endif
 
-    @if ($bestellung->notizen)
-        <div class="karte">
-            <div class="karte-kopf">Hinweise</div>
-            <div class="karte-korp">{{ $bestellung->notizen }}</div>
-        </div>
-    @endif
-
-    <table class="sigtab"><tr>
-        <td>Datum / Bearbeiter LEA</td>
-        <td class="zw"></td>
-        <td>Bestätigung Produktion / Lieferant</td>
-    </tr></table>
     @endunless
 
     @foreach ($markisenPositionen as $markise)
