@@ -7,7 +7,10 @@ use App\Models\Dokument;
 use App\Models\Projekt;
 use App\Models\User;
 use App\Support\GlasSkizze;
+use App\Support\KonfiguratorRechner;
+use App\Support\PdfDachZeichnung;
 use App\Support\PdfSkizze;
+use App\Support\RoofZeichnung;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -132,6 +135,46 @@ class PdfExportTest extends TestCase
 
         $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011/pdf');
         $this->assertSame(1, Dokument::query()->where('dateiname', 'Projektmappe_PRJ-2026-011_DEMO-Demo.pdf')->count());
+    }
+
+    public function test_projektmappe_enthaelt_zuschnitte_zeichnungen_und_extras(): void
+    {
+        $projekt = Projekt::query()->where('nr', 'PRJ-2026-011')->firstOrFail();
+        $projekt->positionen()->create([
+            'pos' => 2, 'gruppe' => 'extra', 'produkt' => 'wand', 'phase' => 2,
+            'felder' => ['breite_mm' => 3000, 'h_links_mm' => 2000, 'h_rechts_mm' => 2400, 'anzahl' => 3, 'glas' => 'VSG 8 mm'],
+        ]);
+        $daten = null;
+        View::composer('projekte.pdf', function ($view) use (&$daten) {
+            $daten = $view->getData();
+        });
+
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-011/pdf')->assertOk();
+        $html = view('projekte.pdf', $daten)->render();
+
+        // Stückliste mit Zuschnittmaßen (Sparren = Tiefe − 110)
+        $this->assertStringContainsString('Materialliste mit Zuschnittmaßen', $html);
+        $this->assertStringContainsString('Sparren/Träger (Profil 47047)', $html);
+        $this->assertStringContainsString('L 3.390 mm', $html);
+        // Verglasung mit Skizze, Wand mit Glaszuschnitt je Feld
+        $this->assertStringContainsString('12 Felder · Zuschnitt 692 × 3.450 mm', $html);
+        $this->assertStringContainsString('Pos. 2 · Wand / Festelement', $html);
+        $this->assertStringContainsString('985 mm', $html);
+        // Fünf bemaßte Zeichnungen + Glasfeld-Skizze als eingebettete SVG-Bilder
+        $this->assertStringContainsString('Technische Zeichnungen', $html);
+        $this->assertSame(6, substr_count($html, 'data:image/svg+xml;base64,'));
+    }
+
+    public function test_pdf_dachzeichnung_ohne_css_klassen_und_muster(): void
+    {
+        $kalk = KonfiguratorRechner::berechne(Projekt::query()->where('nr', 'PRJ-2026-011')->firstOrFail()->konfiguration);
+        $svg = base64_decode(substr(PdfDachZeichnung::dataUri(RoofZeichnung::ansicht('top', $kalk)), 26));
+
+        $this->assertStringContainsString('<text', $svg);
+        $this->assertStringContainsString('8630', $svg);
+        $this->assertStringNotContainsString('class=', $svg);
+        $this->assertStringNotContainsString('url(#', $svg);
+        $this->assertStringNotContainsString('rgba(', $svg);
     }
 
     public function test_pdf_vorschau_liefert_inline_statt_download(): void

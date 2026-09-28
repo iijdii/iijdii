@@ -17,6 +17,7 @@ use App\Support\LedPlan;
 use App\Support\Nummern;
 use App\Support\PdfArchiv;
 use App\Support\RoofZeichnung;
+use App\Support\Stueckliste;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -110,11 +111,18 @@ class ProjektController extends Controller
     /** Projektmappe: Kopf, Kunde, Technische Daten, Positionen, Materialliste. */
     public function pdf(Projekt $projekt): Response
     {
-        $projekt->load(['kunde', 'angebot']);
+        $projekt->load(['kunde', 'angebot', 'projektleiter', 'positionen']);
+        $kalk = KonfiguratorRechner::berechne($projekt->konfiguration ?? []);
 
+        // Projektmappe: Stammdaten, Technik, bemaßte Zeichnungen,
+        // Stückliste mit Zuschnittmaßen, Verglasung, Extras, Reservierungen.
         return PdfArchiv::liefere('projekte.pdf', [
             'projekt' => $projekt,
-            'kalk' => KonfiguratorRechner::berechne($projekt->konfiguration ?? []),
+            'kalk' => $kalk,
+            'roof' => RoofZeichnung::alle($kalk, [
+                'projekt' => $projekt->nr.' · '.$projekt->kunde->anzeigename,
+            ]),
+            'stueckliste' => Stueckliste::dach($kalk),
             'materialListe' => $this->lager->materialListe($projekt),
         ], 'Projektmappe_'.$projekt->nr, $projekt, 'projektmappe', null, $projekt->kunde);
     }
