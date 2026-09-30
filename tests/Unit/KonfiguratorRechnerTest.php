@@ -170,7 +170,8 @@ class KonfiguratorRechnerTest extends TestCase
         $this->assertSame(4, $e['rec']);
         $this->assertSame(6, $e['ledTot']);
 
-        // Alles außer exakt 0/6 wird 12 (Prototyp-Regel).
+        // 24 Spots als größeres Set; alles außer exakt 0/6/24 wird 12.
+        $this->assertSame(24, KonfiguratorRechner::berechne(['led' => ['total' => 24]])['ledTot']);
         $this->assertSame(12, KonfiguratorRechner::berechne(['led' => ['total' => 8]])['ledTot']);
     }
 

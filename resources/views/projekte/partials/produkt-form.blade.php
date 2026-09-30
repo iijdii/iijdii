@@ -201,6 +201,7 @@
                 <option value="0" @selected((int) $v('led.total', 12) === 0)>Keine Beleuchtung</option>
                 <option value="6" @selected((int) $v('led.total', 12) === 6)>6 Spots</option>
                 <option value="12" @selected((int) $v('led.total', 12) === 12)>12 Spots</option>
+                <option value="24" @selected((int) $v('led.total', 12) === 24)>24 Spots</option>
             </select></div>
         <div class="fld"><label>Lichtfarbe</label>
             <select class="inp" name="{{ $prefix }}[felder][led][color]">

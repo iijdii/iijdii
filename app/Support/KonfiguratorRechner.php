@@ -184,7 +184,7 @@ final class KonfiguratorRechner
         $glasT = max(0, $D - self::GLAS_ABZUG_TIEFE);
         // 0 = Dach ohne Beleuchtung (Set entfällt in Stückliste und Montage).
         $ledWahl = $I($p['led']['total'] ?? 12);
-        $ledTot = in_array($ledWahl, [0, 6], true) ? $ledWahl : 12;
+        $ledTot = in_array($ledWahl, [0, 6, 24], true) ? $ledWahl : 12;
 
         // Höhen ↔ Neigung (v3.2): beide Höhen → realer Winkel aus atan;
         // nur eine Höhe → die andere folgt aus der Neigung.

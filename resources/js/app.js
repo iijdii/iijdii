@@ -234,7 +234,7 @@ function kalkUpdate(scope) {
     const glasT = Math.max(0, d - 50);
     // 0 = «Keine Beleuchtung» — die kbox zeigt dann keinen Spot-Wert.
     const ledWahl = ledSel ? parseInt(ledSel.value, 10) : 12;
-    const ledTot = [0, 6].includes(ledWahl) ? ledWahl : 12;
+    const ledTot = [0, 6, 24].includes(ledWahl) ? ledWahl : 12;
     const de = (n) => n.toLocaleString('de-DE');
 
     // Pfosten-Positionen: manuelle CSV gewinnt, sonst symmetrisch verteilt.

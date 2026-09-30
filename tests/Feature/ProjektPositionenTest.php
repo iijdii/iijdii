@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Projekt;
 use App\Models\User;
+use App\Support\KonfiguratorRechner;
 use App\Support\ProduktFelder;
+use App\Support\Stueckliste;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -50,6 +52,16 @@ class ProjektPositionenTest extends TestCase
         $this->assertSame('nach hinten', $k['drain']['dir']);
         $this->assertSame('Bolzenanker', $k['duebel']['typ']);
         $this->assertSame(1150, $k['drain']['height']); // Default bleibt (merge)
+
+        // Großes LED-Set: 24 Spots → Kalkulation und Stückliste
+        $this->actingAs($this->benutzer)->put('/projekte/PRJ-2026-038/positionen/'.$projekt->positionen()->first()->id, [
+            'position' => ['produkt' => 'carport', 'felder' => ['width' => 5400, 'led' => ['total' => '24']]],
+        ])->assertSessionHas('toast', 'Position 1 aktualisiert');
+        $kalk = KonfiguratorRechner::berechne($projekt->fresh()->konfiguration);
+        $this->assertSame(24, $kalk['ledTot']);
+        $this->assertStringContainsString('LED-Set 24 Spots', implode(' | ', array_column(Stueckliste::dach($kalk), 'name')));
+        $this->actingAs($this->benutzer)->get('/projekte/PRJ-2026-038')
+            ->assertSee('<option value="24" selected>24 Spots</option>', false);
 
         // Zweite Dachposition wird abgewiesen
         $this->actingAs($this->benutzer)->post('/projekte/PRJ-2026-038/positionen', [

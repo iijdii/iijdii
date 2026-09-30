@@ -111,7 +111,7 @@ final class ProduktFelder
                 'duebel.size' => ['nullable', 'string', 'max:32'],
                 'duebel.abstand' => $mm,
                 'led' => ['nullable', 'array'],
-                'led.total' => ['nullable', Rule::in([0, 6, 12, '0', '6', '12'])],
+                'led.total' => ['nullable', Rule::in([0, 6, 12, 24, '0', '6', '12', '24'])],
                 'led.color' => ['nullable', Rule::in(['Warmweiß 3000K', 'Neutralweiß 4000K', 'RGBW'])],
             ]
             : match ($produkt) {

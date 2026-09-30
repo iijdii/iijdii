@@ -447,7 +447,7 @@ class ProjektController extends Controller
             ],
             'led' => [
                 'on' => true,
-                'total' => (int) $request->input('led.total', 12) === 6 ? 6 : 12,
+                'total' => in_array((int) $request->input('led.total', 12), [6, 24], true) ? (int) $request->input('led.total') : 12,
                 'color' => $enum($request->input('led.color'), ['Warmweiß 3000K', 'Neutralweiß 4000K', 'RGBW'], $d['led']['color']),
             ],
         ];
