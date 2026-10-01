@@ -320,7 +320,8 @@
         </div>
     </div>
 
-    @if (in_array($bestellung->status->value, ['entwurf', 'geprueft'], true))
+    {{-- Positionen pflegt nur LEA — im Lieferanten-Portal ausgeblendet. --}}
+    @if (! $portal && in_array($bestellung->status->value, ['entwurf', 'geprueft'], true))
         <div class="card p0">
             <div class="card-h">
                 <span class="card-t">Positionen erfassen</span>

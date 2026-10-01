@@ -125,6 +125,30 @@ class LieferantPortalTest extends TestCase
         $this->assertFalse($neu->fresh()->vom_lieferanten);
     }
 
+    public function test_lieferant_sieht_nur_die_bestellung_ohne_positionspflege(): void
+    {
+        $neu = $this->eigene(BestellungStatus::Entwurf);
+        $neu->update(['status' => BestellungStatus::Geprueft]);
+        $anzahl = $neu->positionen()->count();
+
+        $this->actingAs($this->portal)->get('/bestellungen/'.$neu->nr)
+            ->assertOk()
+            ->assertSee('Ihr Status')
+            ->assertDontSee('Positionen erfassen')
+            ->assertDontSee('Hinzufügen')
+            ->assertDontSee('pos-edit-', false);
+
+        // Auch direkt abgeschickt entstehen keine Positionen
+        $this->actingAs($this->portal)->post('/bestellungen/'.$neu->nr.'/positionen', [
+            'typ' => 'material', 'bezeichnung' => 'Fremdposition', 'menge' => 1,
+        ]);
+        $this->assertSame($anzahl, $neu->positionen()->count());
+
+        // LEA (Geprüft) pflegt die Positionen weiterhin
+        $verkauf = User::query()->where('email', 'verkauf@lea.test')->firstOrFail();
+        $this->actingAs($verkauf)->get('/bestellungen/'.$neu->nr)->assertSee('Positionen erfassen');
+    }
+
     public function test_lieferant_darf_keine_internen_status_setzen(): void
     {
         $eigene = $this->eigene(BestellungStatus::Bestellt);
