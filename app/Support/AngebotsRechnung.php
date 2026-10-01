@@ -32,7 +32,9 @@ final class AngebotsRechnung
         $rabatte = $angebot->rabatte ?? [];
         // Das Projekt ist die Quelle (Einheitssystem); die Kopie auf dem
         // Angebot trägt nur projektlose Alt-Angebote.
-        $konfiguration = $angebot->projekt?->konfiguration ?? $angebot->konfiguration;
+        $konfiguration = $angebot->projekt !== null
+            ? KonfigurationSync::bereinigt($angebot->projekt) ?? $angebot->konfiguration
+            : $angebot->konfiguration;
 
         $positionen = [];
         $zeile = function (string $key, string $titel, array $details, int $menge, int|float|null $listenpreis = null) use ($preise, $rabatte): array {

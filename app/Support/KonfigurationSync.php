@@ -22,7 +22,11 @@ final class KonfigurationSync
             return;
         }
 
-        $pcfg = ($dach->felder ?? []) + ['product' => $dach->produkt->konfiguratorProdukt()];
+        // Extras sind im Einheitssystem eigene Positionen: ohne explizite
+        // Alt-Extras in den Dach-Feldern bleibt die Liste leer — sonst
+        // brächte merge() die Default-Extras (Keile, Schiebe, Markisen)
+        // als Phantom-Positionen ins Angebot.
+        $pcfg = ($dach->felder ?? []) + ['product' => $dach->produkt->konfiguratorProdukt(), 'extras' => []];
 
         $projekt->forceFill(['konfiguration' => KonfiguratorRechner::merge($pcfg)])->saveQuietly();
 
@@ -33,6 +37,22 @@ final class KonfigurationSync
             $angebot->setRelation('projekt', $projekt);
             AngebotsRechnung::aktualisiereSumme($angebot);
         }
+    }
+
+    /**
+     * Konfiguration für Rechner/Angebot: Projekte mit Dach-Position, deren
+     * Felder keine Alt-Extras tragen, rechnen ohne pcfg-Extras (bereinigt
+     * auch vor dem Sync gespeicherte Konfigurationen).
+     */
+    public static function bereinigt(Projekt $projekt): ?array
+    {
+        $konfiguration = $projekt->konfiguration;
+        $dach = $projekt->positionen->firstWhere('gruppe', 'dach');
+        if ($konfiguration !== null && $dach !== null && ! array_key_exists('extras', $dach->felder ?? [])) {
+            $konfiguration['extras'] = [];
+        }
+
+        return $konfiguration;
     }
 
     /**

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ProjektStatus;
 use App\Models\Projekt;
 use App\Support\Format;
+use App\Support\KonfigurationSync;
 use App\Support\KonfiguratorRechner;
 use App\Support\Nummern;
 use App\Support\PdfArchiv;
@@ -162,7 +163,7 @@ class AbnahmeController extends Controller
             ])->all();
         }
 
-        $kalk = KonfiguratorRechner::berechne($projekt->konfiguration ?? []);
+        $kalk = KonfiguratorRechner::berechne(KonfigurationSync::bereinigt($projekt) ?? []);
 
         return array_map(fn ($pos) => [
             'pos' => $pos['pos'],

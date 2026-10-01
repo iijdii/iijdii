@@ -9,6 +9,7 @@ use App\Models\MontageZusatzmaterial;
 use App\Models\Projekt;
 use App\Models\Setting;
 use App\Support\AufmassRechner;
+use App\Support\KonfigurationSync;
 use App\Support\KonfiguratorRechner;
 use App\Support\LedPlan;
 use App\Support\MarkisenFormular;
@@ -24,7 +25,7 @@ class MontageController extends Controller
     {
         $projekt->load(['kunde', 'montageNotizen', 'montageZusatzmaterial', 'montageAufgaben.ersteller']);
 
-        $kalk = KonfiguratorRechner::berechne($projekt->konfiguration ?? []);
+        $kalk = KonfiguratorRechner::berechne(KonfigurationSync::bereinigt($projekt) ?? []);
         $p = $kalk['pcfg'];
         $aufmass = $projekt->aufmass ?? [];
         $gesetzt = $aufmass['led'] ?? [];

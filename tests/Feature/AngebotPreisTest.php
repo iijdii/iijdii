@@ -161,6 +161,36 @@ class AngebotPreisTest extends TestCase
         $this->assertSame('9000.00', $angebot->fresh()->summe);
     }
 
+    public function test_keine_phantom_extras_aus_der_standardkonfiguration(): void
+    {
+        // Anfrage nur mit Dach → im Angebot steht nur das Dach, keine
+        // Default-Extras (Keil, Schiebeanlage, Markise) aus dem Rechner.
+        $this->actingAs($this->verkauf)->post('/anfragen', [
+            'kunde_id' => 1, 'status' => 'neu',
+            'position' => ['produkt' => 'ueberdachung', 'felder' => ['width' => 6000, 'depth' => 3000]],
+        ]);
+        $projekt = Projekt::query()->orderByDesc('id')->firstOrFail();
+        $this->assertSame([], $projekt->konfiguration['extras']);
+        $titel = implode(' | ', array_column(AngebotsRechnung::fuer($projekt->angebot)['positionen'], 'titel'));
+        $this->assertStringNotContainsString('Keil', $titel);
+        $this->assertStringNotContainsString('Schiebeanlage', $titel);
+        $this->assertStringNotContainsString('Varisol', $titel);
+
+        // Altbestand (vor dem Fix gespeichert): Default-Extras in der
+        // Konfiguration werden beim Rechnen ignoriert …
+        $konfiguration = $projekt->konfiguration;
+        $konfiguration['extras'] = ['Keile', 'Schiebe-Elemente', 'Markisen'];
+        $projekt->forceFill(['konfiguration' => $konfiguration])->saveQuietly();
+        $angebot = $projekt->fresh()->angebot;
+        $this->assertSame(['dach'], array_column(AngebotsRechnung::fuer($angebot)['positionen'], 'key'));
+        $this->actingAs($this->verkauf)->get('/projekte/'.$projekt->nr.'/montage')
+            ->assertSee('keine Extras konfiguriert');
+
+        // … und die Datenkorrektur leert sie dauerhaft.
+        (require database_path('migrations/2026_10_01_000001_bereinige_phantom_extras_in_konfigurationen.php'))->up();
+        $this->assertSame([], $projekt->fresh()->konfiguration['extras']);
+    }
+
     public function test_extras_sind_eigene_positionen_statt_dach_beschreibung(): void
     {
         // Das Seed-Angebot trägt einen Keil als Extra in der Alt-Konfiguration.
